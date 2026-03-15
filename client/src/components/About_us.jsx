@@ -28,7 +28,9 @@ const AboutUs = () => {
         <div style={styles.container}>
           <div className="fade-in-up">
             <div style={styles.heroIcon}>
-              <Shield size={64} color="#0066cc" strokeWidth={1.5} />
+              <div style={styles.iconCircle}>
+                <Shield size={64} color="#0066cc" strokeWidth={1.5} />
+              </div>
             </div>
             <h1 style={styles.heroTitle}>About CyberShield</h1>
             <p style={styles.heroSubtitle}>
@@ -42,15 +44,15 @@ const AboutUs = () => {
           </div>
 
           <div style={styles.statsRow}>
-            <div style={styles.statBox} className="fade-in-up delay-1">
+            <div style={styles.statBox} className="fade-in-up delay-1 stat-hover">
               <div style={styles.statValue}>50,000+</div>
               <div style={styles.statLabel}>Protected Users</div>
             </div>
-            <div style={styles.statBox} className="fade-in-up delay-2">
+            <div style={styles.statBox} className="fade-in-up delay-2 stat-hover">
               <div style={styles.statValue}>100+</div>
               <div style={styles.statLabel}>Partner Institutions</div>
             </div>
-            <div style={styles.statBox} className="fade-in-up delay-3">
+            <div style={styles.statBox} className="fade-in-up delay-3 stat-hover">
               <div style={styles.statValue}>98%</div>
               <div style={styles.statLabel}>Success Rate</div>
             </div>
@@ -65,6 +67,7 @@ const AboutUs = () => {
             <button 
               onClick={() => setActiveTab('mission')}
               style={activeTab === 'mission' ? {...styles.tabButton, ...styles.tabButtonActive} : styles.tabButton}
+              className="tab-btn"
             >
               <Target size={20} />
               <span>Our Mission</span>
@@ -72,6 +75,7 @@ const AboutUs = () => {
             <button 
               onClick={() => setActiveTab('vision')}
               style={activeTab === 'vision' ? {...styles.tabButton, ...styles.tabButtonActive} : styles.tabButton}
+              className="tab-btn"
             >
               <TrendingUp size={20} />
               <span>Our Vision</span>
@@ -79,6 +83,7 @@ const AboutUs = () => {
             <button 
               onClick={() => setActiveTab('story')}
               style={activeTab === 'story' ? {...styles.tabButton, ...styles.tabButtonActive} : styles.tabButton}
+              className="tab-btn"
             >
               <Award size={20} />
               <span>Our Story</span>
@@ -145,9 +150,9 @@ const AboutUs = () => {
           </p>
 
           <div style={styles.featuresGrid}>
-            <div style={styles.featureCard} className="fade-in-up delay-1">
+            <div style={styles.featureCard} className="fade-in-up delay-1 feature-hover">
               <div style={styles.featureIcon}>
-                <Eye size={36} color="#0066cc" strokeWidth={1.5} />
+                <Eye size={40} color="#0066cc" strokeWidth={1.5} />
               </div>
               <h3 style={styles.featureTitle}>Threat Awareness</h3>
               <p style={styles.featureDesc}>
@@ -156,9 +161,9 @@ const AboutUs = () => {
               </p>
             </div>
 
-            <div style={styles.featureCard} className="fade-in-up delay-2">
+            <div style={styles.featureCard} className="fade-in-up delay-2 feature-hover">
               <div style={styles.featureIcon}>
-                <Lock size={36} color="#0066cc" strokeWidth={1.5} />
+                <Lock size={40} color="#0066cc" strokeWidth={1.5} />
               </div>
               <h3 style={styles.featureTitle}>Safe Practices</h3>
               <p style={styles.featureDesc}>
@@ -167,9 +172,9 @@ const AboutUs = () => {
               </p>
             </div>
 
-            <div style={styles.featureCard} className="fade-in-up delay-3">
+            <div style={styles.featureCard} className="fade-in-up delay-3 feature-hover">
               <div style={styles.featureIcon}>
-                <Brain size={36} color="#0066cc" strokeWidth={1.5} />
+                <Brain size={40} color="#0066cc" strokeWidth={1.5} />
               </div>
               <h3 style={styles.featureTitle}>Interactive Learning</h3>
               <p style={styles.featureDesc}>
@@ -191,9 +196,9 @@ const AboutUs = () => {
 
           <div style={styles.valuesGrid}>
             {values.map((value, index) => (
-              <div key={index} style={styles.valueCard} className="fade-in-up">
+              <div key={index} style={styles.valueCard} className="fade-in-up value-hover">
                 <div style={styles.valueIconBox}>
-                  <value.icon size={32} color="#0066cc" strokeWidth={1.5} />
+                  <value.icon size={36} color="#0066cc" strokeWidth={1.5} />
                 </div>
                 <h3 style={styles.valueTitle}>{value.title}</h3>
                 <p style={styles.valueDescription}>{value.description}</p>
@@ -213,12 +218,14 @@ const AboutUs = () => {
 
           <div style={styles.timeline}>
             {milestones.map((milestone, index) => (
-              <div key={index} style={styles.timelineItem} className="fade-in-up">
+              <div key={index} style={styles.timelineItem} className="fade-in-up timeline-hover">
                 <div style={styles.timelineYear}>{milestone.year}</div>
                 <div style={styles.timelineContent}>
                   <div style={styles.timelineDot}></div>
-                  <h3 style={styles.timelineTitle}>{milestone.title}</h3>
-                  <p style={styles.timelineDescription}>{milestone.description}</p>
+                  <div style={styles.timelineCard}>
+                    <h3 style={styles.timelineTitle}>{milestone.title}</h3>
+                    <p style={styles.timelineDescription}>{milestone.description}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -232,7 +239,7 @@ const AboutUs = () => {
           <h2 style={styles.sectionTitle}>Why Choose CyberShield?</h2>
           
           <div style={styles.whyGrid}>
-            <div style={styles.whyCard} className="fade-in-up delay-1">
+            <div style={styles.whyCard} className="fade-in-up delay-1 why-hover">
               <div style={styles.whyNumber}>01</div>
               <h3 style={styles.whyTitle}>Practical & Actionable</h3>
               <p style={styles.whyText}>
@@ -241,7 +248,7 @@ const AboutUs = () => {
               </p>
             </div>
 
-            <div style={styles.whyCard} className="fade-in-up delay-2">
+            <div style={styles.whyCard} className="fade-in-up delay-2 why-hover">
               <div style={styles.whyNumber}>02</div>
               <h3 style={styles.whyTitle}>Easy to Understand</h3>
               <p style={styles.whyText}>
@@ -250,7 +257,7 @@ const AboutUs = () => {
               </p>
             </div>
 
-            <div style={styles.whyCard} className="fade-in-up delay-3">
+            <div style={styles.whyCard} className="fade-in-up delay-3 why-hover">
               <div style={styles.whyNumber}>03</div>
               <h3 style={styles.whyTitle}>Always Up-to-Date</h3>
               <p style={styles.whyText}>
@@ -259,7 +266,7 @@ const AboutUs = () => {
               </p>
             </div>
 
-            <div style={styles.whyCard} className="fade-in-up delay-4">
+            <div style={styles.whyCard} className="fade-in-up delay-4 why-hover">
               <div style={styles.whyNumber}>04</div>
               <h3 style={styles.whyTitle}>Community Support</h3>
               <p style={styles.whyText}>
@@ -315,6 +322,62 @@ const internalCSS = `
     to { opacity: 1; }
   }
 
+  .stat-hover {
+    transition: all 0.3s ease;
+  }
+
+  .stat-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0, 102, 204, 0.15);
+  }
+
+  .tab-btn {
+    transition: all 0.3s ease;
+  }
+
+  .tab-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 102, 204, 0.1);
+  }
+
+  .feature-hover {
+    transition: all 0.3s ease;
+  }
+
+  .feature-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0, 102, 204, 0.12);
+    border-color: #0066cc;
+  }
+
+  .value-hover {
+    transition: all 0.3s ease;
+  }
+
+  .value-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 102, 204, 0.15);
+  }
+
+  .timeline-hover {
+    transition: all 0.3s ease;
+  }
+
+  .timeline-hover:hover .timeline-card {
+    transform: translateX(5px);
+    box-shadow: 0 10px 30px rgba(0, 102, 204, 0.12);
+  }
+
+  .why-hover {
+    transition: all 0.3s ease;
+  }
+
+  .why-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0, 102, 204, 0.15);
+    border-color: #0066cc;
+  }
+
   @media (max-width: 768px) {
     .stats-row { flex-direction: column; }
     .features-grid, .values-grid, .team-grid, .why-grid { 
@@ -327,7 +390,7 @@ const internalCSS = `
 const styles = {
   pageContainer: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    backgroundColor: '#ffffff',
+    background: 'linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 50%, #e8f4f8 100%)',
     color: '#1a1a1a',
     minHeight: '100vh',
     lineHeight: 1.6,
@@ -350,10 +413,23 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
   },
+  iconCircle: {
+    width: '140px',
+    height: '140px',
+    backgroundColor: '#ffffff',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 10px 40px rgba(0, 102, 204, 0.15)',
+  },
   heroTitle: {
     fontSize: '3.5rem',
     fontWeight: '800',
-    color: '#1a1a1a',
+    background: 'linear-gradient(135deg, #0066cc 0%, #0052a3 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
     marginBottom: '20px',
     letterSpacing: '-0.02em',
   },
@@ -365,7 +441,7 @@ const styles = {
   },
   heroDescription: {
     fontSize: '1.2rem',
-    color: '#4b5563',
+    color: '#374151',
     lineHeight: '1.8',
     maxWidth: '900px',
     margin: '0 auto 50px',
@@ -379,28 +455,32 @@ const styles = {
   },
   statBox: {
     textAlign: 'center',
-    padding: '30px 40px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '16px',
-    border: '2px solid #e2e8f0',
+    padding: '35px 45px',
+    backgroundColor: '#ffffff',
+    borderRadius: '20px',
+    border: 'none',
+    boxShadow: '0 8px 25px rgba(0, 102, 204, 0.1)',
   },
   statValue: {
     fontSize: '3rem',
     fontWeight: '800',
-    color: '#0066cc',
+    background: 'linear-gradient(135deg, #0066cc 0%, #0052a3 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
     marginBottom: '10px',
   },
   statLabel: {
     fontSize: '0.95rem',
     color: '#64748b',
-    fontWeight: '500',
+    fontWeight: '600',
   },
 
   // Tab Section
   tabSection: {
     padding: '60px 0',
-    backgroundColor: '#f9fafb',
-    margin: '60px -20px',
+    backgroundColor: 'transparent',
+    margin: '60px 0',
   },
   tabNav: {
     display: 'flex',
@@ -415,26 +495,26 @@ const styles = {
     gap: '10px',
     padding: '14px 28px',
     backgroundColor: '#ffffff',
-    border: '2px solid #e5e7eb',
+    border: 'none',
     borderRadius: '12px',
     fontSize: '1rem',
     fontWeight: '600',
     color: '#6b7280',
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 15px rgba(0, 102, 204, 0.08)',
   },
   tabButtonActive: {
-    backgroundColor: '#0066cc',
+    background: 'linear-gradient(135deg, #0066cc 0%, #0052a3 100%)',
     color: '#ffffff',
-    borderColor: '#0066cc',
+    boxShadow: '0 6px 20px rgba(0, 102, 204, 0.25)',
   },
   tabContent: {
     maxWidth: '800px',
     margin: '0 auto',
-    padding: '40px',
+    padding: '45px',
     backgroundColor: '#ffffff',
-    borderRadius: '20px',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+    borderRadius: '24px',
+    boxShadow: '0 10px 40px rgba(0, 102, 204, 0.12)',
   },
   contentTitle: {
     fontSize: '2.2rem',
@@ -456,13 +536,16 @@ const styles = {
   sectionTitle: {
     fontSize: '2.8rem',
     fontWeight: '800',
-    color: '#1a1a1a',
+    background: 'linear-gradient(135deg, #0066cc 0%, #0052a3 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
     textAlign: 'center',
     marginBottom: '15px',
   },
   sectionSubtitle: {
     fontSize: '1.15rem',
-    color: '#6b7280',
+    color: '#64748b',
     textAlign: 'center',
     marginBottom: '50px',
   },
@@ -473,12 +556,12 @@ const styles = {
     marginTop: '50px',
   },
   featureCard: {
-    padding: '40px 30px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '16px',
+    padding: '45px 35px',
+    backgroundColor: '#ffffff',
+    borderRadius: '20px',
     textAlign: 'center',
-    border: '2px solid #e2e8f0',
-    transition: 'all 0.3s ease',
+    border: '2px solid rgba(0, 102, 204, 0.1)',
+    boxShadow: '0 8px 25px rgba(0, 102, 204, 0.08)',
   },
   featureIcon: {
     marginBottom: '25px',
@@ -500,7 +583,7 @@ const styles = {
   // Values Section
   valuesSection: {
     padding: '80px 0',
-    backgroundColor: '#f9fafb',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     margin: '0 -20px',
   },
   valuesGrid: {
@@ -510,21 +593,20 @@ const styles = {
     marginTop: '50px',
   },
   valueCard: {
-    padding: '40px 30px',
+    padding: '45px 35px',
     backgroundColor: '#ffffff',
-    borderRadius: '16px',
+    borderRadius: '20px',
     textAlign: 'center',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.06)',
-    transition: 'all 0.3s ease',
+    boxShadow: '0 10px 30px rgba(0, 102, 204, 0.1)',
   },
   valueIconBox: {
-    width: '80px',
-    height: '80px',
+    width: '90px',
+    height: '90px',
     margin: '0 auto 25px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#e0f2fe',
+    background: 'linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%)',
     borderRadius: '50%',
   },
   valueTitle: {
@@ -545,19 +627,22 @@ const styles = {
   },
   timeline: {
     position: 'relative',
-    maxWidth: '800px',
+    maxWidth: '900px',
     margin: '50px auto 0',
   },
   timelineItem: {
     display: 'flex',
-    gap: '30px',
+    gap: '40px',
     marginBottom: '40px',
     position: 'relative',
   },
   timelineYear: {
     fontSize: '1.8rem',
     fontWeight: '800',
-    color: '#0066cc',
+    background: 'linear-gradient(135deg, #0066cc 0%, #0052a3 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
     minWidth: '100px',
     textAlign: 'right',
     paddingTop: '5px',
@@ -571,12 +656,20 @@ const styles = {
     position: 'absolute',
     left: '0',
     top: '12px',
-    width: '18px',
-    height: '18px',
-    backgroundColor: '#0066cc',
+    width: '20px',
+    height: '20px',
+    background: 'linear-gradient(135deg, #0066cc 0%, #0052a3 100%)',
     borderRadius: '50%',
-    border: '4px solid #e0f2fe',
+    border: '4px solid #ffffff',
+    boxShadow: '0 0 0 4px rgba(0, 102, 204, 0.1)',
     zIndex: 2,
+  },
+  timelineCard: {
+    backgroundColor: '#ffffff',
+    padding: '25px',
+    borderRadius: '16px',
+    boxShadow: '0 6px 20px rgba(0, 102, 204, 0.08)',
+    transition: 'all 0.3s ease',
   },
   timelineTitle: {
     fontSize: '1.5rem',
@@ -601,17 +694,21 @@ const styles = {
     marginTop: '50px',
   },
   whyCard: {
-    padding: '35px 30px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '16px',
-    border: '2px solid #e2e8f0',
+    padding: '40px 35px',
+    backgroundColor: '#ffffff',
+    borderRadius: '20px',
+    border: '2px solid rgba(0, 102, 204, 0.1)',
+    boxShadow: '0 8px 25px rgba(0, 102, 204, 0.08)',
   },
   whyNumber: {
-    fontSize: '2.5rem',
+    fontSize: '2.8rem',
     fontWeight: '800',
-    color: '#0066cc',
+    background: 'linear-gradient(135deg, #0066cc 0%, #0052a3 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
     marginBottom: '20px',
-    opacity: 0.3,
+    opacity: 0.4,
   },
   whyTitle: {
     fontSize: '1.4rem',

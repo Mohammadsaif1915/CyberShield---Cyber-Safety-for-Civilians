@@ -464,20 +464,28 @@ const CyberSafetyLanding = () => {
             </div>
 
             <div className="footer-column">
-              <h4 className="footer-heading">Platform</h4>
-              <ul className="footer-links-list">
-                {['Features', 'Courses', 'Resources', 'Community'].map(l => (
-                  <li key={l}><a href={`#${l.toLowerCase()}`} className="footer-link-item">{l}</a></li>
-                ))}
-              </ul>
-            </div>
+  <h4 className="footer-heading">Platform</h4>
+  <ul className="footer-links-list">
+    {[
+      ['Features', '/features'],
+      ['Courses', '/courses'],
+      ['Community', '/community'],
+    ].map(([label, path]) => (
+      <li key={path}>
+        <Link to={path} className="footer-link-item">
+          {label}
+        </Link>
+      </li>
+    ))}
+  </ul>
+</div>
 
             <div className="footer-column">
               <h4 className="footer-heading">Company</h4>
               <ul className="footer-links-list">
                 {[
                   ['About Us', '/about_us'],
-                  ['Our Team', '/team'],
+                  ['Our Team', '/our_team'],
                   ['Blog', '/blog'],
                 ].map(([label, path]) => (
                   <li key={path}>
@@ -486,12 +494,19 @@ const CyberSafetyLanding = () => {
                 ))}
               </ul>
             </div>
+            
 
             <div className="footer-column">
               <h4 className="footer-heading">Support</h4>
               <ul className="footer-links-list">
-                {[['Help Center', 'help'], ['Contact Us', 'contact'], ['FAQ', 'faq'], ['Feedback', 'feedback']].map(([label, hash]) => (
-                  <li key={hash}><a href={`#${hash}`} className="footer-link-item">{label}</a></li>
+               {[
+                  ['Help Center', '/help_center'],
+                  ['Contact Us', '/contact_us'],
+                  ['Faq', '/faq'],
+                ].map(([label, path]) => (
+                  <li key={path}>
+                    <a href={path} className="footer-link-item">{label}</a>
+                  </li>
                 ))}
               </ul>
             </div>

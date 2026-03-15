@@ -5,7 +5,14 @@ import Login from './components/Login.jsx';
 import ForgotPasswordPopup from './components/ForgotPasswordPopup.jsx';
 import ResetPassword from './components/ResetPassword';
 import About_us from "./components/About_us";
-
+import Features from "./components/Features";
+import Courses from "./components/Courses";
+import Community from "./components/Community";
+import Our_Team from "./components/Our_Team";
+import Blog from "./components/Blog";
+import Help_Center from "./components/Help_Center"; 
+import Contact_Us from "./components/Contact_us";
+import Faq from "./components/Faq.jsx";
 
 function App() {
   return (
@@ -17,6 +24,14 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPopup />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/about_us" element={<About_us />} />
+        <Route path="/features" element={<Features />} />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/our_team" element={<Our_Team />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/help_center" element={<Help_Center />} />
+        <Route path="/contact_us" element={<Contact_Us />} />
+        <Route path="/faq" element={<Faq />} />
       </Routes>
     </Router>
   );
