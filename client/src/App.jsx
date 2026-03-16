@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import CyberSafetyLanding from "./pages/Landing/CyberSafetyLanding";
+import Dashboard from "./pages/Dashboard";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import ForgotPasswordPopup from "./components/ForgotPasswordPopup";
@@ -22,6 +23,8 @@ function App() {
       <Routes>
 
         <Route path="/" element={<CyberSafetyLanding />} />
+
+        <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />

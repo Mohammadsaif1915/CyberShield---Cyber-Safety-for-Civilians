@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, AlertCircle, Loader2, Shield, Lock, Mail, ArrowRight } from 'lucide-react';
 import ForgotPasswordPopup from "./ForgotPasswordPopup";
 import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:5000';
 
@@ -413,6 +414,8 @@ const css = `
 `;
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPwd,  setShowPwd]  = useState(false);
   const [remember, setRemember] = useState(false);
@@ -473,7 +476,7 @@ export default function Login() {
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      window.location.href = '/dashboard';
+      navigate('/dashboard'); // ✅ FIXED: was './pages/Dashboard'
     } catch {
       setErrors(p => ({ ...p, submit: 'Could not connect to server.' }));
     } finally {
@@ -495,7 +498,7 @@ export default function Login() {
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      window.location.href = '/dashboard';
+      navigate('/dashboard'); // ✅ FIXED: was './pages/Dashboard'
     } catch {
       setErrors(p => ({ ...p, submit: 'Google login failed. Try again.' }));
     }
