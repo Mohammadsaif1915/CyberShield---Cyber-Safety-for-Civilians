@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ContactUs = () => {
+const Contact_Us = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -9,6 +9,8 @@ const ContactUs = () => {
     message: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -16,10 +18,39 @@ const ContactUs = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert('Thank you for contacting us! We will get back to you soon.');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Thank you for contacting us! We will get back to you soon.');
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          category: 'General Inquiry',
+          message: ''
+        });
+      } else {
+        alert(data.message || 'Something went wrong. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to send message. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactMethods = [
@@ -35,9 +66,9 @@ const ContactUs = () => {
       id: 2,
       icon: '📞',
       title: 'Call Us',
-      value: '+1 (555) 123-4567',
+      value: '+91 22 1234 5678',
       description: 'Mon-Fri, 9 AM - 6 PM IST',
-      link: 'tel:+15551234567'
+      link: 'tel:+912212345678'
     },
     {
       id: 3,
@@ -51,7 +82,7 @@ const ContactUs = () => {
       id: 4,
       icon: '📍',
       title: 'Visit Us',
-      value: 'Aurangabad, Maharashtra',
+      value: 'Bandra West, Mumbai',
       description: 'By appointment only',
       link: '#'
     }
@@ -172,14 +203,14 @@ const ContactUs = () => {
       fontFamily: 'inherit',
     },
     submitButton: {
-      background: 'linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)',
+      background: isSubmitting ? '#90caf9' : 'linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)',
       color: 'white',
       border: 'none',
       padding: '16px 40px',
       fontSize: '1.1rem',
       fontWeight: '600',
       borderRadius: '12px',
-      cursor: 'pointer',
+      cursor: isSubmitting ? 'not-allowed' : 'pointer',
       transition: 'all 0.3s ease',
       boxShadow: '0 5px 20px rgba(25, 118, 210, 0.3)',
       marginTop: '10px',
@@ -290,16 +321,10 @@ const ContactUs = () => {
       overflow: 'hidden',
       boxShadow: '0 15px 40px rgba(13, 71, 161, 0.15)',
     },
-    mapPlaceholder: {
+    mapContainer: {
       width: '100%',
-      height: '400px',
-      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '1.5rem',
-      color: '#1976d2',
-      fontWeight: '600',
+      height: '450px',
+      border: 'none',
     },
   };
 
@@ -338,7 +363,7 @@ const ContactUs = () => {
             color: #90caf9;
           }
 
-          .submit-button:hover {
+          .submit-button:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(25, 118, 210, 0.5);
           }
@@ -383,7 +408,6 @@ const ContactUs = () => {
       </style>
 
       <div style={styles.container}>
-        {/* Hero Section */}
         <div style={styles.hero}>
           <h1 style={styles.heroTitle} className="hero-title">Contact Us</h1>
           <p style={styles.heroSubtitle} className="hero-subtitle">
@@ -391,9 +415,7 @@ const ContactUs = () => {
           </p>
         </div>
 
-        {/* Main Content */}
         <div style={styles.mainContent} className="main-content">
-          {/* Contact Form */}
           <div style={styles.formSection} className="form-section">
             <h2 style={styles.formTitle}>Send us a Message</h2>
             <form style={styles.form} onSubmit={handleSubmit}>
@@ -471,35 +493,39 @@ const ContactUs = () => {
                 ></textarea>
               </div>
 
-              <button type="submit" style={styles.submitButton} className="submit-button">
-                Send Message
+              <button 
+                type="submit" 
+                style={styles.submitButton} 
+                className="submit-button"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           </div>
 
-          {/* Contact Information */}
           <div style={styles.infoSection}>
             <div style={styles.contactMethodsGrid}>
               {contactMethods.map((method) => (
-                <a
-                  key={method.id}
-                  href={method.link}
-                  style={styles.methodCard}
-                  className="method-card"
-                >
-                  <div style={styles.methodHeader}>
-                    <div style={styles.methodIcon}>{method.icon}</div>
-                    <div style={styles.methodContent}>
-                      <h3 style={styles.methodTitle}>{method.title}</h3>
-                      <p style={styles.methodValue}>{method.value}</p>
-                    </div>
-                  </div>
-                  <p style={styles.methodDescription}>{method.description}</p>
-                </a>
-              ))}
+  <a
+    key={method.id}
+    href={method.link}
+    style={styles.methodCard}
+    className="method-card"
+  >
+    <div style={styles.methodHeader}>
+      <div style={styles.methodIcon}>{method.icon}</div>
+      <div style={styles.methodContent}>
+        <h3 style={styles.methodTitle}>{method.title}</h3>
+        <p style={styles.methodValue}>{method.value}</p>
+      </div>
+    </div>
+    <p style={styles.methodDescription}>{method.description}</p>
+  </a>
+))}
+                  
             </div>
 
-            {/* Team Section */}
             <div style={styles.teamSection}>
               <h3 style={styles.teamTitle}>Direct Contact</h3>
               <div style={styles.teamList}>
@@ -517,12 +543,16 @@ const ContactUs = () => {
           </div>
         </div>
 
-        {/* Map Section */}
         <div style={styles.mapSection}>
           <div style={styles.mapCard}>
-            <div style={styles.mapPlaceholder}>
-              📍 Aurangabad, Maharashtra, India
-            </div>
+           <iframe
+  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30169.68445226337!2d72.80905449402572!3d19.05447790727788!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c8e123f8d27b%3A0x437996b49a236a78!2sBandra%20West%2C%20Mumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1773643260117!5m2!1sen!2sin"
+  style={styles.mapContainer}
+  allowFullScreen
+  loading="lazy"
+  referrerPolicy="no-referrer-when-downgrade"
+  title="Office Location"
+></iframe>
           </div>
         </div>
       </div>
@@ -530,4 +560,4 @@ const ContactUs = () => {
   );
 };
 
-export default ContactUs;
+export default Contact_Us;

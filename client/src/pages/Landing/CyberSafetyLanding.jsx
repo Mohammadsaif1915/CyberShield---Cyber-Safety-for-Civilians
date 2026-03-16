@@ -133,7 +133,7 @@ const CyberSafetyLanding = () => {
 
             <div className="nav-links">
               <a href="/about_us" className="nav-link-3d">About</a>
-              <a href="#contact" className="nav-link-3d">Contact</a>
+              <a href="/contact_us" className="nav-link-3d">Contact</a>
               <Link to="/login" className="nav-signin-3d">Sign In</Link>
               <Link to="/register" className="btn-primary-3d">
                 <span>Sign Up</span>
@@ -531,15 +531,42 @@ const CyberSafetyLanding = () => {
                 </button>
               </form>
 
-              {subStatus === 'success' && (
-                <div className="success-popup">
-                  <div className="success-header">
-                    <CheckCircle2 size={18} color="#34d399" />
-                    <span>You're in! 🎉</span>
-                  </div>
-                  <p>Welcome to the CyberShield community! You'll now receive the latest cyber safety tips, platform updates, and security alerts straight to your inbox. Stay safe out there!</p>
-                </div>
-              )}
+             {/* Subscribe Success Modal */}
+{subStatus === 'success' && (
+  <div className="sub-modal-overlay" onClick={() => setSubStatus('')}>
+    <div className="sub-modal-card" onClick={e => e.stopPropagation()}>
+      <button className="sub-modal-close" onClick={() => setSubStatus('')}>✕</button>
+
+      <div className="sub-modal-icon">
+        <CheckCircle2 size={36} color="#fff" strokeWidth={2} />
+        <div className="sub-modal-icon-ring"></div>
+      </div>
+
+      <h2 className="sub-modal-title">You're In! 🎉</h2>
+      <p className="sub-modal-sub">
+        Thank you for subscribing to <strong>CyberShield</strong>.<br />
+        A welcome email is on its way to your inbox.
+      </p>
+
+      <div className="sub-modal-perks">
+        {[
+          'Weekly cybersecurity tips & tricks',
+          'Early access to new courses & features',
+          'Exclusive platform updates & alerts',
+        ].map((perk, i) => (
+          <div className="sub-modal-perk" key={i}>
+            <span className="perk-dot"></span>
+            {perk}
+          </div>
+        ))}
+      </div>
+
+      <button className="sub-modal-btn" onClick={() => setSubStatus('')}>
+        Awesome, Got It!
+      </button>
+    </div>
+  </div>
+)}
 
               {subStatus === 'error' && (
                 <div className="error-popup">
