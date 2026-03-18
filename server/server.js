@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
 import Contact from './models/Contact.js';
 import Subscriber from './models/Subscriber.js';
@@ -17,6 +19,28 @@ const PORT = process.env.PORT || 5000;
 
 // ── Google OAuth Client ──────────────────────────────────────
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// ── Cloudinary Config ────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// ── Multer — memory storage (file disk pe save nahi hoga) ────
+const storage = multer.memoryStorage();
+const upload  = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // max 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Sirf JPEG, PNG, WebP, GIF allowed hai'), false);
+    }
+  },
+});
 
 // ── Middleware ───────────────────────────────────────────────
 app.use(cors({
@@ -53,6 +77,15 @@ const userSchema = new mongoose.Schema({
   googleId: { type: String },
   resetPasswordToken:   { type: String },
   resetPasswordExpires: { type: Date },
+
+  // ── Dashboard ke liye fields ──────────────────────────────
+  phone:      { type: String, default: '' },
+  department: { type: String, default: 'InfoSec' },
+
+  // ── Profile & Cover image (Cloudinary URLs) ───────────────
+  avatar:     { type: String, default: null },
+  coverImage: { type: String, default: null },
+
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
@@ -475,7 +508,6 @@ app.delete('/api/contact/:id', async (req, res) => {
 // ── NEWSLETTER ROUTES ─────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 
-// POST /api/subscribe — Footer se email subscribe karo
 app.post('/api/subscribe', async (req, res) => {
   try {
     const { email } = req.body;
@@ -507,8 +539,6 @@ app.post('/api/subscribe', async (req, res) => {
   }
 });
 
-// POST /api/notify — Sabko update email bhejo (admin use)
-// Body: { subject, title, body, ctaText?, ctaLink? }
 app.post('/api/notify', async (req, res) => {
   try {
     const { subject, title, body, ctaText, ctaLink } = req.body;
@@ -542,13 +572,166 @@ app.post('/api/notify', async (req, res) => {
   }
 });
 
-// GET /api/subscribers — Saare active subscribers (admin use)
 app.get('/api/subscribers', async (req, res) => {
   try {
     const subscribers = await Subscriber.find({ isActive: true }).select('email subscribedAt');
     res.json({ count: subscribers.length, subscribers });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// ── DASHBOARD ROUTES ──────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/me
+// Dashboard load hote hi chalti hai
+// Logged-in user ki poori info MongoDB se laata hai
+// ─────────────────────────────────────────────────────────────
+app.get('/api/me', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    return res.status(200).json({ success: true, user });
+  } catch (err) {
+    console.error('GET /api/me error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/me
+// Profile page aur Settings page ka "Save Changes" button
+// ─────────────────────────────────────────────────────────────
+app.put('/api/me', protect, async (req, res) => {
+  try {
+    const { fullName, phone, city, department } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        ...(fullName   && { fullName }),
+        ...(phone      && { phone }),
+        ...(city       && { city }),
+        ...(department && { department }),
+      },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) return res.status(404).json({ success: false, message: 'User not found' });
+
+    console.log(`✅ Profile updated for ${updatedUser.email}`);
+    return res.status(200).json({ success: true, user: updatedUser });
+  } catch (err) {
+    console.error('PUT /api/me error:', err);
+    return res.status(500).json({ success: false, message: 'Update failed. Try again.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/logout
+// ─────────────────────────────────────────────────────────────
+app.post('/api/logout', protect, (req, res) => {
+  console.log(`✅ User ${req.userId} logged out`);
+  return res.status(200).json({ success: true, message: 'Logged out successfully' });
+});
+
+// ══════════════════════════════════════════════════════════════
+// ── IMAGE UPLOAD ROUTES ───────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ── Helper: buffer ko Cloudinary pe upload karo ──────────────
+const uploadToCloudinary = (buffer, folder, publicId, type) => {
+  return new Promise((resolve, reject) => {
+    const transformation = type === 'avatar'
+      ? [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]  // avatar: square face crop
+      : [{ width: 1200, height: 300, crop: 'fill' }];                  // cover: wide banner crop
+
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, public_id: publicId, overwrite: true, transformation, format: 'webp' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+};
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/upload-profile-image
+// Dashboard profile page pe avatar ya cover change karne ke liye
+// Body: multipart/form-data  { image: File, type: "avatar"|"cover" }
+// Response: { success: true, url: "https://res.cloudinary.com/..." }
+// ─────────────────────────────────────────────────────────────
+app.post('/api/upload-profile-image', protect, upload.single('image'), async (req, res) => {
+  try {
+    // File check
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Koi image nahi mili' });
+    }
+
+    // Type check
+    const type = req.body.type;
+    if (!['avatar', 'cover'].includes(type)) {
+      return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
+    }
+
+    // Cloudinary folder aur unique ID
+    const userId   = req.userId;
+    const folder   = type === 'avatar' ? 'cybershield/avatars' : 'cybershield/covers';
+    const publicId = `${userId}_${type}`;  // e.g. "64abc123_avatar" — overwrite hoga
+
+    // Upload
+    const result   = await uploadToCloudinary(req.file.buffer, folder, publicId, type);
+    const imageUrl = result.secure_url;
+
+    // MongoDB mein save
+    const updateField = type === 'avatar' ? { avatar: imageUrl } : { coverImage: imageUrl };
+    await User.findByIdAndUpdate(userId, updateField);
+
+    console.log(`✅ ${type} uploaded for user ${userId}: ${imageUrl}`);
+    return res.status(200).json({
+      success: true,
+      url:     imageUrl,
+      type,
+      message: `${type === 'avatar' ? 'Profile photo' : 'Cover image'} update ho gaya!`,
+    });
+
+  } catch (error) {
+    console.error('Image upload error:', error);
+    return res.status(500).json({ success: false, message: 'Image upload failed', error: error.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/upload-profile-image?type=avatar|cover
+// Avatar ya cover image hata do
+// ─────────────────────────────────────────────────────────────
+app.delete('/api/upload-profile-image', protect, async (req, res) => {
+  try {
+    const { type } = req.query;
+    if (!['avatar', 'cover'].includes(type)) {
+      return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
+    }
+
+    const userId   = req.userId;
+    const publicId = `cybershield/${type === 'avatar' ? 'avatars' : 'covers'}/${userId}_${type}`;
+
+    // Cloudinary se delete
+    await cloudinary.uploader.destroy(publicId).catch(() => {});
+
+    // MongoDB mein null karo
+    const clearField = type === 'avatar' ? { avatar: null } : { coverImage: null };
+    await User.findByIdAndUpdate(userId, clearField);
+
+    console.log(`✅ ${type} removed for user ${userId}`);
+    return res.status(200).json({ success: true, message: `${type} image hata diya gaya` });
+
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 

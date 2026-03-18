@@ -517,7 +517,7 @@ export default function Register() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setSuccess(true);
-      setTimeout(() => { window.location.href = '/pages/Dashboard'; }, 2000);
+      setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
     } catch {
       setErrors(prev => ({ ...prev, submit: 'Could not connect to server.' }));
     } finally {
@@ -540,7 +540,7 @@ export default function Register() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setSuccess(true);
-      setTimeout(() => { window.location.href = '/pages/Dashboard'; }, 2000);
+      setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
     } catch {
       setErrors(p => ({ ...p, submit: 'Google sign up failed. Try again.' }));
     }
