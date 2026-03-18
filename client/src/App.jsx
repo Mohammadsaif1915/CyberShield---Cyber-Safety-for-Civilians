@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import CyberSafetyLanding from "./pages/Landing/CyberSafetyLanding";
 import Dashboard from "./pages/Dashboard";
+import LearnPage from "./pages/LearnPage";
+
 import Register from "./components/Register";
 import Login from "./components/Login";
 import ForgotPasswordPopup from "./components/ForgotPasswordPopup";
@@ -25,6 +27,9 @@ function App() {
         <Route path="/" element={<CyberSafetyLanding />} />
 
         <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route path="/learn" element={<LearnPage />} />
+
 
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />

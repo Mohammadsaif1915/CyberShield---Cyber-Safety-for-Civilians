@@ -1,9 +1,3 @@
-/**
- * CyberShield Dashboard — Light Theme
- * Fixes: real leaderboard from API, dismissible notifs,
- *        better avatar, light theme, no department field
- */
-
 import { useState, useEffect } from "react";
 import {
   Shield, LayoutDashboard, BookOpen, AlertTriangle, Mail, Brain,
@@ -17,6 +11,7 @@ import {
 import {
   BarChart, Bar as ReBar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const API_URL = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "http://localhost:5000";
@@ -47,29 +42,20 @@ const handleLogout = async () => {
 
 // ─── LIGHT THEME TOKENS ───────────────────────────────────────────────────────
 const C = {
-  // Backgrounds
   bg:       "#F0F4FA",
   bgPage:   "#E8EDF5",
   card:     "#FFFFFF",
   card2:    "#F7F9FC",
   sidebar:  "#FFFFFF",
-
-  // Borders
   border:   "#E2E8F0",
   borderMd: "#CBD5E1",
-
-  // Text
   ink:    "#0F172A",
   inkMd:  "#475569",
   inkLt:  "#94A3B8",
   inkXlt: "#CBD5E1",
-
-  // Brand
   brand:    "#2563EB",
   brandLt:  "#EFF6FF",
   brandMd:  "#DBEAFE",
-
-  // Accents
   teal:     "#0D9488",
   tealLt:   "#F0FDFA",
   violet:   "#7C3AED",
@@ -80,14 +66,10 @@ const C = {
   redLt:    "#FEF2F2",
   green:    "#059669",
   greenLt:  "#ECFDF5",
-
-  // Gradients
   gradBrand:  "linear-gradient(135deg, #2563EB 0%, #0D9488 100%)",
   gradViolet: "linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)",
   gradAmber:  "linear-gradient(135deg, #D97706 0%, #DC2626 100%)",
   gradGreen:  "linear-gradient(135deg, #059669 0%, #0D9488 100%)",
-
-  // Shadows
   shadow:   "0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.06)",
   shadowMd: "0 4px 24px rgba(15,23,42,0.10)",
   shadowLg: "0 12px 48px rgba(15,23,42,0.14)",
@@ -124,7 +106,6 @@ const G = () => (
     .page-enter { animation: fadeUp .25s cubic-bezier(.4,0,.2,1); }
     .spin       { animation: spin .9s linear infinite; }
 
-    /* Cards */
     .card {
       background: ${C.card};
       border: 1px solid ${C.border};
@@ -136,7 +117,6 @@ const G = () => (
     .card-click { cursor:pointer; }
     .card-click:hover { transform: translateY(-2px); }
 
-    /* Nav */
     .nav-btn {
       width:100%; display:flex; align-items:center; gap:10px;
       padding:9px 12px; border-radius:10px; border:none; cursor:pointer;
@@ -148,7 +128,6 @@ const G = () => (
     .nav-btn:hover { background:${C.bgPage}; color:${C.ink}; }
     .nav-btn.active { background:${C.brandMd}; color:${C.brand}; font-weight:600; }
 
-    /* Buttons */
     .btn {
       display:inline-flex; align-items:center; gap:7px;
       padding:9px 18px; border-radius:10px; border:none; cursor:pointer;
@@ -168,7 +147,6 @@ const G = () => (
     }
     .btn-ghost:hover { border-color:${C.borderMd}; color:${C.ink}; background:${C.bgPage}; }
 
-    /* Tag */
     .tag {
       display:inline-flex; align-items:center; gap:4px;
       padding:2px 8px; border-radius:6px;
@@ -177,7 +155,6 @@ const G = () => (
       letter-spacing:.04em;
     }
 
-    /* Stat card */
     .stat-card {
       background:${C.card}; border:1px solid ${C.border}; border-radius:16px;
       padding:20px; box-shadow:${C.shadow};
@@ -185,20 +162,16 @@ const G = () => (
     }
     .stat-card:hover { box-shadow:${C.shadowMd}; transform:translateY(-2px); border-color:${C.borderMd}; }
 
-    /* Progress bar */
     .prog-wrap { width:100%; background:${C.bgPage}; border-radius:99px; overflow:hidden; }
     .prog-bar  { height:100%; border-radius:99px; transition:width .7s ease; }
 
-    /* Dot grid */
     .dotgrid {
       background-image: radial-gradient(circle, ${C.borderMd} 1px, transparent 1px);
       background-size: 22px 22px;
     }
 
-    /* Table stripe */
     .stripe-row:nth-child(even) { background:${C.bgPage}; }
 
-    /* Notif dismiss button */
     .notif-dismiss {
       width:22px; height:22px; border-radius:6px; border:none; cursor:pointer;
       background:transparent; color:${C.inkLt};
@@ -207,7 +180,6 @@ const G = () => (
     }
     .notif-dismiss:hover { background:${C.redLt}; color:${C.red}; }
 
-    /* Skeleton loader */
     .skeleton {
       background: linear-gradient(90deg, ${C.bgPage} 0%, ${C.border} 50%, ${C.bgPage} 100%);
       background-size: 400px 100%;
@@ -215,7 +187,6 @@ const G = () => (
       border-radius: 8px;
     }
 
-    /* Avatar gradient variants */
     .av-0 { background: linear-gradient(135deg,#2563EB,#0D9488); }
     .av-1 { background: linear-gradient(135deg,#7C3AED,#2563EB); }
     .av-2 { background: linear-gradient(135deg,#D97706,#DC2626); }
@@ -254,7 +225,6 @@ function useUser() {
   return { user, loading };
 }
 
-// Real leaderboard from API — falls back to empty
 function useLeaderboard() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -272,7 +242,7 @@ function useLeaderboard() {
 }
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
-const dName  = u => u?.fullName || u?.name || u?.username || (u?.email ? u.email.split("@")[0] : "User");
+const dName    = u => u?.fullName || u?.name || u?.username || (u?.email ? u.email.split("@")[0] : "User");
 const initials = n => (n || "??").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 const avClass  = n => `av-${Math.abs((n||"U").charCodeAt(0) + ((n||"U").charCodeAt(1)||0)) % 6}`;
 
@@ -281,9 +251,8 @@ const Tag = ({ label, color, bg }) => (
   <span className="tag" style={{ background: bg || color + "15", color, border: `1px solid ${color}25` }}>{label}</span>
 );
 
-// Avatar: gradient circle with initials — looks polished
 const Avatar = ({ name, size = 36, fontSize = 13 }) => {
-  const av = initials(name);
+  const av  = initials(name);
   const cls = avClass(name);
   return (
     <div className={cls} style={{
@@ -340,7 +309,6 @@ const SectionHead = ({ title, sub }) => (
   </div>
 );
 
-// Dismissible notifications — global state
 const INITIAL_NOTIFS = [
   { id:1, icon:AlertTriangle, msg:"NEW CRITICAL: LockBit 3.0 variant active in your region", time:"2 min ago",  unread:true,  color:C.red   },
   { id:2, icon:Brain,         msg:"New quiz unlocked: Advanced Network Security",             time:"3 hrs ago",  unread:true,  color:C.violet },
@@ -352,7 +320,7 @@ const THREATS = [
   { id:1, name:"LockBit 3.0 Ransomware",  type:"Ransomware",    sev:"Critical", date:"2025-01-13", desc:"Most prolific RaaS. Self-propagation via SMB, data exfiltration before encryption. Avg ransom: $85k USD." },
   { id:2, name:"APT-29 Cozy Bear",        type:"APT",           sev:"Critical", date:"2025-01-14", desc:"State-sponsored Russian group. Spear-phishing + supply chain. Uses SUNBURST, TEARDROP malware." },
   { id:3, name:"Log4Shell CVE-2021-44228",type:"Vulnerability", sev:"High",     date:"2025-01-12", desc:"Still exploited in unpatched systems. RCE via JNDI injection in Apache Log4j2." },
-  { id:4, name:"BEC — CEO Impersonation", type:"Phishing",      sev:"Medium",   date:"2025-01-09", desc:"Wave targeting Indian fintech CFOs. AI voice follow-ups. Avg loss: ₹28 lakh." },
+  { id:4, name:"BEC — CEO Impersonation", type:"Phishing",      sev:"Medium",   date:"2025-01-09", desc:"Wave targeting Indian fintech CFOs. AI voice follow-ups. Avg loss: Rs 28 lakh." },
   { id:5, name:"SSH Brute-Force Campaign",type:"Network",       sev:"Low",      date:"2025-01-07", desc:"45,000+ attempts from 312 Tor exit nodes. Block via fail2ban + IP reputation feeds." },
 ];
 const SEV_C = {
@@ -363,26 +331,27 @@ const SEV_C = {
 };
 const PHISHING_EMAILS = [
   { id:1, from:"PayPal Security",     sender:"security@paypa1.com",       subject:"Urgent: Verify your account",         time:"10:23 AM",  fish:true,  read:false,
-    body:"Dear Customer,\n\nSuspicious activity detected on your PayPal account. It has been temporarily limited.\n\nVerify within 24 hours:\n→ http://paypa1-secure.xyz/login\n\nPayPal Security Team",
-    flags:["Misspelled domain — paypa1.com not paypal.com","Urgent threatening language","Link goes to non-PayPal domain","Generic 'Dear Customer' greeting","Artificial 24-hour deadline"] },
+    body:"Dear Customer,\n\nSuspicious activity detected on your PayPal account. It has been temporarily limited.\n\nVerify within 24 hours:\n-> http://paypa1-secure.xyz/login\n\nPayPal Security Team",
+    flags:["Misspelled domain - paypa1.com not paypal.com","Urgent threatening language","Link goes to non-PayPal domain","Generic 'Dear Customer' greeting","Artificial 24-hour deadline"] },
   { id:2, from:"GitHub",              sender:"noreply@github.com",         subject:"Your pull request #247 was merged",   time:"9:45 AM",   fish:false, read:true,
     body:"Hi there,\n\nYour pull request #247 'Fix authentication middleware' was merged into main by jsmith.\n\nView: github.com/cybershield/platform\n\nThe GitHub Team", flags:[] },
   { id:3, from:"HR Department",       sender:"hr-noreply@comp4ny-hr.net",  subject:"Action Required: W-2 Form Update",    time:"Yesterday", fish:true,  read:false,
     body:"Dear Employee,\n\nAnnual tax filing requires you to update your W-2 information and banking details immediately.\n\nUpdate: http://comp4ny-hr.net/w2-update\n\nDeadline: End of today.",
     flags:["Unofficial lookalike domain","Requests sensitive banking details","Same-day deadline","No company name mentioned"] },
-  { id:4, from:"State Bank of India", sender:"alerts@sbi-bank-secure.in", subject:"URGENT: KYC Update — Account Blocked", time:"2 days ago",fish:true,  read:false,
+  { id:4, from:"State Bank of India", sender:"alerts@sbi-bank-secure.in", subject:"URGENT: KYC Update - Account Blocked", time:"2 days ago",fish:true,  read:false,
     body:"Dear Valued Customer,\n\nYour SBI account has been blocked due to incomplete KYC.\n\nTo unblock: http://sbi-kyc-update.in/verify\n\nProvide: Account No., Debit Card No., PIN, OTP",
-    flags:["Fake domain — not sbi.co.in","Requests card + PIN + OTP simultaneously","SBI never asks for PIN via email"] },
+    flags:["Fake domain - not sbi.co.in","Requests card + PIN + OTP simultaneously","SBI never asks for PIN via email"] },
   { id:5, from:"Medium Daily Digest", sender:"newsletter@medium.com",      subject:"Your top stories for today",           time:"3 days ago",fish:false, read:true,
-    body:"Good morning,\n\nHere are your personalized stories:\n• The Future of Cybersecurity in 2025\n• Zero Trust Architecture Explained\n• Top 10 Ransomware Prevention Tips\n\nThe Medium Team", flags:[] },
+    body:"Good morning,\n\nHere are your personalized stories:\n* The Future of Cybersecurity in 2025\n* Zero Trust Architecture Explained\n* Top 10 Ransomware Prevention Tips\n\nThe Medium Team", flags:[] },
 ];
+
 const NAV = [
   { id:"dashboard",   label:"Overview",     icon:LayoutDashboard },
   { id:"threats",     label:"Threats",      icon:ShieldAlert     },
-  { id:"learn",       label:"Learn",        icon:GraduationCap   },
+  { id:"learn",       label:"Learn",        icon:BookOpen,       route:"/learn" },
   { id:"phishing",    label:"Phishing Sim", icon:Mail            },
-  { id:"quiz",        label:"Quiz",         icon:Brain           },
-  { id:"game",        label:"Game",         icon:Gamepad2, badge:"NEW" },
+  { id:"quiz",        label:"Quiz",         icon:Brain,          route:"/quiz"  },
+  { id:"game",        label:"Game",         icon:Gamepad2,       badge:"NEW",   route:"/game" },
   { id:"reports",     label:"Reports",      icon:BarChart2       },
   { id:"leaderboard", label:"Leaderboard",  icon:Trophy          },
   { id:"profile",     label:"Profile",      icon:User            },
@@ -392,17 +361,17 @@ const NAV = [
 // ══════════════════════════════════════════════════════════════════
 // DASHBOARD PAGE
 // ══════════════════════════════════════════════════════════════════
-function DashboardPage({ user, setPage, notifs, setNotifs }) {
-  const fname    = dName(user).split(" ")[0];
-  const today    = new Date().toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
-  const xp       = user?.xp    ?? 0;
-  const level    = user?.level ?? 1;
-  const score    = user?.score ?? 0;
-  const streak   = user?.streak ?? 0;
-  const rank     = user?.rank  ?? "—";
-  const xpNext   = level * 500;
-  const xpPct    = Math.min(100, Math.round((xp / xpNext) * 100));
-  const isNew    = xp === 0 && score === 0;
+function DashboardPage({ user, setPage, navigate, notifs, setNotifs }) {
+  const fname  = dName(user).split(" ")[0];
+  const today  = new Date().toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+  const xp     = user?.xp    ?? 0;
+  const level  = user?.level ?? 1;
+  const score  = user?.score ?? 0;
+  const streak = user?.streak ?? 0;
+  const rank   = user?.rank  ?? "—";
+  const xpNext = level * 500;
+  const xpPct  = Math.min(100, Math.round((xp / xpNext) * 100));
+  const isNew  = xp === 0 && score === 0;
 
   const tips = [
     "Never reuse passwords across accounts.",
@@ -413,14 +382,18 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
   ];
   const [tip] = useState(() => tips[Math.floor(Math.random() * tips.length)]);
 
+  const goTo = (pageId) => {
+    if (pageId === "quiz")  { navigate("/quiz");  return; }
+    if (pageId === "learn") { navigate("/learn"); return; }
+    if (pageId === "game")  { navigate("/game");  return; }
+    setPage(pageId);
+  };
+
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:22 }} className="page-enter">
-
-      {/* ── HERO ── */}
       <div style={{ borderRadius:20, padding:"28px 32px", position:"relative", overflow:"hidden", background:C.gradBrand, boxShadow:"0 8px 40px rgba(37,99,235,0.22)" }}>
         <div className="dotgrid" style={{ position:"absolute", inset:0, opacity:.1 }}/>
         <div style={{ position:"absolute", right:-20, top:-20, opacity:.06 }}><Shield size={180}/></div>
-
         <div style={{ position:"relative", zIndex:1 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
             <span className="mono" style={{ fontSize:10, color:"rgba(255,255,255,0.7)", letterSpacing:"0.14em" }}>// SECURE SESSION</span>
@@ -428,29 +401,26 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
           </div>
           <p className="mono" style={{ fontSize:11, color:"rgba(255,255,255,0.6)", marginBottom:6 }}>{today}</p>
           <h1 style={{ fontSize:28, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:10 }}>
-            Welcome back, <span style={{ color:"#BAE6FD" }}>{fname}</span> 👋
+            Welcome back, <span style={{ color:"#BAE6FD" }}>{fname}</span>
           </h1>
-
-          {/* Tip */}
           <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.14)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"7px 14px", marginBottom:16 }}>
             <Zap size={13} style={{ color:"#FDE68A", flexShrink:0 }}/>
             <span style={{ fontSize:12, color:"rgba(255,255,255,0.75)" }}>Tip: </span>
             <span style={{ fontSize:12, color:"#fff", fontWeight:500 }}>{tip}</span>
           </div>
-
           {isNew ? (
             <div style={{ background:"rgba(255,255,255,0.12)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:12, padding:"14px 18px", maxWidth:480 }}>
-              <p style={{ fontSize:13, color:"#fff", fontWeight:600, marginBottom:4 }}>🚀 Your cybersecurity journey starts now!</p>
+              <p style={{ fontSize:13, color:"#fff", fontWeight:600, marginBottom:4 }}>Your cybersecurity journey starts now!</p>
               <p style={{ fontSize:12, color:"rgba(255,255,255,0.75)", lineHeight:1.6, margin:0 }}>Complete a quiz to earn your first XP, or try the phishing simulator to sharpen your instincts.</p>
               <div style={{ display:"flex", gap:10, marginTop:12 }}>
-                <button className="btn" onClick={() => setPage("quiz")} style={{ background:"rgba(255,255,255,0.9)", color:C.brand, fontSize:12, padding:"8px 16px", borderRadius:9, border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:7, fontWeight:700 }}><Brain size={13}/> Take Quiz</button>
-                <button className="btn btn-ghost" onClick={() => setPage("learn")} style={{ color:"rgba(255,255,255,0.85)", borderColor:"rgba(255,255,255,0.3)", fontSize:12, padding:"8px 16px" }}><BookOpen size={13}/> Browse Courses</button>
+                <button className="btn" onClick={() => goTo("quiz")} style={{ background:"rgba(255,255,255,0.9)", color:C.brand, fontSize:12, padding:"8px 16px", borderRadius:9, border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:7, fontWeight:700 }}><Brain size={13}/> Take Quiz</button>
+                <button className="btn btn-ghost" onClick={() => goTo("learn")} style={{ color:"rgba(255,255,255,0.85)", borderColor:"rgba(255,255,255,0.3)", fontSize:12, padding:"8px 16px" }}><BookOpen size={13}/> Browse Courses</button>
               </div>
             </div>
           ) : (
             <>
               <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
-                {[["⚡ Score",score,"#BAE6FD"],["🏆 Rank",rank,"#FDE68A"],["🎮 Lv."+level,"Level","#DDD6FE"],["🔥 "+streak+"d","Streak","#FCA5A5"]].map(([v,l,c],i)=>(
+                {[["Score",score,"#BAE6FD"],["Rank",rank,"#FDE68A"],["Lv."+level,"Level","#DDD6FE"],[streak+"d","Streak","#FCA5A5"]].map(([v,l,c],i)=>(
                   <div key={i} style={{ background:"rgba(255,255,255,0.14)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:12, padding:"11px 18px", textAlign:"center" }}>
                     <div style={{ fontSize:18, fontWeight:800, color:c }}>{v}</div>
                     <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", marginTop:2 }}>{l}</div>
@@ -471,16 +441,13 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
         </div>
       </div>
 
-      {/* ── QUICK ACTIONS ── */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
         {[
-          { icon:Brain,         label:"Take a Quiz",        sub:"Test your cybersecurity knowledge",  color:C.violet, page:"quiz"    },
-          { icon:GraduationCap, label:"Browse Courses",     sub:"Structured learning with labs",      color:C.brand,  page:"learn"   },
-          { icon:Gamepad2,      label:"Play CyberDefense",  sub:"Defeat real-world cyber threats",    color:C.teal,   page:"game"    },
+          { icon:Brain,         label:"Take a Quiz",       sub:"Test your cybersecurity knowledge", color:C.violet, page:"quiz"  },
+          { icon:GraduationCap, label:"Browse Courses",    sub:"Structured learning with labs",     color:C.brand,  page:"learn" },
+          { icon:Gamepad2,      label:"Play CyberDefense", sub:"Defeat real-world cyber threats",   color:C.teal,   page:"game"  },
         ].map(item => (
-          <button key={item.label} onClick={() => setPage(item.page)}
-            className="card card-click"
-            style={{ padding:20, border:`1px solid ${C.border}`, textAlign:"left", cursor:"pointer" }}>
+          <button key={item.label} onClick={() => goTo(item.page)} className="card card-click" style={{ padding:20, border:`1px solid ${C.border}`, textAlign:"left", cursor:"pointer" }}>
             <div style={{ width:44, height:44, borderRadius:12, background:item.color+"12", border:`1px solid ${item.color}20`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:12 }}>
               <item.icon size={22} style={{ color:item.color }}/>
             </div>
@@ -490,13 +457,12 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
         ))}
       </div>
 
-      {/* ── STAT CARDS ── */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }}>
         {[
           { icon:Zap,        label:"Security Score",  value:score||"—", color:C.brand,  sub:score?"Keep it up!":"Complete a quiz"        },
           { icon:ShieldAlert,label:"Threats Learned", value:user?.threatsRead??0, color:C.red, sub:"From threat intel"                   },
           { icon:Brain,      label:"Quizzes Taken",   value:user?.quizzesDone??0, color:C.violet, sub:user?.avgScore?`Avg ${user.avgScore}%`:"None yet" },
-          { icon:Flame,      label:"Day Streak",      value:(streak||0)+"d", color:C.amber, sub:streak>=3?"🔥 On fire!":"Login daily"    },
+          { icon:Flame,      label:"Day Streak",      value:(streak||0)+"d", color:C.amber, sub:streak>=3?"On fire!":"Login daily"        },
         ].map(s => (
           <div key={s.label} className="stat-card">
             <div style={{ width:40, height:40, borderRadius:11, background:s.color+"12", border:`1px solid ${s.color}20`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14 }}>
@@ -509,7 +475,6 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
         ))}
       </div>
 
-      {/* ── THREATS + ACTIVITY ── */}
       <div style={{ display:"grid", gridTemplateColumns:"3fr 2fr", gap:20 }}>
         <div className="card" style={{ padding:20 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
@@ -529,7 +494,7 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
                       <span style={{ fontSize:12, fontWeight:600, color:C.ink }}>{t.name}</span>
                       <Tag label={t.sev} color={sc.c} bg={sc.bg}/>
                     </div>
-                    <p style={{ fontSize:11, color:C.inkMd, margin:0, lineHeight:1.5 }}>{t.desc.slice(0,80)}…</p>
+                    <p style={{ fontSize:11, color:C.inkMd, margin:0, lineHeight:1.5 }}>{t.desc.slice(0,80)}...</p>
                   </div>
                   <span className="mono" style={{ fontSize:9, color:C.inkLt, flexShrink:0 }}>{t.date}</span>
                 </div>
@@ -550,7 +515,7 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
             <EmptyState icon={Rocket} title="No activity yet" desc="Complete a quiz or course to see your progress here." color={C.teal}
               action={
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center" }}>
-                  <button className="btn btn-primary" onClick={() => setPage("quiz")} style={{ fontSize:11, padding:"7px 14px" }}><Brain size={12}/> Quiz</button>
+                  <button className="btn btn-primary" onClick={() => goTo("quiz")} style={{ fontSize:11, padding:"7px 14px" }}><Brain size={12}/> Quiz</button>
                   <button className="btn btn-ghost" onClick={() => setPage("phishing")} style={{ fontSize:11, padding:"7px 14px" }}><Mail size={12}/> Phishing Sim</button>
                 </div>
               }
@@ -573,7 +538,6 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
         </div>
       </div>
 
-      {/* ── NOTIFICATIONS (dismissible) ── */}
       {notifs.length > 0 && (
         <div className="card" style={{ padding:20 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
@@ -595,7 +559,6 @@ function DashboardPage({ user, setPage, notifs, setNotifs }) {
                 <p style={{ fontSize:12, color:n.unread?C.ink:C.inkMd, flex:1, margin:0, fontWeight:n.unread?600:400 }}>{n.msg}</p>
                 <span className="mono" style={{ fontSize:9, color:C.inkLt, flexShrink:0 }}>{n.time}</span>
                 {n.unread && <div style={{ width:7, height:7, borderRadius:"50%", background:n.color, flexShrink:0 }}/>}
-                {/* ← DISMISS BUTTON */}
                 <button className="notif-dismiss" onClick={() => setNotifs(prev => prev.filter(x => x.id !== n.id))} title="Dismiss">
                   <X size={11}/>
                 </button>
@@ -624,9 +587,7 @@ function ThreatsPage() {
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
         {[["Critical",C.red,C.redLt,"2"],["High","#EA580C","#FFF7ED","5"],["Medium",C.amber,C.amberLt,"1"],["Low",C.green,C.greenLt,"0"]].map(([s,c,bg,n]) => (
-          <div key={s} onClick={() => setFilter(filter === s ? "All" : s)}
-            className="card card-click"
-            style={{ padding:16, textAlign:"center", background:filter===s?bg:C.card, borderColor:filter===s?c+"40":C.border }}>
+          <div key={s} onClick={() => setFilter(filter === s ? "All" : s)} className="card card-click" style={{ padding:16, textAlign:"center", background:filter===s?bg:C.card, borderColor:filter===s?c+"40":C.border }}>
             <div style={{ fontSize:26, fontWeight:800, color:c }}>{n}</div>
             <div style={{ fontSize:11, color:C.inkMd, marginTop:3 }}>{s}</div>
           </div>
@@ -634,10 +595,7 @@ function ThreatsPage() {
       </div>
       <div style={{ display:"flex", gap:7, marginBottom:18 }}>
         {["All","Critical","High","Medium","Low"].map(s => (
-          <button key={s} onClick={() => setFilter(s)}
-            style={{ padding:"6px 14px", borderRadius:8, fontSize:11, fontWeight:600, cursor:"pointer", border:`1px solid ${filter===s?C.brand+"50":C.border}`, background:filter===s?C.brandMd:"transparent", color:filter===s?C.brand:C.inkMd, transition:"all .15s" }}>
-            {s}
-          </button>
+          <button key={s} onClick={() => setFilter(s)} style={{ padding:"6px 14px", borderRadius:8, fontSize:11, fontWeight:600, cursor:"pointer", border:`1px solid ${filter===s?C.brand+"50":C.border}`, background:filter===s?C.brandMd:"transparent", color:filter===s?C.brand:C.inkMd, transition:"all .15s" }}>{s}</button>
         ))}
       </div>
       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -652,7 +610,7 @@ function ThreatsPage() {
                     <Tag label={t.sev} color={sc.c} bg={sc.bg}/>
                     <Tag label={t.type} color={C.inkMd} bg={C.bgPage}/>
                   </div>
-                  <p style={{ fontSize:12, color:C.inkMd, margin:0 }}>{open ? t.desc : t.desc.slice(0,90)+"…"}</p>
+                  <p style={{ fontSize:12, color:C.inkMd, margin:0 }}>{open ? t.desc : t.desc.slice(0,90)+"..."}</p>
                 </div>
                 <div style={{ display:"flex", gap:8, alignItems:"center", flexShrink:0 }}>
                   <span className="mono" style={{ fontSize:9, color:C.inkLt }}>{t.date}</span>
@@ -665,7 +623,7 @@ function ThreatsPage() {
                 <div style={{ padding:"0 20px 16px", borderTop:`1px solid ${C.border}` }}>
                   <p style={{ fontSize:12, color:C.inkMd, lineHeight:1.75, margin:"14px 0" }}>{t.desc}</p>
                   <div style={{ display:"flex", gap:8 }}>
-                    {["📋 Full Report","🔗 MITRE ATT&CK","⬇ IOCs"].map(b => (
+                    {["Full Report","MITRE ATT&CK","IOCs"].map(b => (
                       <button key={b} className="btn btn-ghost" style={{ fontSize:11 }}>{b}</button>
                     ))}
                   </div>
@@ -674,132 +632,6 @@ function ThreatsPage() {
             </div>
           );
         })}
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// LEARN PAGE
-// ══════════════════════════════════════════════════════════════════
-function LearnPage() {
-  const courses = [
-    { title:"Phishing Attack Recognition",   cat:"Phishing",    diff:"Beginner",     dur:"2h 30m", color:C.brand  },
-    { title:"Advanced Malware Analysis",     cat:"Malware",     diff:"Advanced",     dur:"5h 15m", color:C.violet },
-    { title:"Network Security Fundamentals", cat:"Network",     diff:"Intermediate", dur:"3h 45m", color:C.teal   },
-    { title:"Social Engineering Defense",    cat:"Social Eng.", diff:"Intermediate", dur:"2h 00m", color:C.amber  },
-    { title:"GDPR & India DPDP Act 2023",    cat:"Privacy",     diff:"Beginner",     dur:"1h 30m", color:C.green  },
-    { title:"Zero Trust Architecture",       cat:"Network",     diff:"Advanced",     dur:"6h 00m", color:C.violet },
-  ];
-  const dc = { Advanced:[C.red,C.redLt], Intermediate:[C.amber,C.amberLt], Beginner:[C.green,C.greenLt] };
-
-  return (
-    <div className="page-enter">
-      <SectionHead title="Learn" sub="Structured cybersecurity courses with real content, labs, and certification"/>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
-        {courses.map((c,i) => (
-          <div key={i} className="card card-click" style={{ overflow:"hidden" }}>
-            <div style={{ height:80, background:`linear-gradient(135deg,${c.color}18,${c.color}08)`, display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
-              <div className="dotgrid" style={{ position:"absolute", inset:0, opacity:.4 }}/>
-              <Shield size={32} style={{ color:c.color, opacity:.35 }}/>
-              <div style={{ position:"absolute", top:10, right:10 }}>
-                <Tag label={c.diff} color={dc[c.diff][0]} bg={dc[c.diff][1]}/>
-              </div>
-            </div>
-            <div style={{ padding:16 }}>
-              <span className="mono" style={{ fontSize:9, color:C.inkLt }}>{c.cat}</span>
-              <p style={{ fontSize:13, fontWeight:700, color:C.ink, margin:"4px 0 8px", lineHeight:1.4 }}>{c.title}</p>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <span className="mono" style={{ fontSize:10, color:C.inkMd }}><Clock size={9} style={{ display:"inline", marginRight:3 }}/>{c.dur}</span>
-                <button className="btn btn-primary" style={{ fontSize:11, padding:"6px 14px" }}><Play size={10}/> Start</button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// QUIZ PAGE
-// ══════════════════════════════════════════════════════════════════
-function QuizPage() {
-  const quizzes = [
-    { title:"Cybersecurity Fundamentals",    qs:10, time:"10 min", diff:"Intermediate", color:C.brand,  desc:"Core concepts, threat landscape, basic defense"   },
-    { title:"Phishing & Social Engineering", qs:8,  time:"8 min",  diff:"Beginner",     color:C.teal,   desc:"Email analysis, red flags, manipulation tactics"  },
-    { title:"Network Security Deep Dive",    qs:10, time:"12 min", diff:"Advanced",     color:C.violet, desc:"Firewalls, IDS/IPS, protocols, network attacks"   },
-    { title:"Malware Analysis",              qs:7,  time:"10 min", diff:"Advanced",     color:C.red,    desc:"Static/dynamic analysis, reverse engineering"     },
-    { title:"Incident Response",             qs:6,  time:"8 min",  diff:"Intermediate", color:"#EA580C",desc:"NIST framework, containment, eradication"         },
-    { title:"Data Privacy & DPDP Act",       qs:5,  time:"6 min",  diff:"Beginner",     color:C.green,  desc:"GDPR, DPDP 2023, data classification, rights"     },
-  ];
-  const dc = { Advanced:[C.red,C.redLt], Intermediate:[C.amber,C.amberLt], Beginner:[C.green,C.greenLt] };
-
-  return (
-    <div className="page-enter">
-      <SectionHead title="Quiz & Assessments" sub="Test your knowledge across all cybersecurity domains"/>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
-        {quizzes.map((q,i) => (
-          <div key={i} className="card" style={{ padding:20 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-              <div style={{ width:44, height:44, borderRadius:12, background:q.color+"12", border:`1px solid ${q.color}20`, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <Brain size={22} style={{ color:q.color }}/>
-              </div>
-              <Tag label={q.diff} color={dc[q.diff][0]} bg={dc[q.diff][1]}/>
-            </div>
-            <p style={{ fontSize:13, fontWeight:700, color:C.ink, margin:"0 0 5px" }}>{q.title}</p>
-            <p style={{ fontSize:11, color:C.inkMd, margin:"0 0 10px", lineHeight:1.5 }}>{q.desc}</p>
-            <div className="mono" style={{ display:"flex", gap:8, fontSize:9, color:C.inkLt, marginBottom:14 }}>
-              <span>📝 {q.qs} questions</span><span>•</span><span>⏱ {q.time}</span>
-            </div>
-            <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", background:`linear-gradient(135deg,${q.color},${q.color}CC)`, boxShadow:`0 4px 14px ${q.color}30` }}>
-              <Play size={12}/> Start Quiz
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// GAME PAGE
-// ══════════════════════════════════════════════════════════════════
-function GamePage() {
-  return (
-    <div className="page-enter" style={{ maxWidth:680, margin:"0 auto" }}>
-      <div className="card" style={{ padding:"44px 40px", textAlign:"center", position:"relative", overflow:"hidden" }}>
-        <div className="dotgrid" style={{ position:"absolute", inset:0, opacity:.5 }}/>
-        <div style={{ position:"relative", zIndex:1 }}>
-          <div style={{ fontSize:60, marginBottom:14 }}>🛡️</div>
-          <h2 style={{ fontSize:26, fontWeight:800, color:C.ink, marginBottom:8 }}>CyberDefense Game</h2>
-          <p style={{ fontSize:13, color:C.inkMd, lineHeight:1.7, maxWidth:380, margin:"0 auto 24px" }}>
-            Defend your network across 5 waves of escalating cyber attacks.<br/>Use real security tools — Firewall, Antivirus, Patches, MFA & more!
-          </p>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, maxWidth:400, margin:"0 auto 24px" }}>
-            {[["5 Waves","Escalating difficulty"],["5 Weapons","Real security tools"],["Score","Combo multipliers"]].map(([t,d]) => (
-              <div key={t} style={{ background:C.bgPage, borderRadius:10, padding:12, border:`1px solid ${C.border}` }}>
-                <p style={{ fontSize:12, fontWeight:700, color:C.ink, margin:"0 0 3px" }}>{t}</p>
-                <p style={{ fontSize:10, color:C.inkMd, margin:0 }}>{d}</p>
-              </div>
-            ))}
-          </div>
-          <button className="btn btn-primary" style={{ fontSize:15, padding:"13px 36px", boxShadow:"0 8px 24px rgba(37,99,235,0.3)" }}>
-            <Play size={16}/> Launch Game
-          </button>
-        </div>
-      </div>
-      <div className="card" style={{ padding:18, marginTop:14 }}>
-        <p style={{ fontSize:11, fontWeight:700, color:C.inkMd, marginBottom:12, letterSpacing:"0.06em", textTransform:"uppercase" }}>Weapons Guide</p>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:10 }}>
-          {[["🛡️","Firewall","-25 HP",C.brand],["🦠","Antivirus","-40 HP",C.green],["🔧","Patch","-60 HP",C.amber],["🔑","MFA Block","-80 HP",C.violet],["⚡","Shutdown","-150 HP",C.red]].map(([icon,name,dmg,col]) => (
-            <div key={name} style={{ textAlign:"center", background:C.bgPage, borderRadius:10, padding:"12px 8px", border:`1px solid ${col}15` }}>
-              <div style={{ fontSize:22, marginBottom:5 }}>{icon}</div>
-              <p style={{ fontSize:10, fontWeight:700, color:C.ink, margin:"0 0 2px" }}>{name}</p>
-              <p className="mono" style={{ fontSize:9, color:col }}>{dmg}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -836,8 +668,7 @@ function PhishingPage() {
           {PHISHING_EMAILS.map(email => {
             const a = ans[email.id];
             return (
-              <div key={email.id} onClick={() => setSel(email)}
-                style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}30`, cursor:"pointer", background:sel?.id===email.id?C.brandLt:"transparent", borderLeft:`3px solid ${sel?.id===email.id?C.brand:"transparent"}`, transition:"all .12s" }}>
+              <div key={email.id} onClick={() => setSel(email)} style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}30`, cursor:"pointer", background:sel?.id===email.id?C.brandLt:"transparent", borderLeft:`3px solid ${sel?.id===email.id?C.brand:"transparent"}`, transition:"all .12s" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:2 }}>
                   <span style={{ fontSize:12, fontWeight:email.read?400:700, color:C.ink }}>{email.from}</span>
                   <span className="mono" style={{ fontSize:9, color:C.inkLt }}>{email.time}</span>
@@ -863,12 +694,10 @@ function PhishingPage() {
             </div>
             {!ans[sel.id] ? (
               <div style={{ padding:"14px 20px", borderTop:`1px solid ${C.border}` }}>
-                <p style={{ fontSize:12, fontWeight:700, color:C.ink, margin:"0 0 10px" }}>🔍 Is this email legitimate or phishing?</p>
+                <p style={{ fontSize:12, fontWeight:700, color:C.ink, margin:"0 0 10px" }}>Is this email legitimate or phishing?</p>
                 <div style={{ display:"flex", gap:10 }}>
-                  <button className="btn" onClick={() => setAns(p => ({ ...p, [sel.id]:{ ok:sel.fish, pick:true } }))}
-                    style={{ flex:1, justifyContent:"center", background:C.redLt, color:C.red, border:`1px solid ${C.red}30`, borderRadius:10 }}>🎣 Phishing</button>
-                  <button className="btn" onClick={() => setAns(p => ({ ...p, [sel.id]:{ ok:!sel.fish, pick:false } }))}
-                    style={{ flex:1, justifyContent:"center", background:C.greenLt, color:C.green, border:`1px solid ${C.green}30`, borderRadius:10 }}>✅ Legitimate</button>
+                  <button className="btn" onClick={() => setAns(p => ({ ...p, [sel.id]:{ ok:sel.fish, pick:true } }))} style={{ flex:1, justifyContent:"center", background:C.redLt, color:C.red, border:`1px solid ${C.red}30`, borderRadius:10 }}>Phishing</button>
+                  <button className="btn" onClick={() => setAns(p => ({ ...p, [sel.id]:{ ok:!sel.fish, pick:false } }))} style={{ flex:1, justifyContent:"center", background:C.greenLt, color:C.green, border:`1px solid ${C.green}30`, borderRadius:10 }}>Legitimate</button>
                 </div>
               </div>
             ) : (
@@ -876,7 +705,7 @@ function PhishingPage() {
                 <div style={{ borderRadius:12, padding:"14px 16px", background:ans[sel.id].ok?C.greenLt:C.redLt, border:`1px solid ${ans[sel.id].ok?C.green+"30":C.red+"30"}` }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8, fontWeight:700, fontSize:13, marginBottom:10, color:ans[sel.id].ok?C.green:C.red }}>
                     {ans[sel.id].ok?<CheckCircle size={16}/>:<XCircle size={16}/>}
-                    {ans[sel.id].ok?"🎯 Correct!":`❌ Incorrect — This was ${sel.fish?"PHISHING":"LEGITIMATE"}`}
+                    {ans[sel.id].ok?"Correct!":`Incorrect — This was ${sel.fish?"PHISHING":"LEGITIMATE"}`}
                   </div>
                   {sel.fish && sel.flags.map((f,i) => (
                     <div key={i} style={{ display:"flex", gap:7, fontSize:11, color:C.inkMd, marginBottom:5 }}>
@@ -959,14 +788,13 @@ function ReportsPage({ user, setPage }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// LEADERBOARD — Real API data, user's real points
+// LEADERBOARD
 // ══════════════════════════════════════════════════════════════════
 function LeaderboardPage({ user }) {
   const { data: lbData, loading, reload } = useLeaderboard();
   const myId   = user?._id || user?.id;
   const myName = dName(user);
 
-  // Inject current user if not already present
   const fullData = (() => {
     if (!lbData.length) return [];
     const hasMe = lbData.some(u => (u._id || u.id) === myId || dName(u) === myName);
@@ -991,7 +819,6 @@ function LeaderboardPage({ user }) {
           <RefreshCw size={13} className={loading?"spin":""}/> Refresh
         </button>
       </div>
-
       {loading ? (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height:60 }}/>)}
@@ -1003,28 +830,24 @@ function LeaderboardPage({ user }) {
         </div>
       ) : (
         <>
-          {/* Podium — top 3 */}
           <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"center", gap:20, marginBottom:28 }}>
             {[top3[1], top3[0], top3[2]].filter(Boolean).map((u,i) => {
               const h = [130,170,110][i];
-              const medals = ["🥈","🥇","🥉"];
+              const medals = ["Silver","Gold","Bronze"];
               const cols   = [C.inkLt, C.amber, "#B45309"];
-              const pIdx   = i; // podium index
               return (
                 <div key={u.rank||i} style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-                  {i===1 && <Tag label="👑 RANK 1" color={C.amber} bg={C.amberLt}/>}
+                  {i===1 && <Tag label="RANK 1" color={C.amber} bg={C.amberLt}/>}
                   <div style={{ marginTop:8, marginBottom:8 }}>
                     <Avatar name={dName(u)} size={50} fontSize={16}/>
                   </div>
                   <p style={{ fontSize:12, fontWeight:700, color:C.ink, marginBottom:2 }}>{dName(u).split(" ")[0]}</p>
                   <p className="mono" style={{ fontSize:10, color:C.inkMd, marginBottom:8 }}>{(u.score||0).toLocaleString()} pts</p>
-                  <div style={{ background:cols[pIdx]+"18", border:`2px solid ${cols[pIdx]}30`, borderRadius:"10px 10px 0 0", width:76, height:h, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>{medals[i]}</div>
+                  <div style={{ background:cols[i]+"18", border:`2px solid ${cols[i]}30`, borderRadius:"10px 10px 0 0", width:76, height:h, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:cols[i] }}>{medals[i]}</div>
                 </div>
               );
             })}
           </div>
-
-          {/* Full table */}
           <div className="card" style={{ overflow:"hidden" }}>
             <table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead>
@@ -1058,7 +881,7 @@ function LeaderboardPage({ user }) {
                       <span className="mono" style={{ fontSize:10, fontWeight:600, color:C.violet }}>Lv.{u.level||1}</span>
                     </td>
                     <td style={{ padding:"12px 16px" }}>
-                      <span className="mono" style={{ fontSize:10, color:(u.streak||0)>=14?C.red:C.inkMd }}>{(u.streak||0)>=3?"🔥":""}{u.streak||0}d</span>
+                      <span className="mono" style={{ fontSize:10, color:(u.streak||0)>=14?C.red:C.inkMd }}>{(u.streak||0)>=3?"":""}{u.streak||0}d</span>
                     </td>
                   </tr>
                 ))}
@@ -1072,12 +895,14 @@ function LeaderboardPage({ user }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// PROFILE PAGE — No department field, better avatar
+// PROFILE PAGE
+// FIX: avatarUrl and setAvatarUrl now come from parent (App) as props
+// so the photo persists across page navigation
 // ══════════════════════════════════════════════════════════════════
-function ProfilePage({ user }) {
+function ProfilePage({ user, avatarUrl, setAvatarUrl }) {
   const [editing, setEditing]     = useState(false);
   const [saving, setSaving]       = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(user?.avatar || null);
+  // coverUrl stays local — it's only used on this page
   const [coverUrl, setCoverUrl]   = useState(user?.coverImage || null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover]   = useState(false);
@@ -1096,20 +921,28 @@ function ProfilePage({ user }) {
     finally  { setSaving(false); }
   };
 
-  // Upload image to backend as base64 or multipart
   const uploadImage = async (file, type) => {
     const isAvatar = type === "avatar";
     if (isAvatar) setUploadingAvatar(true); else setUploadingCover(true);
     try {
-      // Preview immediately (local)
+      // Immediately show preview using FileReader
       const reader = new FileReader();
       reader.onload = e => {
-        if (isAvatar) setAvatarUrl(e.target.result);
-        else setCoverUrl(e.target.result);
+        if (isAvatar) {
+          // FIX: update parent state so header + all pages see it
+          setAvatarUrl(e.target.result);
+          // Also persist to localStorage so refresh works
+          try {
+            const stored = JSON.parse(localStorage.getItem("user") || "{}");
+            localStorage.setItem("user", JSON.stringify({ ...stored, avatar: e.target.result }));
+          } catch {}
+        } else {
+          setCoverUrl(e.target.result);
+        }
       };
       reader.readAsDataURL(file);
 
-      // Upload to backend
+      // Then try server upload
       const fd = new FormData();
       fd.append("image", file);
       fd.append("type", type);
@@ -1122,9 +955,20 @@ function ProfilePage({ user }) {
       if (res.ok) {
         const data = await res.json();
         const url = data.url || data.imageUrl || data.avatar;
-        if (url) { if (isAvatar) setAvatarUrl(url); else setCoverUrl(url); }
+        if (url) {
+          if (isAvatar) {
+            // FIX: update parent state with final server URL
+            setAvatarUrl(url);
+            try {
+              const stored = JSON.parse(localStorage.getItem("user") || "{}");
+              localStorage.setItem("user", JSON.stringify({ ...stored, avatar: url }));
+            } catch {}
+          } else {
+            setCoverUrl(url);
+          }
+        }
       }
-    } catch { /* keep local preview even if upload fails */ }
+    } catch {}
     finally { if (isAvatar) setUploadingAvatar(false); else setUploadingCover(false); }
   };
 
@@ -1143,64 +987,38 @@ function ProfilePage({ user }) {
     <div className="page-enter" style={{ maxWidth:820 }}>
       <SectionHead title="My Profile" sub="Your account information and achievements"/>
 
-      {/* ── BANNER + AVATAR — overflow:visible so avatar is NOT clipped ── */}
       <div className="card" style={{ marginBottom:20, overflow:"visible", position:"relative" }}>
-
-        {/* Cover image */}
-        <div style={{ height:110, borderRadius:"16px 16px 0 0", position:"relative", overflow:"hidden",
-          background: coverUrl ? "transparent" : C.gradBrand }}>
+        <div style={{ height:110, borderRadius:"16px 16px 0 0", position:"relative", overflow:"hidden", background: coverUrl ? "transparent" : C.gradBrand }}>
           {coverUrl
             ? <img src={coverUrl} alt="cover" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
             : <div className="dotgrid" style={{ position:"absolute", inset:0, opacity:.15 }}/>
           }
-          {/* Cover upload button */}
           <button onClick={() => pickFile("cover")} disabled={uploadingCover}
-            style={{ position:"absolute", bottom:10, right:12, display:"flex", alignItems:"center", gap:6,
-              padding:"5px 11px", borderRadius:8, fontSize:11, fontWeight:600, cursor:"pointer",
-              background:"rgba(255,255,255,0.85)", backdropFilter:"blur(6px)",
-              border:"1px solid rgba(255,255,255,0.6)", color:C.inkMd, boxShadow:C.shadow }}>
-            {uploadingCover
-              ? <><Loader2 size={11} className="spin"/> Uploading…</>
-              : <><ImagePlus size={11}/> Change Cover</>
-            }
+            style={{ position:"absolute", bottom:10, right:12, display:"flex", alignItems:"center", gap:6, padding:"5px 11px", borderRadius:8, fontSize:11, fontWeight:600, cursor:"pointer", background:"rgba(255,255,255,0.85)", backdropFilter:"blur(6px)", border:"1px solid rgba(255,255,255,0.6)", color:C.inkMd, boxShadow:C.shadow }}>
+            {uploadingCover ? <><Loader2 size={11} className="spin"/> Uploading...</> : <><ImagePlus size={11}/> Change Cover</>}
           </button>
         </div>
 
-        {/* Avatar — positioned over the border, NOT inside overflow:hidden */}
         <div style={{ position:"absolute", left:24, top:110, transform:"translateY(-50%)", zIndex:10 }}>
           <div style={{ position:"relative", display:"inline-block" }}>
-            {/* Avatar circle */}
-            <div style={{ width:80, height:80, borderRadius:"50%",
-              border:`4px solid ${C.card}`, boxShadow:C.shadowMd,
-              overflow:"hidden", background:C.card,
-              display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <div style={{ width:80, height:80, borderRadius:"50%", border:`4px solid ${C.card}`, boxShadow:C.shadowMd, overflow:"hidden", background:C.card, display:"flex", alignItems:"center", justifyContent:"center" }}>
               {avatarUrl
                 ? <img src={avatarUrl} alt="avatar" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                 : <Avatar name={name} size={80} fontSize={26}/>
               }
             </div>
-            {/* Camera icon overlay */}
             <button onClick={() => pickFile("avatar")} disabled={uploadingAvatar}
-              style={{ position:"absolute", bottom:2, right:2, width:26, height:26, borderRadius:"50%",
-                background:C.brand, border:`2px solid ${C.card}`, cursor:"pointer",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                boxShadow:"0 2px 8px rgba(37,99,235,0.4)" }}>
-              {uploadingAvatar
-                ? <Loader2 size={12} style={{ color:"#fff" }} className="spin"/>
-                : <Camera size={11} style={{ color:"#fff" }}/>
-              }
+              style={{ position:"absolute", bottom:2, right:2, width:26, height:26, borderRadius:"50%", background:C.brand, border:`2px solid ${C.card}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(37,99,235,0.4)" }}>
+              {uploadingAvatar ? <Loader2 size={12} style={{ color:"#fff" }} className="spin"/> : <Camera size={11} style={{ color:"#fff" }}/>}
             </button>
           </div>
         </div>
 
-        {/* Content below banner — extra top padding to clear the avatar */}
         <div style={{ padding:"50px 24px 24px" }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", marginBottom:10 }}>
             <button onClick={() => editing ? save() : setEditing(true)} disabled={saving}
-              style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, fontSize:12, fontWeight:600,
-                border:`1px solid ${editing?C.teal+"40":C.border}`, background:editing?C.tealLt:C.bgPage,
-                color:editing?C.teal:C.inkMd, cursor:"pointer" }}>
-              {saving?<><Loader2 size={12} className="spin"/> Saving…</>:editing?<><Save size={12}/> Save</>:<><Edit size={12}/> Edit Profile</>}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, fontSize:12, fontWeight:600, border:`1px solid ${editing?C.teal+"40":C.border}`, background:editing?C.tealLt:C.bgPage, color:editing?C.teal:C.inkMd, cursor:"pointer" }}>
+              {saving?<><Loader2 size={12} className="spin"/> Saving...</>:editing?<><Save size={12}/> Save</>:<><Edit size={12}/> Edit Profile</>}
             </button>
           </div>
           <h2 style={{ fontSize:18, fontWeight:800, color:C.ink, margin:"0 0 3px" }}>{name}</h2>
@@ -1208,13 +1026,12 @@ function ProfilePage({ user }) {
           <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
             <Tag label={`Lv.${user?.level??1}`}  color={C.violet} bg={C.violetLt}/>
             <Tag label={`${user?.xp??0} XP`}     color={C.amber}  bg={C.amberLt}/>
-            {(user?.streak??0)>0 && <Tag label={`🔥 ${user.streak}d streak`} color={C.red} bg={C.redLt}/>}
+            {(user?.streak??0)>0 && <Tag label={`${user.streak}d streak`} color={C.red} bg={C.redLt}/>}
           </div>
         </div>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
-        {/* Personal info — NO department */}
         <div className="card" style={{ padding:22 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -1242,7 +1059,6 @@ function ProfilePage({ user }) {
         </div>
 
         <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-          {/* Stats */}
           <div className="card" style={{ padding:20 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
               <Activity size={14} style={{ color:C.amber }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Stats</span>
@@ -1261,7 +1077,6 @@ function ProfilePage({ user }) {
             )}
           </div>
 
-          {/* Badges */}
           <div className="card" style={{ padding:20, flex:1 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
               <Award size={14} style={{ color:C.teal }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Badges</span>
@@ -1270,7 +1085,7 @@ function ProfilePage({ user }) {
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                 {(user.badges||[]).map((b,i) => (
                   <div key={i} style={{ textAlign:"center", padding:"10px 12px", background:C.amberLt, border:`1px solid ${C.amber}20`, borderRadius:10 }}>
-                    <div style={{ fontSize:20 }}>{b.emoji||"🏅"}</div>
+                    <div style={{ fontSize:20 }}>{b.emoji||""}</div>
                     <p style={{ fontSize:9, color:C.inkMd, marginTop:4 }}>{b.label||b}</p>
                   </div>
                 ))}
@@ -1321,7 +1136,7 @@ function SettingsPage({ user }) {
         <div style={{ marginBottom:16 }}>
           <label className="mono" style={{ fontSize:9, color:C.inkLt, display:"block", marginBottom:4, letterSpacing:"0.07em", textTransform:"uppercase" }}>New Password</label>
           <div style={{ position:"relative" }}>
-            <input type={showPass?"text":"password"} placeholder="••••••••" style={{ width:"100%", padding:"8px 38px 8px 11px", borderRadius:9, border:`1.5px solid ${C.border}`, fontSize:12, background:C.bgPage, color:C.ink, boxSizing:"border-box" }}/>
+            <input type={showPass?"text":"password"} placeholder="..." style={{ width:"100%", padding:"8px 38px 8px 11px", borderRadius:9, border:`1.5px solid ${C.border}`, fontSize:12, background:C.bgPage, color:C.ink, boxSizing:"border-box" }}/>
             <button onClick={() => setShowPass(!showPass)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.inkLt }}>
               {showPass?<EyeOff size={13}/>:<Eye size={13}/>}
             </button>
@@ -1329,7 +1144,7 @@ function SettingsPage({ user }) {
         </div>
         <button className="btn btn-primary" disabled={saving}
           onClick={async () => { setSaving(true); try { await apiFetch("/api/me",{method:"PUT",body:JSON.stringify(form)}); } catch(e){alert(e.message);} finally{setSaving(false);} }}>
-          {saving?<><Loader2 size={12} className="spin"/> Saving…</>:<><Save size={12}/> Save Changes</>}
+          {saving?<><Loader2 size={12} className="spin"/> Saving...</>:<><Save size={12}/> Save Changes</>}
         </button>
       </div>
 
@@ -1402,7 +1217,6 @@ function NotifsDrawer({ open, onClose, notifs, setNotifs }) {
                 <p className="mono" style={{ fontSize:9, color:C.inkLt }}>{n.time}</p>
               </div>
               {n.unread && <div style={{ width:7, height:7, borderRadius:"50%", background:n.color, flexShrink:0, marginTop:5 }}/>}
-              {/* DISMISS X */}
               <button className="notif-dismiss" onClick={() => setNotifs(prev => prev.filter(x => x.id !== n.id))} title="Dismiss">
                 <X size={11}/>
               </button>
@@ -1426,37 +1240,63 @@ function Loader() {
       <div style={{ display:"flex", gap:5 }}>
         {[0,1,2].map(i => <div key={i} style={{ width:6, height:6, borderRadius:"50%", background:C.brand, opacity:.35, animation:`pulse 1.2s ease ${i*.2}s infinite` }}/>)}
       </div>
-      <p className="mono" style={{ fontSize:11, color:C.inkMd, letterSpacing:"0.08em" }}>Loading your dashboard…</p>
+      <p className="mono" style={{ fontSize:11, color:C.inkMd, letterSpacing:"0.08em" }}>Loading your dashboard...</p>
     </div>
   );
 }
 
 // ══════════════════════════════════════════════════════════════════
 // ROOT APP
+// FIX SUMMARY:
+//   1. avatarUrl state moved here (App level) — was inside ProfilePage
+//   2. avatarUrl initialized from localStorage so refresh works
+//   3. avatarUrl + setAvatarUrl passed down to ProfilePage as props
+//   4. Header avatar now renders the actual photo when available
 // ══════════════════════════════════════════════════════════════════
 export default function App() {
   const { user, loading } = useUser();
-  const [page, setPage]   = useState("dashboard");
+  const navigate = useNavigate();
+
+  const [page, setPage]           = useState("dashboard");
   const [sideOpen, setSideOpen]   = useState(true);
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen]   = useState(false);
   const [notifs, setNotifs]       = useState(INITIAL_NOTIFS);
+
+  // ── FIX 1: avatarUrl lifted to App level ──────────────────────
+  // Initialize from localStorage so it survives page refresh too
+  const [avatarUrl, setAvatarUrl] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null")?.avatar || null;
+    } catch { return null; }
+  });
+
+  // Also sync when user object loads from API (in case server has a URL)
+  useEffect(() => {
+    if (user?.avatar && !avatarUrl) {
+      setAvatarUrl(user.avatar);
+    }
+  }, [user]);
+  // ──────────────────────────────────────────────────────────────
 
   const unread = notifs.filter(n => n.unread).length;
   const name   = dName(user);
   const fname  = name.split(" ")[0];
 
   const PAGES = {
-    dashboard:   <DashboardPage   user={user} setPage={setPage} notifs={notifs} setNotifs={setNotifs}/>,
+    dashboard:   <DashboardPage   user={user} setPage={setPage} navigate={navigate} notifs={notifs} setNotifs={setNotifs}/>,
     threats:     <ThreatsPage/>,
-    learn:       <LearnPage/>,
     phishing:    <PhishingPage/>,
-    quiz:        <QuizPage/>,
-    game:        <GamePage/>,
     reports:     <ReportsPage     user={user} setPage={setPage}/>,
     leaderboard: <LeaderboardPage user={user}/>,
-    profile:     <ProfilePage     user={user}/>,
+    // ── FIX 2: pass avatarUrl + setAvatarUrl to ProfilePage ──
+    profile:     <ProfilePage     user={user} avatarUrl={avatarUrl} setAvatarUrl={setAvatarUrl}/>,
     settings:    <SettingsPage    user={user}/>,
+  };
+
+  const handleNav = (item) => {
+    if (item.route) { navigate(item.route); return; }
+    setPage(item.id);
   };
 
   if (loading) return <><G/><Loader/></>;
@@ -1475,19 +1315,21 @@ export default function App() {
         </div>
 
         <nav style={{ flex:1, overflowY:"auto", padding:"10px 7px" }}>
-          {[NAV.slice(0,6), NAV.slice(6)].map((group,gi) => (
+          {[NAV.slice(0,6), NAV.slice(6)].map((group, gi) => (
             <div key={gi}>
               {gi > 0 && <div style={{ height:1, background:C.border, margin:"6px 4px" }}/>}
               {group.map(item => {
-                const active = page === item.id;
+                const active = !item.route && page === item.id;
                 return (
-                  <button key={item.id} onClick={() => setPage(item.id)} title={!sideOpen ? item.label : ""}
-                    className={`nav-btn ${active ? "active" : ""}`}
-                    style={{ justifyContent:sideOpen?"flex-start":"center", marginBottom:2 }}>
-                    {active && <div style={{ position:"absolute", left:0, top:"50%", transform:"translateY(-50%)", width:3, height:20, background:C.brand, borderRadius:"0 3px 3px 0" }}/>}
+                  <button key={item.id} onClick={() => handleNav(item)} title={!sideOpen ? item.label : ""} className={`nav-btn ${active ? "active" : ""}`} style={{ justifyContent:sideOpen?"flex-start":"center", marginBottom:2 }}>
+                    {active && (
+                      <div style={{ position:"absolute", left:0, top:"50%", transform:"translateY(-50%)", width:3, height:20, background:C.brand, borderRadius:"0 3px 3px 0" }}/>
+                    )}
                     <item.icon size={16} style={{ flexShrink:0 }}/>
                     {sideOpen && <span style={{ whiteSpace:"nowrap" }}>{item.label}</span>}
-                    {item.badge && sideOpen && <span className="mono" style={{ marginLeft:"auto", background:C.tealLt, color:C.teal, fontSize:8, fontWeight:700, padding:"1px 5px", borderRadius:4 }}>{item.badge}</span>}
+                    {item.badge && sideOpen && (
+                      <span className="mono" style={{ marginLeft:"auto", background:C.tealLt, color:C.teal, fontSize:8, fontWeight:700, padding:"1px 5px", borderRadius:4 }}>{item.badge}</span>
+                    )}
                   </button>
                 );
               })}
@@ -1507,7 +1349,7 @@ export default function App() {
         <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 20px", height:60, flexShrink:0, background:C.card, borderBottom:`1px solid ${C.border}`, boxShadow:"0 1px 6px rgba(15,23,42,0.05)" }}>
           <div style={{ position:"relative", width:260 }}>
             <Search size={13} style={{ position:"absolute", left:11, top:"50%", transform:"translateY(-50%)", color:C.inkLt }}/>
-            <input placeholder="Search threats, courses…" style={{ width:"100%", paddingLeft:32, paddingRight:12, paddingTop:8, paddingBottom:8, borderRadius:9, border:`1px solid ${C.border}`, fontSize:12, background:C.bgPage, color:C.ink, boxSizing:"border-box" }}/>
+            <input placeholder="Search threats, courses..." style={{ width:"100%", paddingLeft:32, paddingRight:12, paddingTop:8, paddingBottom:8, borderRadius:9, border:`1px solid ${C.border}`, fontSize:12, background:C.bgPage, color:C.ink, boxSizing:"border-box" }}/>
           </div>
 
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -1521,7 +1363,9 @@ export default function App() {
               onMouseEnter={e => e.currentTarget.style.borderColor = C.borderMd}
               onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
               <Bell size={15} style={{ color:C.inkMd }}/>
-              {unread > 0 && <span style={{ position:"absolute", top:2, right:2, width:16, height:16, borderRadius:"50%", background:C.red, color:"#fff", fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Fira Code" }}>{unread}</span>}
+              {unread > 0 && (
+                <span style={{ position:"absolute", top:2, right:2, width:16, height:16, borderRadius:"50%", background:C.red, color:"#fff", fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Fira Code" }}>{unread}</span>
+              )}
             </button>
 
             <div style={{ position:"relative" }}>
@@ -1529,16 +1373,27 @@ export default function App() {
                 style={{ display:"flex", alignItems:"center", gap:8, padding:"5px 9px", borderRadius:9, border:`1px solid ${C.border}`, cursor:"pointer", background:C.bgPage, transition:"all .15s" }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = C.borderMd}
                 onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                <Avatar name={name} size={28} fontSize={10}/>
+                {/* ── FIX 3: Header shows actual avatar photo ── */}
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="avatar" style={{ width:28, height:28, borderRadius:"50%", objectFit:"cover", flexShrink:0 }}/>
+                  : <Avatar name={name} size={28} fontSize={10}/>
+                }
                 <span style={{ fontSize:12, fontWeight:600, color:C.inkMd }}>{fname}</span>
                 <ChevronDown size={11} style={{ color:C.inkLt }}/>
               </button>
 
               {menuOpen && (
                 <div style={{ position:"absolute", right:0, top:"calc(100% + 8px)", width:195, background:C.card, borderRadius:13, boxShadow:C.shadowLg, border:`1px solid ${C.border}`, zIndex:50, overflow:"hidden", animation:"fadeIn .15s ease" }}>
-                  <div style={{ padding:"11px 14px", borderBottom:`1px solid ${C.border}` }}>
-                    <p style={{ fontSize:12, fontWeight:700, color:C.ink, margin:0 }}>{name}</p>
-                    <p className="mono" style={{ fontSize:10, color:C.inkMd, margin:"1px 0 0" }}>{user?.email||""}</p>
+                  <div style={{ padding:"11px 14px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:9 }}>
+                    {/* ── FIX 4: Dropdown also shows avatar photo ── */}
+                    {avatarUrl
+                      ? <img src={avatarUrl} alt="avatar" style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", flexShrink:0 }}/>
+                      : <Avatar name={name} size={32} fontSize={11}/>
+                    }
+                    <div>
+                      <p style={{ fontSize:12, fontWeight:700, color:C.ink, margin:0 }}>{name}</p>
+                      <p className="mono" style={{ fontSize:10, color:C.inkMd, margin:"1px 0 0" }}>{user?.email||""}</p>
+                    </div>
                   </div>
                   {[{l:"Profile",I:User,p:"profile"},{l:"Settings",I:Settings,p:"settings"}].map(it => (
                     <button key={it.l} onClick={() => { setPage(it.p); setMenuOpen(false); }}
