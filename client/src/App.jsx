@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import CyberSafetyLanding from "./pages/Landing/CyberSafetyLanding";
 import Dashboard from "./pages/Dashboard";
 import LearnPage from "./pages/LearnPage";
+import QuizPage from "./pages/QuizPage";
+import GamePage from "./pages/GamePage";
 
 import Register from "./components/Register";
 import Login from "./components/Login";
@@ -29,6 +31,9 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/learn" element={<LearnPage />} />
+
+        <Route path="/quiz" element={<QuizPage />} />
+        <Route path="/game" element={<GamePage />} />
 
 
         <Route path="/register" element={<Register />} />

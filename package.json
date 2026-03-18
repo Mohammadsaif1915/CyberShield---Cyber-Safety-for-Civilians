@@ -1,0 +1,26 @@
+{
+  "name": "cybershield---cyber-safety-for-civilians",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "server": "cd server && npm run dev",
+  "client": "cd client && npm run dev",
+  "dev": "concurrently \"npm run server\" \"npm run client\""
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mohammadsaif1915/CyberShield---Cyber-Safety-for-Civilians.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Mohammadsaif1915/CyberShield---Cyber-Safety-for-Civilians/issues"
+  },
+  "homepage": "https://github.com/Mohammadsaif1915/CyberShield---Cyber-Safety-for-Civilians#readme",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
