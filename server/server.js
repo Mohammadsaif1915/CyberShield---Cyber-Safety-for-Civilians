@@ -11,6 +11,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
 import Contact from './models/Contact.js';
 import Subscriber from './models/Subscriber.js';
+import quizRoutes from './routes/quiz.js';
 
 dotenv.config();
 
@@ -734,6 +735,11 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// ══════════════════════════════════════════════════════════════
+// ── QUIZ ROUTES ───────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+app.use('/api/quiz', quizRoutes);
 
 // ── Start server ─────────────────────────────────────────────
 app.listen(PORT, () => {

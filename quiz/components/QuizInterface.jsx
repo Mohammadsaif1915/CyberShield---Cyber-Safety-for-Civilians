@@ -44,11 +44,29 @@ const QuizInterface = ({
   };
 
   const handleContinueFromReview = () => {
+    // Convert shuffled option indexes back to original question option indexes
+    // so section/module scoring remains correct.
+    const normalizedAnswers = {};
+
+    shuffledQuestions.forEach((shuffledQuestion) => {
+      const selectedIndex = sectionAnswers[shuffledQuestion.id];
+
+      if (selectedIndex === undefined) {
+        return;
+      }
+
+      const selectedOptionText = shuffledQuestion.options[selectedIndex];
+      const originalQuestion = questions.find((q) => q.id === shuffledQuestion.id);
+      const originalIndex = originalQuestion?.options?.indexOf(selectedOptionText);
+
+      normalizedAnswers[shuffledQuestion.id] = originalIndex >= 0 ? originalIndex : selectedIndex;
+    });
+
     setShowReview(false);
     if (onSectionReviewComplete) {
       onSectionReviewComplete();
     }
-    onFinish();
+    onFinish(normalizedAnswers);
   };
 
   if (showReview) {

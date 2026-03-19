@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYBER DEFENSE — Secure the Digital World</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen" class="screen loading-screen active">
+  <div class="load-inner">
+    <div class="load-logo">
+      <div class="hex-ring"></div>
+      <img src="logo.png.jpeg" class="load-img" alt="logo">
+    </div>
+    <div class="terminal-lines">
+      <p class="tline" style="--d:0.2s">▶ Initializing firewall matrix...</p>
+      <p class="tline" style="--d:0.9s">▶ Encrypting secure channel...</p>
+      <p class="tline" style="--d:1.6s">▶ Loading cyber modules...</p>
+      <p class="tline blink-text" style="--d:2.3s">✔ ACCESS GRANTED</p>
+    </div>
+    <div class="load-bar-wrap"><div class="load-bar"></div></div>
+  </div>
+</div>
+
+<!-- INTRO SCREEN -->
+<div id="introScreen" class="screen intro-screen">
+  <div class="intro-bg-grid"></div>
+  <div class="intro-content">
+    <img src="logo.png.jpeg" class="intro-logo" alt="logo">
+    <h1 class="intro-title">CYBER<br><span>DEFENSE</span></h1>
+    <p class="intro-sub">SECURE THE DIGITAL WORLD</p>
+    <div class="intro-bar"></div>
+  </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div id="homeScreen" class="screen home-screen">
+  <div class="home-bg-overlay"></div>
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="tb-left">
+      <button class="icon-btn" onclick="toggleProfile()" id="profileIconBtn" title="Profile">
+        <span class="icon-svg">👤</span>
+        <span id="userLabel" class="user-label-chip"></span>
+      </button>
+    </div>
+    <div class="tb-center">
+      <div class="logo-chip">CD</div>
+    </div>
+    <div class="tb-right">
+      <button class="icon-btn" onclick="toggleSettings()" id="settingsIconBtn" title="Settings">
+        <span class="icon-svg gear-icon">⚙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main class="home-hero">
+    <div class="glitch-wrap">
+      <h1 class="hero-title" data-text="CYBER DEFENSE">CYBER DEFENSE</h1>
+    </div>
+    <p class="hero-sub">SECURE THE DIGITAL WORLD</p>
+    <div class="hero-stats">
+      <div class="stat-chip"><span class="stat-n" id="statLevels">1000</span><span class="stat-l">LEVELS</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-chip"><span class="stat-n" id="statUnlocked">1</span><span class="stat-l">UNLOCKED</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-chip"><span class="stat-n" id="statCompleted">0</span><span class="stat-l">DONE</span></div>
+    </div>
+    <button class="start-btn" onclick="startGame()">
+      <span class="start-btn-text">ENTER GAME</span>
+      <span class="start-btn-glow"></span>
+    </button>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="home-footer">
+    <span>v2.0</span>
+    <span class="footer-dot">◆</span>
+    <span>© CYBER DEFENSE</span>
+    <span class="footer-dot">◆</span>
+    <span id="footerTime"></span>
+  </footer>
+</div>
+
+<!-- LEVEL MAP SCREEN -->
+<div id="levelScreen" class="screen level-screen">
+  <div class="level-topbar">
+    <button class="back-btn" onclick="goHome()">
+      <span>←</span> HOME
+    </button>
+    <div class="level-title-chip">MISSION SELECT</div>
+    <div class="level-progress-chip">
+      <span id="progressText">1 / 1000</span>
+    </div>
+  </div>
+  <div id="mapCanvas" class="map-canvas"></div>
+</div>
+
+<!-- SETTINGS POPUP -->
+<div class="popup-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<div class="popup" id="settingsBox">
+  <div class="popup-header">
+    <span class="popup-icon">⚙</span>
+    <h2>SETTINGS</h2>
+    <button class="popup-close-x" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="popup-body">
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="setting-name">Scanlines</span>
+        <span class="setting-desc">CRT screen effect</span>
+      </div>
+      <button id="scanBtn" class="toggle-btn active" onclick="toggleScanline()">
+        <span class="toggle-knob"></span>
+      </button>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="setting-name">Sound FX</span>
+        <span class="setting-desc">UI click sounds</span>
+      </div>
+      <button id="soundBtn" class="toggle-btn active" onclick="toggleSound()">
+        <span class="toggle-knob"></span>
+      </button>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="setting-name">Music</span>
+        <span class="setting-desc">Background soundtrack</span>
+      </div>
+      <button id="musicBtn" class="toggle-btn active" onclick="toggleMusic()">
+        <span class="toggle-knob"></span>
+      </button>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="setting-name">Theme</span>
+        <span class="setting-desc">Dark / Light mode</span>
+      </div>
+      <button id="themeBtn" class="toggle-btn" onclick="toggleTheme()">
+        <span class="toggle-knob"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE POPUP -->
+<div class="popup-overlay" id="profileOverlay" onclick="closeProfile()"></div>
+<div class="popup" id="profileBox">
+  <div class="popup-header">
+    <span class="popup-icon">👤</span>
+    <h2 id="profileTitle">CREATE AGENT</h2>
+    <button class="popup-close-x" onclick="closeProfile()">✕</button>
+  </div>
+  <div class="popup-body">
+    <div id="profileCreateView">
+      <div class="input-wrap">
+        <label class="input-label">AGENT CODENAME</label>
+        <input id="nameInput" class="cyber-input" placeholder="e.g. ghost_wire" autocomplete="off" maxlength="20">
+        <p id="nameError" class="name-error"></p>
+      </div>
+      <button id="profileSubmitBtn" class="action-btn primary-btn">REGISTER AGENT</button>
+    </div>
+    <div id="profileViewMode" style="display:none">
+      <div class="agent-card">
+        <div class="agent-avatar">👾</div>
+        <div class="agent-info">
+          <p class="agent-name" id="agentName">—</p>
+          <p class="agent-id" id="agentId">—</p>
+        </div>
+      </div>
+      <div class="agent-stats-row">
+        <div class="astat"><span id="astatLvl">0</span><span>COMPLETED</span></div>
+        <div class="astat"><span id="astatRank">E</span><span>RANK</span></div>
+      </div>
+      <button id="logoutBtn" class="action-btn danger-btn">LOGOUT AGENT</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEVEL PLAY MODAL -->
+<div class="popup-overlay" id="levelModalOverlay" onclick="closeLevelModal()"></div>
+<div class="popup" id="levelModal">
+  <div class="popup-header">
+    <span class="popup-icon" id="levelModalIcon">🎮</span>
+    <h2 id="levelModalTitle">MISSION 1</h2>
+    <button class="popup-close-x" onclick="closeLevelModal()">✕</button>
+  </div>
+  <div class="popup-body">
+    <div class="mission-info">
+      <div class="mission-stat"><span id="missionDiff">EASY</span><span>DIFFICULTY</span></div>
+      <div class="mission-stat"><span id="missionType">FIREWALL</span><span>TYPE</span></div>
+      <div class="mission-stat"><span id="missionXP">+100</span><span>XP REWARD</span></div>
+    </div>
+    <div id="levelLockedMsg" class="locked-msg" style="display:none">
+      <p>🔒 Complete previous mission to unlock</p>
+    </div>
+    <button id="playLevelBtn" class="action-btn primary-btn" onclick="playLevel()">LAUNCH MISSION</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
