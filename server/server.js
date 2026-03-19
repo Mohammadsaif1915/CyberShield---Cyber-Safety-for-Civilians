@@ -11,6 +11,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
 import Contact from './models/Contact.js';
 import Subscriber from './models/Subscriber.js';
+import QuizResult from './models/QuizResult.js'; // ✅ QUIZ MODEL
 
 dotenv.config();
 
@@ -31,7 +32,7 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload  = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // max 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (allowed.includes(file.mimetype)) {
@@ -77,15 +78,10 @@ const userSchema = new mongoose.Schema({
   googleId: { type: String },
   resetPasswordToken:   { type: String },
   resetPasswordExpires: { type: Date },
-
-  // ── Dashboard ke liye fields ──────────────────────────────
   phone:      { type: String, default: '' },
   department: { type: String, default: 'InfoSec' },
-
-  // ── Profile & Cover image (Cloudinary URLs) ───────────────
   avatar:     { type: String, default: null },
   coverImage: { type: String, default: null },
-
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
@@ -585,11 +581,6 @@ app.get('/api/subscribers', async (req, res) => {
 // ── DASHBOARD ROUTES ──────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/me
-// Dashboard load hote hi chalti hai
-// Logged-in user ki poori info MongoDB se laata hai
-// ─────────────────────────────────────────────────────────────
 app.get('/api/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password');
@@ -601,10 +592,6 @@ app.get('/api/me', protect, async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────────────────────
-// PUT /api/me
-// Profile page aur Settings page ka "Save Changes" button
-// ─────────────────────────────────────────────────────────────
 app.put('/api/me', protect, async (req, res) => {
   try {
     const { fullName, phone, city, department } = req.body;
@@ -630,9 +617,6 @@ app.put('/api/me', protect, async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────────────────────
-// POST /api/logout
-// ─────────────────────────────────────────────────────────────
 app.post('/api/logout', protect, (req, res) => {
   console.log(`✅ User ${req.userId} logged out`);
   return res.status(200).json({ success: true, message: 'Logged out successfully' });
@@ -642,12 +626,11 @@ app.post('/api/logout', protect, (req, res) => {
 // ── IMAGE UPLOAD ROUTES ───────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 
-// ── Helper: buffer ko Cloudinary pe upload karo ──────────────
 const uploadToCloudinary = (buffer, folder, publicId, type) => {
   return new Promise((resolve, reject) => {
     const transformation = type === 'avatar'
-      ? [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]  // avatar: square face crop
-      : [{ width: 1200, height: 300, crop: 'fill' }];                  // cover: wide banner crop
+      ? [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]
+      : [{ width: 1200, height: 300, crop: 'fill' }];
 
     const stream = cloudinary.uploader.upload_stream(
       { folder, public_id: publicId, overwrite: true, transformation, format: 'webp' },
@@ -660,35 +643,24 @@ const uploadToCloudinary = (buffer, folder, publicId, type) => {
   });
 };
 
-// ─────────────────────────────────────────────────────────────
-// POST /api/upload-profile-image
-// Dashboard profile page pe avatar ya cover change karne ke liye
-// Body: multipart/form-data  { image: File, type: "avatar"|"cover" }
-// Response: { success: true, url: "https://res.cloudinary.com/..." }
-// ─────────────────────────────────────────────────────────────
 app.post('/api/upload-profile-image', protect, upload.single('image'), async (req, res) => {
   try {
-    // File check
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Koi image nahi mili' });
     }
 
-    // Type check
     const type = req.body.type;
     if (!['avatar', 'cover'].includes(type)) {
       return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
     }
 
-    // Cloudinary folder aur unique ID
     const userId   = req.userId;
     const folder   = type === 'avatar' ? 'cybershield/avatars' : 'cybershield/covers';
-    const publicId = `${userId}_${type}`;  // e.g. "64abc123_avatar" — overwrite hoga
+    const publicId = `${userId}_${type}`;
 
-    // Upload
     const result   = await uploadToCloudinary(req.file.buffer, folder, publicId, type);
     const imageUrl = result.secure_url;
 
-    // MongoDB mein save
     const updateField = type === 'avatar' ? { avatar: imageUrl } : { coverImage: imageUrl };
     await User.findByIdAndUpdate(userId, updateField);
 
@@ -706,10 +678,6 @@ app.post('/api/upload-profile-image', protect, upload.single('image'), async (re
   }
 });
 
-// ─────────────────────────────────────────────────────────────
-// DELETE /api/upload-profile-image?type=avatar|cover
-// Avatar ya cover image hata do
-// ─────────────────────────────────────────────────────────────
 app.delete('/api/upload-profile-image', protect, async (req, res) => {
   try {
     const { type } = req.query;
@@ -720,10 +688,8 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
     const userId   = req.userId;
     const publicId = `cybershield/${type === 'avatar' ? 'avatars' : 'covers'}/${userId}_${type}`;
 
-    // Cloudinary se delete
     await cloudinary.uploader.destroy(publicId).catch(() => {});
 
-    // MongoDB mein null karo
     const clearField = type === 'avatar' ? { avatar: null } : { coverImage: null };
     await User.findByIdAndUpdate(userId, clearField);
 
@@ -732,6 +698,90 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
 
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// ── QUIZ ROUTES ✅ NEW ────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/quiz/result
+// Results.jsx call karega — module complete hone pe auto-save
+// ─────────────────────────────────────────────────────────────
+app.post('/api/quiz/result', protect, async (req, res) => {
+  try {
+    const {
+      moduleId, moduleTitle,
+      totalCorrect, totalQuestions,
+      percentage, grade,
+      timeSpent, sectionResults,
+    } = req.body;
+
+    if (!moduleId || !moduleTitle) {
+      return res.status(400).json({ success: false, message: 'moduleId aur moduleTitle required hai' });
+    }
+
+    // Agar pehle se result hai → update, nahi hai → naya create (upsert)
+    const result = await QuizResult.findOneAndUpdate(
+      { user: req.userId, moduleId },
+      {
+        user: req.userId,
+        moduleId, moduleTitle,
+        totalCorrect, totalQuestions,
+        percentage, grade,
+        timeSpent, sectionResults,
+      },
+      { upsert: true, new: true, runValidators: true }
+    );
+
+    console.log(`✅ Quiz result saved — user: ${req.userId}, module: ${moduleId}, grade: ${grade}`);
+    return res.status(200).json({ success: true, result });
+
+  } catch (err) {
+    console.error('Quiz result save error:', err);
+    return res.status(500).json({ success: false, message: 'Result save nahi hua' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/quiz/results
+// QuizPage pe "Meri History" dikhane ke liye — saare modules ka summary
+// ─────────────────────────────────────────────────────────────
+app.get('/api/quiz/results', protect, async (req, res) => {
+  try {
+    const results = await QuizResult.find({ user: req.userId })
+      .sort({ updatedAt: -1 })
+      .select('moduleId moduleTitle percentage grade timeSpent totalCorrect totalQuestions updatedAt');
+
+    return res.status(200).json({ success: true, results });
+
+  } catch (err) {
+    console.error('Fetch all results error:', err);
+    return res.status(500).json({ success: false, message: 'Results fetch nahi hue' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/quiz/result/:moduleId
+// Specific module ka full result — future use ke liye (detail page etc.)
+// ─────────────────────────────────────────────────────────────
+app.get('/api/quiz/result/:moduleId', protect, async (req, res) => {
+  try {
+    const result = await QuizResult.findOne({
+      user: req.userId,
+      moduleId: parseInt(req.params.moduleId),
+    });
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: 'Is module ka result nahi mila' });
+    }
+
+    return res.status(200).json({ success: true, result });
+
+  } catch (err) {
+    console.error('Fetch single result error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
