@@ -468,7 +468,7 @@ const CyberSafetyLanding = () => {
   <ul className="footer-links-list">
     {[
       ['Features', '/features'],
-      ['Courses', '/courses'],
+     
       ['Community', '/community'],
     ].map(([label, path]) => (
       <li key={path}>

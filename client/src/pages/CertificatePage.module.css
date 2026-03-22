@@ -1,0 +1,295 @@
+.loadCenter {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 60vh; gap: 16px; color: var(--clr-text3);
+}
+.page { padding: 40px 0 80px; }
+
+/* ── Stats ── */
+.statsGrid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-bottom: 40px;
+}
+.statCard {
+  background: var(--clr-surface); border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg); padding: 24px 16px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; text-align: center; box-shadow: var(--shadow-sm);
+}
+.statIcon { font-size: 28px; }
+.statNum  { font-family: var(--font-display); font-size: 32px; font-weight: 800; }
+.statLabel {
+  font-size: 11px; color: var(--clr-text3); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+
+/* ── Section ── */
+.section { margin-bottom: 48px; }
+.sectionTitle {
+  font-family: var(--font-display); font-size: 22px;
+  font-weight: 800; letter-spacing: -.02em; margin-bottom: 20px;
+}
+.emptyBox {
+  background: var(--clr-surface); border: 1px dashed var(--clr-border2);
+  border-radius: var(--radius-xl); padding: 48px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; text-align: center; color: var(--clr-text2);
+}
+.emptyBox span { font-size: 40px; }
+
+/* ── Certificate Grid ── */
+.certGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(680px, 1fr));
+  gap: 32px;
+}
+.certCard {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--clr-border);
+}
+
+/* ══════════════════════════════════════════════════
+   SIMPLILEARN-STYLE CERTIFICATE
+   Left: white content  |  Right: dark navy panel
+   ══════════════════════════════════════════════════ */
+.certificate {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 340px;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* Gold top border */
+.topStrip {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #b8960c, #f0c040, #e8b800, #f0c040, #b8960c);
+  z-index: 5;
+}
+
+/* ── Left Content ── */
+.certLeft {
+  flex: 1;
+  padding: 32px 28px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Brand row */
+.brandRow {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 4px;
+}
+.brandLogo {
+  display: flex; align-items: center; justify-content: center;
+}
+.brandName {
+  font-size: 18px; font-weight: 800; color: #0f4c81;
+  letter-spacing: -.01em;
+}
+.brandSub {
+  font-size: 14px; font-weight: 600; color: #b8960c;
+}
+
+/* Certificate heading */
+.certHeading { margin-bottom: 2px; }
+.certOf {
+  font-size: 12px; letter-spacing: .2em;
+  color: #444; font-weight: 400; margin: 0;
+  text-transform: uppercase;
+}
+.certCompletion {
+  font-size: 36px; font-weight: 900; color: #1a1a2e;
+  letter-spacing: -.01em; margin: 0; line-height: 1;
+}
+
+/* Gold line */
+.goldLine {
+  width: 60px; height: 3px;
+  background: linear-gradient(90deg, #b8960c, #f0c040);
+  border-radius: 2px; margin: 2px 0;
+}
+
+/* Recipient */
+.recipientName {
+  font-size: 26px; font-weight: 700; color: #1a1a2e;
+  margin: 4px 0 0; letter-spacing: .01em;
+  font-family: Georgia, serif;
+}
+.nameLine {
+  width: 100%; max-width: 320px;
+  height: 1px; background: #ccc;
+  border-bottom: 1px dashed #999;
+  margin-bottom: 4px;
+}
+
+/* Body */
+.certBodyText {
+  font-size: 12px; color: #555; margin: 0; font-style: italic;
+}
+.courseNameText {
+  font-size: 14px; font-weight: 700; color: #0f4c81;
+  margin: 0; text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.certBodyDesc {
+  font-size: 11px; color: #777; line-height: 1.5;
+  max-width: 380px; margin: 0;
+}
+
+/* Footer row */
+.certFooterRow {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 16px;
+  margin-top: auto; padding-top: 8px;
+}
+.certDate {
+  font-size: 13px; font-weight: 600; color: #1a1a2e; margin: 0 0 2px;
+}
+.certCodeLabel {
+  font-size: 11px; color: #888; margin: 0;
+}
+.certCodeLabel strong { color: #0f4c81; }
+
+/* Signature */
+.signatureBlock { text-align: center; }
+.signatureSvg   { width: 110px; height: 36px; display: block; }
+.ceoName  { font-size: 12px; font-weight: 700; color: #1a1a2e; margin: 2px 0 0; }
+.ceoTitle { font-size: 10px; color: #888; margin: 0; }
+
+/* ── Right Dark Panel ── */
+.certRight {
+  width: 160px;
+  background: linear-gradient(180deg, #0f2040 0%, #0f3460 40%, #1565c0 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; padding: 20px 10px;
+  position: relative; flex-shrink: 0;
+}
+
+/* Gold accent bars on right panel */
+.rightAccentTop {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 12px;
+  background: linear-gradient(90deg, #b8960c, #f0c040, #b8960c);
+}
+.rightAccentTop2 {
+  position: absolute; top: 14px; left: 8px; right: 8px;
+  height: 3px; background: rgba(240,192,64,0.4);
+}
+.rightAccentBot {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 10px;
+  background: linear-gradient(90deg, #b8960c, #f0c040, #b8960c);
+}
+.rightAccentBot2 {
+  position: absolute; bottom: 12px; left: 8px; right: 8px;
+  height: 3px; background: rgba(240,192,64,0.4);
+}
+
+/* Shield badge */
+.shieldBadge {
+  display: flex; align-items: center; justify-content: center;
+  filter: drop-shadow(0 4px 12px rgba(240,192,64,0.4));
+}
+
+/* Verified stamp */
+.verifiedStamp {
+  display: flex; align-items: center; justify-content: center;
+}
+.stampRing {
+  width: 82px; height: 82px; border-radius: 50%;
+  border: 3px solid #f0c040;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.07);
+  box-shadow: 0 0 0 6px rgba(240,192,64,0.15),
+              inset 0 0 16px rgba(240,192,64,0.1);
+}
+.stampInner {
+  width: 68px; height: 68px; border-radius: 50%;
+  border: 1.5px dashed rgba(240,192,64,0.6);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1px;
+}
+.stampVerified {
+  font-size: 9px; font-weight: 800; color: #f0c040;
+  letter-spacing: .18em; margin: 0; font-family: Arial, sans-serif;
+}
+.stampStar {
+  font-size: 14px; color: #f0c040; margin: 0; line-height: 1;
+}
+.stampYear {
+  font-size: 12px; font-weight: 700; color: #fff;
+  margin: 0; font-family: Arial, sans-serif;
+}
+
+/* Corner ornaments on left */
+.cornerTL, .cornerBL {
+  position: absolute;
+  width: 32px; height: 32px;
+  border-color: #b8960c;
+  border-style: solid;
+  opacity: 0.6; z-index: 3;
+}
+.cornerTL { top: 14px; left: 8px; border-width: 2px 0 0 2px; }
+.cornerBL { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
+
+/* ── Card Actions ── */
+.certCardActions {
+  padding: 16px 20px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+  background: var(--clr-surface);
+  border-top: 1px solid var(--clr-border);
+}
+.certCardInfo  { flex: 1; }
+.certCardTitle { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+.certCardDate  { font-size: 13px; color: var(--clr-text2); }
+.certCardId    { font-size: 11px; color: var(--clr-text3); font-family: monospace; }
+
+/* ── Progress List ── */
+.progressList { display: flex; flex-direction: column; gap: 12px; }
+.progressItem {
+  background: var(--clr-surface); border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg); padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px;
+  cursor: pointer;
+  transition: box-shadow var(--trans), transform var(--trans);
+}
+.progressItem:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.progressIcon {
+  width: 48px; height: 48px; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.progressInfo  { flex: 1; min-width: 0; }
+.progressTop   { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+.progressTitle { font-weight: 700; font-size: 15px; }
+.progressMeta  {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--clr-text3); margin-top: 4px;
+}
+.passedTag {
+  background: var(--clr-success-lt); color: #065f46;
+  padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600;
+}
+.certTag {
+  background: #fef3c7; color: #92400e;
+  padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+  .certGrid  { grid-template-columns: 1fr; }
+  .certRight { width: 120px; }
+  .certCompletion { font-size: 26px; }
+  .recipientName  { font-size: 20px; }
+}

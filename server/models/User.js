@@ -1,23 +1,32 @@
-// ═══════════════════════════════════════════════════════════
-// FILE: backend/models/User.js
-// MongoDB ka schema — user ka data kaisa store hoga
-// ═══════════════════════════════════════════════════════════
+import mongoose from 'mongoose'
+import bcrypt    from 'bcryptjs'
 
-const mongoose = require("mongoose");
+const userSchema = new mongoose.Schema({
+  fullName: { type: String, required: true, trim: true, minlength: 2 },
+  email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
+  password: { type: String, required: true, minlength: 8 },
+  city:     { type: String, required: true, trim: true },
+  role: {
+    type: String,
+    required: true,
+    enum: ['student', 'working_professional', 'senior_citizen'],
+  },
+  googleId:             { type: String },
+  resetPasswordToken:   { type: String },
+  resetPasswordExpires: { type: Date },
+  phone:      { type: String, default: '' },
+  avatar:     { type: String, default: null },
+  coverImage: { type: String, default: null },
+}, { timestamps: true })
 
-const UserSchema = new mongoose.Schema({
-  // Register page se aane wale fields
-  name:       { type: String, required: true },
-  email:      { type: String, required: true, unique: true },
-  password:   { type: String, required: true },  // hashed (bcrypt)
-  city:       { type: String, default: "" },
-  role:       { type: String, default: "student" }, // student / professional / senior_citizen
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next()
+  this.password = await bcrypt.hash(this.password, 12)
+  next()
+})
 
-  // Dashboard profile mein dikhne wale extra fields
-  phone:       { type: String, default: "" },
-  department:  { type: String, default: "InfoSec" },
-  joinDate:    { type: String, default: () => new Date().getFullYear().toString() },
+userSchema.methods.comparePassword = async function (candidate) {
+  return bcrypt.compare(candidate, this.password)
+}
 
-}, { timestamps: true });
-
-module.exports = mongoose.model("User", UserSchema);
+export default mongoose.model('User', userSchema)

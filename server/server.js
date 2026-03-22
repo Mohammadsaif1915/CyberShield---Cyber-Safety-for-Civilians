@@ -9,9 +9,14 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
-import Contact from './models/Contact.js';
-import Subscriber from './models/Subscriber.js';
-import QuizResult from './models/QuizResult.js'; // ✅ QUIZ MODEL
+import User            from './models/User.js';
+import Contact         from './models/Contact.js';
+import Subscriber      from './models/Subscriber.js';
+import QuizResult      from './models/QuizResult.js';
+import courseRoutes      from './routes/courseRoutes.js';
+import progressRoutes    from './routes/progressRoutes.js';
+import certificateRoutes from './routes/certificateRoutes.js';
+import leaderboardRoutes from './routes/leaderboardRoutes.js'; // ✅ ADDED
 
 dotenv.config();
 
@@ -28,7 +33,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ── Multer — memory storage (file disk pe save nahi hoga) ────
+// ── Multer — memory storage ──────────────────────────────────
 const storage = multer.memoryStorage();
 const upload  = multer({
   storage,
@@ -63,38 +68,6 @@ mongoose.connect(process.env.MONGO_URI)
     console.error('❌ MongoDB connection failed:', err.message);
     process.exit(1);
   });
-
-// ── User Schema ──────────────────────────────────────────────
-const userSchema = new mongoose.Schema({
-  fullName: { type: String, required: true, trim: true, minlength: 2 },
-  email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true, minlength: 8 },
-  city:     { type: String, required: true, trim: true },
-  role: {
-    type: String,
-    required: true,
-    enum: ['student', 'working_professional', 'senior_citizen'],
-  },
-  googleId: { type: String },
-  resetPasswordToken:   { type: String },
-  resetPasswordExpires: { type: Date },
-  phone:      { type: String, default: '' },
-  department: { type: String, default: 'InfoSec' },
-  avatar:     { type: String, default: null },
-  coverImage: { type: String, default: null },
-}, { timestamps: true });
-
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
-
-userSchema.methods.comparePassword = async function (candidate) {
-  return bcrypt.compare(candidate, this.password);
-};
-
-const User = mongoose.model('User', userSchema);
 
 // ── Nodemailer Setup (Gmail) ─────────────────────────────────
 const transporter = nodemailer.createTransport({
@@ -145,7 +118,6 @@ const protect = (req, res, next) => {
 };
 
 // ── Email Templates ──────────────────────────────────────────
-
 const welcomeEmailHTML = (email) => `
 <!DOCTYPE html>
 <html>
@@ -247,18 +219,15 @@ app.get('/api/health', (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { fullName, email, password, city, role } = req.body;
-
     const errors = validateRegistration(req.body);
-    if (Object.keys(errors).length > 0) {
+    if (Object.keys(errors).length > 0)
       return res.status(400).json({ success: false, errors });
-    }
 
     const existing = await User.findOne({ email: email.toLowerCase() });
-    if (existing) {
+    if (existing)
       return res.status(409).json({ success: false, errors: { email: 'This email is already registered' } });
-    }
 
-    const user = await User.create({ fullName, email, password, city, role });
+    const user  = await User.create({ fullName, email, password, city, role });
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
     return res.status(201).json({
@@ -276,10 +245,8 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
+    if (!email || !password)
       return res.status(400).json({ success: false, message: 'Email and password required' });
-    }
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password' });
@@ -288,10 +255,8 @@ app.post('/api/login', async (req, res) => {
     if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
-
     return res.status(200).json({
-      success: true,
-      token,
+      success: true, token,
       user: { id: user._id, fullName: user.fullName, email: user.email, city: user.city, role: user.role },
     });
   } catch (err) {
@@ -305,7 +270,7 @@ app.post('/api/auth/google', async (req, res) => {
     const { credential } = req.body;
     if (!credential) return res.status(400).json({ success: false, message: 'No credential provided' });
 
-    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    const ticket  = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
     const payload = ticket.getPayload();
     const { email, name, sub: googleId } = payload;
 
@@ -349,50 +314,31 @@ app.post('/api/forgot-password', async (req, res) => {
     if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
 
     const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
+    if (!user)
       return res.status(200).json({ success: true, message: 'If this email is registered, a reset link has been sent.' });
-    }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetToken     = crypto.randomBytes(32).toString('hex');
     const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
     user.resetPasswordToken   = resetTokenHash;
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
     const resetURL = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
-
     await transporter.sendMail({
       from: `"CyberShield 🛡️" <${process.env.GMAIL_USER}>`,
       to: user.email,
       subject: 'Password Reset Request — CyberShield',
       html: `
-        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;background:#f8fafc;border-radius:16px;overflow:hidden;">
-          <div style="background:linear-gradient(135deg,#1d4ed8,#2563eb,#38bdf8);padding:32px 40px;text-align:center;">
-            <div style="font-size:32px;margin-bottom:8px;">🛡️</div>
-            <h1 style="color:white;margin:0;font-size:22px;font-weight:800;">CyberShield</h1>
-            <p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:13px;">India's Trusted Cyber Safety Platform</p>
-          </div>
-          <div style="padding:36px 40px;background:white;">
-            <h2 style="color:#0f172a;font-size:20px;margin:0 0 12px;">Password Reset Request</h2>
-            <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 24px;">
-              Hi <strong>${user.fullName}</strong>,<br><br>
-              We received a request to reset your CyberShield password. Click the button below to create a new password.
-            </p>
-            <div style="text-align:center;margin:28px 0;">
-              <a href="${resetURL}" style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:white;text-decoration:none;padding:14px 36px;border-radius:12px;font-size:15px;font-weight:700;box-shadow:0 4px 14px rgba(37,99,235,0.4);">
-                Reset My Password →
-              </a>
-            </div>
-            <p style="color:#94a3b8;font-size:12px;line-height:1.6;margin:20px 0 0;padding-top:20px;border-top:1px solid #f1f5f9;">
-              ⏱️ This link expires in <strong>15 minutes</strong>.<br>
-              🔒 If you did not request this, ignore this email.<br><br>
-              Having trouble? Copy this link:<br>
-              <span style="color:#2563eb;word-break:break-all;">${resetURL}</span>
-            </p>
-          </div>
-          <div style="background:#f8fafc;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
-            <p style="color:#94a3b8;font-size:12px;margin:0;">© 2026 CyberShield · India's Cyber Awareness Platform</p>
-          </div>
+        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;">
+          <h2>Password Reset Request</h2>
+          <p>Hi <strong>${user.fullName}</strong>, click below to reset your password.</p>
+          <a href="${resetURL}" style="display:inline-block;background:#1d4ed8;color:white;padding:14px 36px;border-radius:12px;text-decoration:none;font-weight:700;">
+            Reset My Password →
+          </a>
+          <p style="color:#94a3b8;font-size:12px;margin-top:20px;">
+            ⏱️ Expires in 15 minutes. If you didn't request this, ignore this email.<br/>
+            <span style="color:#2563eb;">${resetURL}</span>
+          </p>
         </div>
       `,
     });
@@ -407,7 +353,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
 app.post('/api/reset-password/:token', async (req, res) => {
   try {
-    const { token } = req.params;
+    const { token }    = req.params;
     const { password } = req.body;
 
     if (!password || password.length < 8)
@@ -418,11 +364,9 @@ app.post('/api/reset-password/:token', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Password must contain at least one number' });
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    const user = await User.findOne({ resetPasswordToken: tokenHash, resetPasswordExpires: { $gt: Date.now() } });
-
-    if (!user) {
-      return res.status(400).json({ success: false, message: 'Reset link is invalid or has expired. Please request a new one.' });
-    }
+    const user      = await User.findOne({ resetPasswordToken: tokenHash, resetPasswordExpires: { $gt: Date.now() } });
+    if (!user)
+      return res.status(400).json({ success: false, message: 'Reset link is invalid or has expired.' });
 
     user.password             = password;
     user.resetPasswordToken   = undefined;
@@ -444,9 +388,8 @@ app.post('/api/reset-password/:token', async (req, res) => {
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, subject, category, message } = req.body;
-    if (!name || !email || !subject || !category || !message) {
+    if (!name || !email || !subject || !category || !message)
       return res.status(400).json({ success: false, message: 'Please provide all required fields' });
-    }
     const contact = await Contact.create({ name, email, subject, category, message });
     console.log(`✅ New contact form submission from ${email}`);
     res.status(201).json({ success: true, message: 'Your message has been sent successfully!', data: contact });
@@ -461,7 +404,6 @@ app.get('/api/contact', async (req, res) => {
     const contacts = await Contact.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: contacts.length, data: contacts });
   } catch (error) {
-    console.error('Error fetching contacts:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -472,19 +414,16 @@ app.get('/api/contact/:id', async (req, res) => {
     if (!contact) return res.status(404).json({ success: false, message: 'Contact not found' });
     res.status(200).json({ success: true, data: contact });
   } catch (error) {
-    console.error('Error fetching contact:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
 app.patch('/api/contact/:id', async (req, res) => {
   try {
-    const { status } = req.body;
-    const contact = await Contact.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true });
+    const contact = await Contact.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true, runValidators: true });
     if (!contact) return res.status(404).json({ success: false, message: 'Contact not found' });
     res.status(200).json({ success: true, message: 'Status updated successfully', data: contact });
   } catch (error) {
-    console.error('Error updating contact:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -495,7 +434,6 @@ app.delete('/api/contact/:id', async (req, res) => {
     if (!contact) return res.status(404).json({ success: false, message: 'Contact not found' });
     res.status(200).json({ success: true, message: 'Contact deleted successfully' });
   } catch (error) {
-    console.error('Error deleting contact:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -507,18 +445,13 @@ app.delete('/api/contact/:id', async (req, res) => {
 app.post('/api/subscribe', async (req, res) => {
   try {
     const { email } = req.body;
-
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+    if (!email || !/^\S+@\S+\.\S+$/.test(email))
       return res.status(400).json({ message: 'Invalid email address.' });
-    }
 
     const existing = await Subscriber.findOne({ email: email.toLowerCase() });
-    if (existing) {
-      return res.status(409).json({ message: 'This email is already subscribed.' });
-    }
+    if (existing) return res.status(409).json({ message: 'This email is already subscribed.' });
 
     await Subscriber.create({ email });
-
     await transporter.sendMail({
       from: `"CyberShield 🛡️" <${process.env.GMAIL_USER}>`,
       to: email,
@@ -528,7 +461,6 @@ app.post('/api/subscribe', async (req, res) => {
 
     console.log(`✅ New subscriber: ${email}`);
     return res.status(200).json({ message: 'Subscribed successfully!' });
-
   } catch (err) {
     console.error('Subscribe error:', err);
     return res.status(500).json({ message: 'Server error. Please try again.' });
@@ -538,30 +470,23 @@ app.post('/api/subscribe', async (req, res) => {
 app.post('/api/notify', async (req, res) => {
   try {
     const { subject, title, body, ctaText, ctaLink } = req.body;
-
-    if (!subject || !title || !body) {
+    if (!subject || !title || !body)
       return res.status(400).json({ message: 'subject, title, and body are required.' });
-    }
 
     const subscribers = await Subscriber.find({ isActive: true });
-    if (subscribers.length === 0) {
+    if (subscribers.length === 0)
       return res.json({ message: 'No active subscribers found.' });
-    }
 
     const html = updateEmailHTML({ title, body, ctaText, ctaLink });
-
     for (const sub of subscribers) {
       await transporter.sendMail({
         from: `"CyberShield 🛡️" <${process.env.GMAIL_USER}>`,
-        to: sub.email,
-        subject,
-        html,
+        to: sub.email, subject, html,
       });
     }
 
     console.log(`📧 Update sent to ${subscribers.length} subscribers.`);
     return res.json({ message: `Update sent to ${subscribers.length} subscribers.` });
-
   } catch (err) {
     console.error('Notify error:', err);
     return res.status(500).json({ message: 'Server error.' });
@@ -578,7 +503,7 @@ app.get('/api/subscribers', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════
-// ── DASHBOARD ROUTES ──────────────────────────────────────────
+// ── DASHBOARD / USER ROUTES ───────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 
 app.get('/api/me', protect, async (req, res) => {
@@ -595,7 +520,6 @@ app.get('/api/me', protect, async (req, res) => {
 app.put('/api/me', protect, async (req, res) => {
   try {
     const { fullName, phone, city, department } = req.body;
-
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
       {
@@ -608,7 +532,6 @@ app.put('/api/me', protect, async (req, res) => {
     ).select('-password');
 
     if (!updatedUser) return res.status(404).json({ success: false, message: 'User not found' });
-
     console.log(`✅ Profile updated for ${updatedUser.email}`);
     return res.status(200).json({ success: true, user: updatedUser });
   } catch (err) {
@@ -645,19 +568,16 @@ const uploadToCloudinary = (buffer, folder, publicId, type) => {
 
 app.post('/api/upload-profile-image', protect, upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) {
+    if (!req.file)
       return res.status(400).json({ success: false, message: 'Koi image nahi mili' });
-    }
 
     const type = req.body.type;
-    if (!['avatar', 'cover'].includes(type)) {
+    if (!['avatar', 'cover'].includes(type))
       return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
-    }
 
     const userId   = req.userId;
     const folder   = type === 'avatar' ? 'cybershield/avatars' : 'cybershield/covers';
     const publicId = `${userId}_${type}`;
-
     const result   = await uploadToCloudinary(req.file.buffer, folder, publicId, type);
     const imageUrl = result.secure_url;
 
@@ -666,12 +586,9 @@ app.post('/api/upload-profile-image', protect, upload.single('image'), async (re
 
     console.log(`✅ ${type} uploaded for user ${userId}: ${imageUrl}`);
     return res.status(200).json({
-      success: true,
-      url:     imageUrl,
-      type,
+      success: true, url: imageUrl, type,
       message: `${type === 'avatar' ? 'Profile photo' : 'Cover image'} update ho gaya!`,
     });
-
   } catch (error) {
     console.error('Image upload error:', error);
     return res.status(500).json({ success: false, message: 'Image upload failed', error: error.message });
@@ -681,13 +598,11 @@ app.post('/api/upload-profile-image', protect, upload.single('image'), async (re
 app.delete('/api/upload-profile-image', protect, async (req, res) => {
   try {
     const { type } = req.query;
-    if (!['avatar', 'cover'].includes(type)) {
+    if (!['avatar', 'cover'].includes(type))
       return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
-    }
 
     const userId   = req.userId;
     const publicId = `cybershield/${type === 'avatar' ? 'avatars' : 'covers'}/${userId}_${type}`;
-
     await cloudinary.uploader.destroy(publicId).catch(() => {});
 
     const clearField = type === 'avatar' ? { avatar: null } : { coverImage: null };
@@ -695,94 +610,71 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
 
     console.log(`✅ ${type} removed for user ${userId}`);
     return res.status(200).json({ success: true, message: `${type} image hata diya gaya` });
-
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
 });
 
 // ══════════════════════════════════════════════════════════════
-// ── QUIZ ROUTES ✅ NEW ────────────────────────────────────────
+// ── QUIZ ROUTES ───────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 
-// ─────────────────────────────────────────────────────────────
-// POST /api/quiz/result
-// Results.jsx call karega — module complete hone pe auto-save
-// ─────────────────────────────────────────────────────────────
 app.post('/api/quiz/result', protect, async (req, res) => {
   try {
-    const {
-      moduleId, moduleTitle,
-      totalCorrect, totalQuestions,
-      percentage, grade,
-      timeSpent, sectionResults,
-    } = req.body;
-
-    if (!moduleId || !moduleTitle) {
+    const { moduleId, moduleTitle, totalCorrect, totalQuestions, percentage, grade, timeSpent, sectionResults } = req.body;
+    if (!moduleId || !moduleTitle)
       return res.status(400).json({ success: false, message: 'moduleId aur moduleTitle required hai' });
-    }
 
-    // Agar pehle se result hai → update, nahi hai → naya create (upsert)
     const result = await QuizResult.findOneAndUpdate(
       { user: req.userId, moduleId },
-      {
-        user: req.userId,
-        moduleId, moduleTitle,
-        totalCorrect, totalQuestions,
-        percentage, grade,
-        timeSpent, sectionResults,
-      },
+      { user: req.userId, moduleId, moduleTitle, totalCorrect, totalQuestions, percentage, grade, timeSpent, sectionResults },
       { upsert: true, new: true, runValidators: true }
     );
 
     console.log(`✅ Quiz result saved — user: ${req.userId}, module: ${moduleId}, grade: ${grade}`);
     return res.status(200).json({ success: true, result });
-
   } catch (err) {
     console.error('Quiz result save error:', err);
     return res.status(500).json({ success: false, message: 'Result save nahi hua' });
   }
 });
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/quiz/results
-// QuizPage pe "Meri History" dikhane ke liye — saare modules ka summary
-// ─────────────────────────────────────────────────────────────
 app.get('/api/quiz/results', protect, async (req, res) => {
   try {
     const results = await QuizResult.find({ user: req.userId })
       .sort({ updatedAt: -1 })
       .select('moduleId moduleTitle percentage grade timeSpent totalCorrect totalQuestions updatedAt');
-
     return res.status(200).json({ success: true, results });
-
   } catch (err) {
     console.error('Fetch all results error:', err);
     return res.status(500).json({ success: false, message: 'Results fetch nahi hue' });
   }
 });
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/quiz/result/:moduleId
-// Specific module ka full result — future use ke liye (detail page etc.)
-// ─────────────────────────────────────────────────────────────
 app.get('/api/quiz/result/:moduleId', protect, async (req, res) => {
   try {
-    const result = await QuizResult.findOne({
-      user: req.userId,
-      moduleId: parseInt(req.params.moduleId),
-    });
-
-    if (!result) {
+    const result = await QuizResult.findOne({ user: req.userId, moduleId: parseInt(req.params.moduleId) });
+    if (!result)
       return res.status(404).json({ success: false, message: 'Is module ka result nahi mila' });
-    }
-
     return res.status(200).json({ success: true, result });
-
   } catch (err) {
     console.error('Fetch single result error:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+// ══════════════════════════════════════════════════════════════
+// ── COURSE / PROGRESS / CERTIFICATE / LEADERBOARD ROUTES ──────
+// ══════════════════════════════════════════════════════════════
+app.use('/api/courses',      courseRoutes);
+app.use('/api/progress',     progressRoutes);
+app.use('/api/certificate',  certificateRoutes);
+app.use('/api/leaderboard',  leaderboardRoutes); // ✅ ADDED
+
+// ── Global Error Handler ──────────────────────────────────────
+app.use((err, _req, res, _next) => {
+  console.error('❌', err.message);
+  res.status(err.status || 500).json({ success: false, message: err.message || 'Server Error' });
 });
 
 // ── Start server ─────────────────────────────────────────────
