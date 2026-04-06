@@ -447,7 +447,30 @@ const Our_Team = () => {
           <p style={styles.ctaText}>
             We're always looking for talented individuals passionate about cybersecurity
           </p>
-          <button style={styles.ctaButton} className="cta-button">Get In Touch</button>
+        <button
+  style={styles.ctaButton}
+  className="cta-button"
+  onClick={() => {
+    const subject = "Join Team Request";
+    const body = `Hi Cyber Shield Team,
+
+I am interested in joining your team.
+
+Name:
+Email:
+Skills:
+
+Thank you!`;
+
+    const gmailURL = `https://mail.google.com/mail/?view=cm&fs=1&to=cybershield.join@gmail.com&su=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+
+    window.open(gmailURL, "_blank");
+  }}
+>
+  Get In Touch
+</button>
         </div>
       </div>
     </>

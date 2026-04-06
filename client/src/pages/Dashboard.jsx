@@ -383,7 +383,7 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
             </div>
             <div>
               <div style={{ fontSize:15,fontWeight:800,color:C.text,letterSpacing:"-0.02em",
-                fontFamily:"Instrument Serif,Georgia,serif" }}>CyberGuard</div>
+                fontFamily:"Instrument Serif,Georgia,serif" }}>CyberShield</div>
               <div style={{ fontSize:10,color:C.textDim,fontWeight:600,letterSpacing:"0.07em" }}>SECURITY SUITE</div>
             </div>
           </div>
@@ -1238,7 +1238,7 @@ function ReportsPage({ user, navigate }) {
     setExporting(type);
     await new Promise(r => setTimeout(r, 800));
     const reportContent = `
-CyberGuard Security Report
+CyberShield Security Report
 Generated: ${new Date().toLocaleDateString("en-IN", { day:"2-digit", month:"long", year:"numeric" })}
 User: ${user?.fullName || user?.name || user?.email || "Unknown"}
 
@@ -1258,16 +1258,16 @@ Accuracy:           ${user?.phishingSimTotal ? Math.round((user.phishingSimCorre
 
     if (type === "pdf") {
       const win = window.open("","_blank");
-      win.document.write(`<html><head><title>CyberGuard Report</title>
+      win.document.write(`<html><head><title>CyberShield Report</title>
         <style>body{font-family:'Courier New',monospace;padding:40px;color:#0F172A}h1{font-family:Georgia,serif;color:#4F46E5}pre{white-space:pre-wrap;font-size:13px;line-height:1.7}</style></head>
-        <body><h1>🛡️ CyberGuard Security Report</h1><pre>${reportContent}</pre></body></html>`);
+        <body><h1>🛡️ CyberShield Security Report</h1><pre>${reportContent}</pre></body></html>`);
       win.document.close();
       setTimeout(() => { win.print(); win.close(); }, 500);
     } else {
       const blob = new Blob([reportContent], { type:"text/plain" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `CyberGuard_Report_${new Date().toISOString().split("T")[0]}.txt`;
+      a.download = `CyberShield_Report_${new Date().toISOString().split("T")[0]}.txt`;
       a.click();
     }
     setExporting(null);
@@ -1692,7 +1692,7 @@ function SettingsPage({ user, onUserUpdate }) {
             <h3 style={{ fontSize:15,fontWeight:800,color:C.red,margin:"0 0 22px",fontFamily:"Instrument Serif,Georgia,serif" }}>Danger Zone</h3>
             <div style={{ display:"flex",flexDirection:"column",gap:12,maxWidth:480 }}>
               {[
-                { title:"Export My Data",     desc:"Download your account data as JSON",                 color:C.brand, action:()=>{ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(user,null,2)],{type:"application/json"}));a.download="cyberguard-data.json";a.click(); }, btn:"Export" },
+                { title:"Export My Data",     desc:"Download your account data as JSON",                 color:C.brand, action:()=>{ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(user,null,2)],{type:"application/json"}));a.download="cybershield-data.json";a.click(); }, btn:"Export" },
                 { title:"Reset All Progress", desc:"Wipe all XP, scores, quiz history and badges",       color:C.amber, action:()=>{ if(window.confirm("Reset all progress?")&&onUserUpdate) onUserUpdate({score:0,xp:0,level:1,loginStreak:0,quizzesDone:0}); }, btn:"Reset" },
                 { title:"Delete Account",     desc:"Permanently delete your account and all data",        color:C.red,   action:()=>{ if(window.prompt("Type DELETE to confirm:")!=="DELETE")return;localStorage.clear();window.location.href="/"; }, btn:"Delete" },
               ].map((item,i)=>(
