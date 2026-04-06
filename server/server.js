@@ -18,6 +18,8 @@ import progressRoutes    from './routes/progressRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import quizSyncRoute   from './routes/quizSyncRoute.js';
  // ✅ ADDED
 
 dotenv.config();
@@ -618,54 +620,9 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 });
+app.use('/api/quiz', quizSyncRoute);
 
-// ══════════════════════════════════════════════════════════════
-// ── QUIZ ROUTES ───────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-
-app.post('/api/quiz/result', protect, async (req, res) => {
-  try {
-    const { moduleId, moduleTitle, totalCorrect, totalQuestions, percentage, grade, timeSpent, sectionResults } = req.body;
-    if (!moduleId || !moduleTitle)
-      return res.status(400).json({ success: false, message: 'moduleId aur moduleTitle required hai' });
-
-    const result = await QuizResult.findOneAndUpdate(
-      { user: req.userId, moduleId },
-      { user: req.userId, moduleId, moduleTitle, totalCorrect, totalQuestions, percentage, grade, timeSpent, sectionResults },
-      { upsert: true, new: true, runValidators: true }
-    );
-
-    console.log(`✅ Quiz result saved — user: ${req.userId}, module: ${moduleId}, grade: ${grade}`);
-    return res.status(200).json({ success: true, result });
-  } catch (err) {
-    console.error('Quiz result save error:', err);
-    return res.status(500).json({ success: false, message: 'Result save nahi hua' });
-  }
-});
-
-app.get('/api/quiz/results', protect, async (req, res) => {
-  try {
-    const results = await QuizResult.find({ user: req.userId })
-      .sort({ updatedAt: -1 })
-      .select('moduleId moduleTitle percentage grade timeSpent totalCorrect totalQuestions updatedAt');
-    return res.status(200).json({ success: true, results });
-  } catch (err) {
-    console.error('Fetch all results error:', err);
-    return res.status(500).json({ success: false, message: 'Results fetch nahi hue' });
-  }
-});
-
-app.get('/api/quiz/result/:moduleId', protect, async (req, res) => {
-  try {
-    const result = await QuizResult.findOne({ user: req.userId, moduleId: parseInt(req.params.moduleId) });
-    if (!result)
-      return res.status(404).json({ success: false, message: 'Is module ka result nahi mila' });
-    return res.status(200).json({ success: true, result });
-  } catch (err) {
-    console.error('Fetch single result error:', err);
-    return res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
+app.use('/api', dashboardRoutes);
 
 // ══════════════════════════════════════════════════════════════
 // ── COURSE / PROGRESS / CERTIFICATE / LEADERBOARD ROUTES ──────

@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from "react-router-dom";
-import { Shield, Eye, Brain, TrendingUp, Lock, Menu, X, ArrowRight, Twitter, Linkedin, Github, Mail, Phone, MapPin, CheckCircle2, Zap, Users, Award } from 'lucide-react';
+import { 
+  Shield, Eye, Brain, TrendingUp, Lock, Menu, X, ArrowRight, 
+  Linkedin, Github, Mail, Send, 
+  Phone, MapPin, CheckCircle2, Zap, Users, Award 
+} from "lucide-react";
 import './CyberSafetyLanding.css';
 
 const CyberSafetyLanding = () => {
@@ -584,14 +588,27 @@ const CyberSafetyLanding = () => {
               )}
 
               <div className="footer-social">
-                <span className="social-label">Follow Us:</span>
-                <div className="social-icons-3d">
-                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-icon-3d"><Twitter size={18} /></a>
-                  <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="social-icon-3d"><Linkedin size={18} /></a>
-                  <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="social-icon-3d"><Github size={18} /></a>
-                  <a href="mailto:info@cybershield.edu" className="social-icon-3d"><Mail size={18} /></a>
-                </div>
-              </div>
+  <span className="social-label">Follow Us:</span>
+  <div className="social-icons-3d">
+    <a href="https://www.linkedin.com/in/mohammad-saif-rakhangi-92a612327?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="social-icon-3d">
+      <Linkedin size={18} />
+    </a>
+    <a href="https://github.com/Mohammadsaif1915?tab=overview&from=2026-04-01&to=2026-04-06" target="_blank" rel="noopener noreferrer" className="social-icon-3d">
+      <Github size={18} />
+    </a>
+    <a href="https://t.me/CyberShieldplatform" target="_blank" rel="noopener noreferrer" className="social-icon-3d">
+      <Send size={18} />
+    </a>
+    <a 
+  href="https://mail.google.com/mail/?view=cm&to=info@cybershield.edu" 
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className="social-icon-3d"
+>
+  <Mail size={18} />
+</a>
+  </div>
+</div>
             </div>
           </div>
 
