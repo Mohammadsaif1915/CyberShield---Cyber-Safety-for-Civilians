@@ -1,12 +1,10 @@
-import Course    from '../models/Course.js'
-import Progress  from '../models/Progress.js'
+import Course from '../models/Course.js'
 
-// ── GET all courses (with logged-in user's progress if available) ──
 export const getCourses = async (req, res) => {
   try {
     const { level, search } = req.query
     const filter = {}
-    if (level  && level !== 'All') filter.level = level
+    if (level  && level  !== 'All') filter.level  = level
     if (search) filter.title = { $regex: search, $options: 'i' }
 
     const courses = await Course.find(filter)
@@ -19,7 +17,6 @@ export const getCourses = async (req, res) => {
   }
 }
 
-// ── GET single course (without answers) ──────────────────────
 export const getCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id).select('-quiz.answer')

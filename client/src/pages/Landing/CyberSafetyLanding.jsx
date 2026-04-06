@@ -587,18 +587,23 @@ const CyberSafetyLanding = () => {
           </div>
 
           <div className="footer-bottom">
-            <div className="footer-bottom-content">
-              <p className="footer-copyright">© 2026 CyberShield. All rights reserved.</p>
-              <div className="footer-legal">
-                {[['Privacy Policy', 'privacy'], ['Terms of Service', 'terms'], ['Cookie Policy', 'cookies'], ['Accessibility', 'accessibility']].map(([label, hash], i, arr) => (
-                  <React.Fragment key={hash}>
-                    <a href={`#${hash}`} className="legal-link">{label}</a>
-                    {i < arr.length - 1 && <span className="legal-divider">•</span>}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          </div>
+  <div className="footer-bottom-content">
+    <p className="footer-copyright">© 2026 CyberShield. All rights reserved.</p>
+    <div className="footer-legal">
+      {[
+        ['Privacy Policy', '/privacy-policy'],
+        ['Terms of Service', '/terms-of-service'],
+        ['Cookie Policy', '/cookie-policy'],
+        ['Accessibility', '/accessibility'],
+      ].map(([label, path], i, arr) => (
+        <React.Fragment key={path}>
+          <Link to={path} className="legal-link">{label}</Link>
+          {i < arr.length - 1 && <span className="legal-divider">•</span>}
+        </React.Fragment>
+      ))}
+    </div>
+  </div>
+</div>
         </div>
       </footer>
     </div>

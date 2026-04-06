@@ -10,35 +10,153 @@ const TOTAL_TIME = 15 * 60
 const shuffleOptions = (questions) => {
   return questions.map(q => {
     const optionsWithIndex = q.options.map((opt, i) => ({ opt, originalIndex: i }))
-    // Fisher-Yates shuffle
     for (let i = optionsWithIndex.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]]
     }
-    // Find where the correct answer ended up after shuffle
     const newCorrectIndex = optionsWithIndex.findIndex(o => o.originalIndex === q.answer)
     return {
       ...q,
       options:       optionsWithIndex.map(o => o.opt),
-      answer:        newCorrectIndex,  // new position of correct answer
+      answer:        newCorrectIndex,
       originalOrder: optionsWithIndex.map(o => o.originalIndex)
     }
   })
 }
 
-export default function QuizPage() {
-  const { id }     = useParams()
-  const navigate   = useNavigate()
+// ── Helper: sync quiz result back to Dashboard's localStorage user ──
+const syncResultToDashboard = (result, courseTitle) => {
+  try {
+    const raw = localStorage.getItem('user')
+    if (!raw) return
+    const user = JSON.parse(raw)
 
-  const [questions,  setQuestions]  = useState([])
-  const [courseTitle, setTitle]     = useState('')
-  const [answers,    setAnswers]    = useState({})
-  const [submitted,  setSubmitted]  = useState(false)
-  const [result,     setResult]     = useState(null)
-  const [loading,    setLoading]    = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [timeLeft,   setTimeLeft]   = useState(TOTAL_TIME)
-  const [current,    setCurrent]    = useState(0)
+    const totalCorrect   = result.score
+    const totalQuestions = result.total
+    const percentage     = Math.round((totalCorrect / totalQuestions) * 100)
+
+    // Grade calculation
+    const grade =
+      percentage >= 90 ? 'A+' :
+      percentage >= 80 ? 'A'  :
+      percentage >= 70 ? 'B'  :
+      percentage >= 60 ? 'C'  : 'D'
+
+    // XP earned
+    const xpEarned = result.passed
+      ? Math.round(percentage * 2)   // max 200 XP on pass
+      : Math.round(percentage * 0.5) // partial XP on fail
+
+    // Update quizHistory — upsert by courseId
+    const history = user.quizHistory || []
+    const existingIdx = history.findIndex(h => h.moduleId === result.courseId)
+    const newEntry = {
+      moduleId:       result.courseId,
+      moduleTitle:    courseTitle,
+      totalCorrect,
+      totalQuestions,
+      percentage,
+      grade,
+      updatedAt:      new Date().toISOString(),
+    }
+    if (existingIdx >= 0) {
+      history[existingIdx] = newEntry
+    } else {
+      history.unshift(newEntry)
+    }
+
+    // Recalculate avgScore from all history
+    const allPcts  = history.map(h => h.percentage)
+    const avgScore = Math.round(allPcts.reduce((a, b) => a + b, 0) / allPcts.length)
+
+    // Update score — add points for this attempt
+    const scoreGained = result.passed ? totalCorrect * 10 : totalCorrect * 3
+    const newScore    = (user.score || 0) + scoreGained
+    const newXP       = (user.xp   || 0) + xpEarned
+
+    // Level up every 500 XP
+    const newLevel = Math.floor(newXP / 500) + 1
+
+    // Weekly activity — update today's entry
+    const weeklyActivity = user.weeklyActivity || []
+    const today = new Date().toLocaleDateString('en-IN', { weekday: 'short' })
+    const todayIdx = weeklyActivity.findIndex(w => w.d === today)
+    if (todayIdx >= 0) {
+      weeklyActivity[todayIdx].score = (weeklyActivity[todayIdx].score || 0) + scoreGained
+      weeklyActivity[todayIdx].quiz  = (weeklyActivity[todayIdx].quiz  || 0) + 1
+    } else {
+      weeklyActivity.push({ d: today, score: scoreGained, quiz: 1 })
+    }
+    // Keep last 7 days only
+    const last7 = weeklyActivity.slice(-7)
+
+    // Domain scores — update based on courseTitle keywords
+    const titleLower = (courseTitle || '').toLowerCase()
+    const domainUpdate = {}
+    if (titleLower.includes('phish'))   domainUpdate.phishingScore = Math.max(user.phishingScore || 0, percentage)
+    if (titleLower.includes('malware')) domainUpdate.malwareScore  = Math.max(user.malwareScore  || 0, percentage)
+    if (titleLower.includes('network')) domainUpdate.networkScore  = Math.max(user.networkScore  || 0, percentage)
+    if (titleLower.includes('privacy')) domainUpdate.privacyScore  = Math.max(user.privacyScore  || 0, percentage)
+    if (titleLower.includes('cloud'))   domainUpdate.cloudScore    = Math.max(user.cloudScore    || 0, percentage)
+
+    // Recent activity log
+    const recentActivity = [
+      {
+        msg:  `Quiz: "${courseTitle}" — ${grade} (${percentage}%) +${xpEarned} XP`,
+        time: 'Just now',
+      },
+      ...(user.recentActivity || []).slice(0, 9),
+    ]
+
+    // Badges — check for new ones
+    const badges = [...(user.badges || [])]
+    const hasBadge = (label) => badges.some(b => (b.label || b) === label)
+
+    if (result.passed && !hasBadge('First Pass'))
+      badges.push({ emoji: '🎯', label: 'First Pass' })
+    if (history.length >= 5 && !hasBadge('Quiz Veteran'))
+      badges.push({ emoji: '🧠', label: 'Quiz Veteran' })
+    if (percentage === 100 && !hasBadge('Perfect Score'))
+      badges.push({ emoji: '💯', label: 'Perfect Score' })
+    if (newScore >= 500 && !hasBadge('Score 500'))
+      badges.push({ emoji: '⭐', label: 'Score 500' })
+    if (newLevel >= 2 && !hasBadge('Level 2'))
+      badges.push({ emoji: '🚀', label: 'Level 2' })
+
+    const updatedUser = {
+      ...user,
+      score:          newScore,
+      xp:             newXP,
+      level:          newLevel,
+      quizzesDone:    (user.quizzesDone || 0) + 1,
+      avgScore,
+      quizHistory:    history,
+      weeklyActivity: last7,
+      recentActivity,
+      badges,
+      ...domainUpdate,
+    }
+
+    localStorage.setItem('user', JSON.stringify(updatedUser))
+    console.log('[QuizPages] Dashboard synced:', { scoreGained, xpEarned, grade, percentage })
+  } catch (err) {
+    console.error('[QuizPages] Dashboard sync failed:', err)
+  }
+}
+
+export default function QuizPages() {
+  const { id }   = useParams()
+  const navigate = useNavigate()
+
+  const [questions,   setQuestions]   = useState([])
+  const [courseTitle, setTitle]       = useState('')
+  const [answers,     setAnswers]     = useState({})
+  const [submitted,   setSubmitted]   = useState(false)
+  const [result,      setResult]      = useState(null)
+  const [loading,     setLoading]     = useState(true)
+  const [submitting,  setSubmitting]  = useState(false)
+  const [timeLeft,    setTimeLeft]    = useState(TOTAL_TIME)
+  const [current,     setCurrent]     = useState(0)
 
   const timerRef = useRef(null)
 
@@ -46,7 +164,6 @@ export default function QuizPage() {
     const load = async () => {
       try {
         const { data } = await api.get(`/quiz/${id}`)
-        // Shuffle options
         const shuffled = shuffleOptions(data.questions)
         setQuestions(shuffled)
         setTitle(data.courseTitle)
@@ -76,16 +193,15 @@ export default function QuizPage() {
   }, [loading, submitted])
 
   const formatTime = (s) => {
-    const m = Math.floor(s / 60)
+    const m   = Math.floor(s / 60)
     const sec = s % 60
-    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
   }
 
-  const timerColor = timeLeft < 120
-    ? '#ef4444'
-    : timeLeft < 300
-    ? '#f59e0b'
-    : 'var(--clr-accent)'
+  const timerColor =
+    timeLeft < 120 ? '#ef4444' :
+    timeLeft < 300 ? '#f59e0b' :
+    'var(--clr-accent)'
 
   const selectAnswer = (qIdx, optIdx) => {
     if (submitted) return
@@ -102,14 +218,16 @@ export default function QuizPage() {
     clearInterval(timerRef.current)
     setSubmitting(true)
     try {
-      // Send answers mapped back to original indices
       const answerArray = questions.map((q, i) => {
         const selected = answers[i]
         if (selected === undefined) return -1
-        // Map shuffled index back to original index for backend
         return q.originalOrder[selected]
       })
       const { data } = await api.post(`/quiz/${id}/submit`, { answers: answerArray })
+
+      // ✅ FIX: sync result to Dashboard localStorage immediately
+      syncResultToDashboard({ ...data, courseId: id }, courseTitle)
+
       setResult(data)
       setSubmitted(true)
       if (data.passed) toast.success('🎉 Congratulations! You passed!')
@@ -122,6 +240,34 @@ export default function QuizPage() {
   }
 
   const answeredCount = Object.keys(answers).length
+
+  // ── Back button (shown always) ──
+  const BackBtn = () => (
+    <button
+      onClick={() => navigate('/dashboard')}
+      style={{
+        display:        'inline-flex',
+        alignItems:     'center',
+        gap:            6,
+        padding:        '8px 16px',
+        background:     '#4F46E5',
+        color:          '#fff',
+        border:         'none',
+        borderRadius:   10,
+        cursor:         'pointer',
+        fontSize:       13,
+        fontWeight:     700,
+        marginBottom:   16,
+        boxShadow:      '0 4px 12px rgba(79,70,229,0.25)',
+        fontFamily:     'inherit',
+        transition:     'opacity .15s',
+      }}
+      onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+      onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+    >
+      ← Dashboard
+    </button>
+  )
 
   if (loading) return (
     <div className={styles.loadCenter}>
@@ -136,13 +282,18 @@ export default function QuizPage() {
     return (
       <div className={styles.resultPage}>
         <div className={styles.resultCard}>
+
+          {/* ✅ Back to Dashboard button */}
+          <div style={{ marginBottom: 8 }}>
+            <BackBtn />
+          </div>
+
           <div className={styles.resultIcon}>{result.passed ? '🎉' : '😔'}</div>
           <h2 className={styles.resultTitle}>
             {result.passed ? 'Quiz Passed!' : 'Quiz Failed'}
           </h2>
           <p className={styles.resultSub}>{courseTitle}</p>
 
-          {/* Score ring */}
           <div className={styles.scoreRing}>
             <svg viewBox="0 0 120 120" className={styles.ringsvg}>
               <circle cx="60" cy="60" r="50" fill="none"
@@ -186,44 +337,30 @@ export default function QuizPage() {
             <p className={styles.passNote}>Minimum 8 correct answers required to pass.</p>
           )}
 
-          {/* ── Detailed Answer Review ── */}
           <div className={styles.reviewSection}>
             <h3 className={styles.reviewHeading}>Answer Review</h3>
             <div className={styles.reviewList}>
               {result.results?.map((r, i) => {
-                // Get shuffled question to show options
                 const q = questions[i]
                 return (
-                  <div
-                    key={i}
+                  <div key={i}
                     className={`${styles.reviewItem} ${r.isCorrect ? styles.reviewCorrect : styles.reviewWrong}`}
                   >
-                    {/* Question number + icon */}
                     <div className={styles.reviewTop}>
                       <span className={styles.reviewNum}>Q{i + 1}</span>
                       <span className={styles.reviewIcon}>{r.isCorrect ? '✅' : '❌'}</span>
                     </div>
-
-                    {/* Question text */}
                     <p className={styles.reviewQ}>{r.question}</p>
-
-                    {/* Your answer */}
                     <div className={styles.reviewAnswerRow}>
                       <span className={styles.reviewLabel}>Your answer:</span>
                       <span className={`${styles.reviewAnswer} ${r.isCorrect ? styles.answerRight : styles.answerWrong}`}>
-                        {/* Show the option text they selected */}
-                        {answers[i] !== undefined
-                          ? q.options[answers[i]]
-                          : 'Not answered'}
+                        {answers[i] !== undefined ? q.options[answers[i]] : 'Not answered'}
                       </span>
                     </div>
-
-                    {/* Correct answer — only show if wrong */}
                     {!r.isCorrect && (
                       <div className={styles.reviewAnswerRow}>
                         <span className={styles.reviewLabel}>Correct answer:</span>
                         <span className={`${styles.reviewAnswer} ${styles.answerRight}`}>
-                          {/* correct index in shuffled array = q.answer */}
                           {q.options[q.answer]}
                         </span>
                       </div>
@@ -252,15 +389,12 @@ export default function QuizPage() {
                   setAnswers({})
                   setCurrent(0)
                   setTimeLeft(TOTAL_TIME)
-                  // Re-shuffle on retry
-                  setQuestions(prev => shuffleOptions(prev.map(q => ({
-                    ...q,
-                    // restore original options order first
-                    options: q.originalOrder.map(idx => {
-                      // we need original options — store them
-                      return q.options[q.answer] // fallback
-                    })
-                  }))))
+                  setQuestions(prev => shuffleOptions(
+                    prev.map(q => ({
+                      ...q,
+                      options: q.originalOrder.map((_, idx) => q.options[idx])
+                    }))
+                  ))
                 }}
               >
                 🔄 Retry Quiz
@@ -271,6 +405,13 @@ export default function QuizPage() {
               onClick={() => navigate(`/courses/${id}`)}
             >
               Back to Course
+            </button>
+            {/* ✅ Extra back to dashboard button in result actions */}
+            <button
+              className="btn btn-outline btn-lg"
+              onClick={() => navigate('/dashboard')}
+            >
+              🏠 Dashboard
             </button>
           </div>
         </div>
@@ -285,7 +426,9 @@ export default function QuizPage() {
     <div className={styles.page}>
       <div className="container-sm">
 
-        {/* Header */}
+        {/* ✅ Back button at top */}
+        <BackBtn />
+
         <div className={styles.header}>
           <div>
             <h2 className={styles.quizTitle}>{courseTitle} — Quiz</h2>
@@ -296,7 +439,6 @@ export default function QuizPage() {
           </div>
         </div>
 
-        {/* Progress */}
         <div className={styles.quizProgress}>
           <div className="progress-bar-wrap">
             <div className="progress-bar-fill"
@@ -305,13 +447,11 @@ export default function QuizPage() {
           <span className={styles.progressText}>{answeredCount}/{questions.length}</span>
         </div>
 
-        {/* Question bubbles */}
         <div className={styles.qBubbles}>
           {questions.map((_, i) => (
-            <button
-              key={i}
+            <button key={i}
               className={`${styles.qBubble}
-                ${i === current ? styles.qBubbleActive : ''}
+                ${i === current    ? styles.qBubbleActive   : ''}
                 ${answers[i] !== undefined ? styles.qBubbleAnswered : ''}
               `}
               onClick={() => setCurrent(i)}
@@ -321,7 +461,6 @@ export default function QuizPage() {
           ))}
         </div>
 
-        {/* Question card */}
         <div className={styles.questionCard}>
           <div className={styles.qNum}>Question {current + 1} of {questions.length}</div>
           <h3 className={styles.qText}>{q.question}</h3>
@@ -330,14 +469,11 @@ export default function QuizPage() {
             {q.options.map((opt, oi) => {
               const selected = answers[current] === oi
               return (
-                <button
-                  key={oi}
+                <button key={oi}
                   className={`${styles.option} ${selected ? styles.optionSelected : ''}`}
                   onClick={() => selectAnswer(current, oi)}
                 >
-                  <span className={styles.optLetter}>
-                    {String.fromCharCode(65 + oi)}
-                  </span>
+                  <span className={styles.optLetter}>{String.fromCharCode(65 + oi)}</span>
                   <span className={styles.optText}>{opt}</span>
                   {selected && <span className={styles.optCheck}>✓</span>}
                 </button>
@@ -346,10 +482,8 @@ export default function QuizPage() {
           </div>
         </div>
 
-        {/* Navigation */}
         <div className={styles.navRow}>
-          <button
-            className="btn btn-outline"
+          <button className="btn btn-outline"
             onClick={() => setCurrent(c => Math.max(0, c - 1))}
             disabled={current === 0}
           >
@@ -357,15 +491,13 @@ export default function QuizPage() {
           </button>
 
           {current < questions.length - 1 ? (
-            <button
-              className="btn btn-primary"
+            <button className="btn btn-primary"
               onClick={() => setCurrent(c => c + 1)}
             >
               Next →
             </button>
           ) : (
-            <button
-              className="btn btn-accent"
+            <button className="btn btn-accent"
               onClick={() => handleSubmit()}
               disabled={submitting}
             >
@@ -374,6 +506,7 @@ export default function QuizPage() {
             </button>
           )}
         </div>
+
       </div>
     </div>
   )

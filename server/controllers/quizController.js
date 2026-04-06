@@ -16,7 +16,9 @@ export const getQuiz = async (req, res) => {
     if (!course) return res.status(404).json({ success: false, message: 'Course not found' })
 
     const questions = course.quiz.map(q => ({
-      _id: q._id, question: q.question, options: q.options
+      _id:      q._id,
+      question: q.question,
+      options:  q.options
     }))
 
     res.json({ success: true, questions, courseTitle: course.title })
@@ -27,7 +29,7 @@ export const getQuiz = async (req, res) => {
 
 export const submitQuiz = async (req, res) => {
   try {
-    const userId      = getTempUser()
+    const userId  = getTempUser()
     const { answers } = req.body
 
     const course = await Course.findById(req.params.courseId)

@@ -17,22 +17,30 @@ import Help_Center         from "./components/Help_Center";
 import Contact_Us          from "./components/Contact_us";
 import Faq                 from "./components/Faq";
 
+import LeaderboardPage      from "./LeaderboardPage";
+import PhisingSimulatorPage from "./PhisingSimulatorPage";
+import ReportsPage          from "./ReportsPage";
+import ThreatsPage          from "./ThreatsPage";
+
+import QuizPages        from "./pages/QuizPages";
 import CoursesPage      from './pages/CoursesPage';
 import CourseDetailPage from './pages/CourseDetailPage';
-import LeaderboardPage from "./LeaderboardPage";
-import PhisingSimulatorPage from "./PhisingSimulatorPage";
-import ReportsPage from "./ReportsPage";
-import ThreatsPage from "./ThreatsPage";
-import QuizPages        from './pages/QuizPages';
-import QuizPage  from "./pages/QuizPage";
+import QuizPage         from './pages/QuizPage';
 import CertificatePage  from './pages/CertificatePage';
+import ProfilePage      from './pages/ProfilePage';
 import Navbar           from './components/common/Navbar';
 
+import PrivacyPolicy  from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import CookiePolicy   from './pages/CookiePolicy';
+import Accessibility  from './pages/Accessibility';
+
+// ── Layout wraps Navbar + page content ──────────────────────
 function Layout({ children }) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
-      <main style={{ flex: 1 }}>{children}</main>
+      <main style={{ flex: 1, paddingTop: '0' }}>{children}</main>
     </div>
   );
 }
@@ -40,17 +48,18 @@ function Layout({ children }) {
 function App() {
   return (
     <Routes>
+      {/* ── Public / Landing ── */}
       <Route path="/"                        element={<CyberSafetyLanding />} />
       <Route path="/dashboard"               element={<Dashboard />} />
       <Route path="/game"                    element={<GamePage />} />
-      <Route path="/quiz"                  element={<QuizPages />} />
-      <Route path="/QuizPage"                  element={<QuizPage />} />
 
+      {/* ── Auth ── */}
       <Route path="/register"                element={<Register />} />
       <Route path="/login"                   element={<Login />} />
       <Route path="/forgot-password"         element={<ForgotPasswordPopup />} />
       <Route path="/reset-password/:token"   element={<ResetPassword />} />
 
+      {/* ── Info pages ── */}
       <Route path="/about_us"                element={<About_us />} />
       <Route path="/features"                element={<Features />} />
       <Route path="/community"               element={<Community />} />
@@ -59,17 +68,28 @@ function App() {
       <Route path="/help_center"             element={<Help_Center />} />
       <Route path="/contact_us"              element={<Contact_Us />} />
       <Route path="/faq"                     element={<Faq />} />
+
+      {/* ── App pages (with Navbar) ── */}
       <Route path="/leaderboard"             element={<Layout><LeaderboardPage /></Layout>} />
       <Route path="/phishing-simulator"      element={<Layout><PhisingSimulatorPage /></Layout>} />
       <Route path="/reports"                 element={<Layout><ReportsPage /></Layout>} />
-      <Route path="/threats"                element={<Layout><ThreatsPage /></Layout>} />
+      <Route path="/threats"                 element={<Layout><ThreatsPage /></Layout>} />
 
-      <Route path="/courses"                 element={<Layout><CoursesPage /></Layout>} />
-      <Route path="/courses/:id"             element={<Layout><CourseDetailPage /></Layout>} />
-      <Route path="/courses/:id/quiz"        element={<Layout><QuizPages /></Layout>} />
+      <Route path="/quiz"                    element={<QuizPage />} />
+      <Route path="/courses"                 element={<CoursesPage />} />
+      <Route path="/courses/:id"             element={<CourseDetailPage />} />
+      <Route path="/courses/:id/quiz"        element={<QuizPages />} />
       <Route path="/courses/:id/certificate" element={<Layout><CertificatePage /></Layout>} />
+      <Route path="/profile"                 element={<Layout><ProfilePage /></Layout>} />
 
-      <Route path="*"                        element={<Navigate to="/courses" replace />} />
+      {/* ── Legal ── */}
+      <Route path="/privacy-policy"          element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service"        element={<TermsOfService />} />
+      <Route path="/cookie-policy"           element={<CookiePolicy />} />
+      <Route path="/accessibility"           element={<Accessibility />} />
+
+      {/* ── Catch-all ── */}
+      <Route path="*"                        element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

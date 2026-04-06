@@ -17,7 +17,8 @@ export const register = async (req, res) => {
     const token = signToken(user._id)
 
     res.status(201).json({
-      success: true, token,
+      success: true,
+      token,
       user: { _id: user._id, name: user.name, email: user.email, role: user.role }
     })
   } catch (err) {
@@ -37,7 +38,8 @@ export const login = async (req, res) => {
 
     const token = signToken(user._id)
     res.json({
-      success: true, token,
+      success: true,
+      token,
       user: { _id: user._id, name: user.name, email: user.email, role: user.role }
     })
   } catch (err) {

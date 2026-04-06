@@ -63,14 +63,13 @@ export default function CourseDetailPage() {
 
   // ── Load course + progress ────────────────────────────────────────────────
   useEffect(() => {
-  if (!id) return  // ← ADD THIS ONE LINE
-  const load = async () => {
-    setLoading(true)
-    try {
-      const [cRes, pRes] = await Promise.all([
-        api.get(`/courses/${id}`),
-        api.get(`/progress/${id}`)
-      ])
+    const load = async () => {
+      setLoading(true)
+      try {
+        const [cRes, pRes] = await Promise.all([
+          api.get(`/courses/${id}`),
+          api.get(`/progress/${id}`)
+        ])
         setCourse(cRes.data.course)
         setProgress(pRes.data.progress)
         progressRef.current = pRes.data.progress

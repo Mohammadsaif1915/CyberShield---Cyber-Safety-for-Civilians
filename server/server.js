@@ -251,7 +251,8 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
-    const isMatch = await user.comparePassword(password);
+    // ✅ FIXED: was user.comparePassword — correct method name is matchPassword
+    const isMatch = await user.matchPassword(password);
     if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });

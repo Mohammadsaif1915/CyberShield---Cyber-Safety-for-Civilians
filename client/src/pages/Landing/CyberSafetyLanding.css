@@ -424,9 +424,8 @@ body {
   background: linear-gradient(135deg, #2563eb, #06b6d4, #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-top: 0.5rem;
-  animation: shimmer 3s ease-in-out infinite;
-  background-size: 200% 200%;
 }
 
 .hero-description-3d {

@@ -1,61 +1,75 @@
 import Progress from '../models/Progress.js'
 import Course   from '../models/Course.js'
 import User     from '../models/User.js'
+import mongoose from 'mongoose'
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/progress/:courseId
-// ─────────────────────────────────────────────────────────────
+const TEMP_USER_ID = '000000000000000000000001'
+
+const getUserId = (req) => {
+  if (req.user && req.user._id) return req.user._id
+  return new mongoose.Types.ObjectId(TEMP_USER_ID)
+}
+
+const getUserEmail = async (req) => {
+  if (req.user && req.user.email) return req.user.email
+  if (req.user && req.user._id) {
+    try {
+      const user = await User.findById(req.user._id).select('email')
+      return user?.email || ''
+    } catch { return '' }
+  }
+  return ''
+}
+
 export const getProgress = async (req, res) => {
   try {
-    const userId   = req.userId
-    const courseId = req.params.courseId
-
-    let progress = await Progress.findOne({ user: userId, course: courseId })
+    const userId = getUserId(req)
+    let progress = await Progress.findOne({ user: userId, course: req.params.courseId })
 
     if (!progress) {
-      const course = await Course.findById(courseId)
-      if (!course)
-        return res.status(404).json({ success: false, message: 'Course not found' })
-
+      const course = await Course.findById(req.params.courseId)
+      if (!course) return res.status(404).json({ success: false, message: 'Course not found' })
+      const email = await getUserEmail(req)
       progress = await Progress.create({
-        user:   userId,
-        course: courseId,
+        user:       userId,
+        course:     req.params.courseId,
+        userEmail:  email,
+        courseName: course.title,
         watchedVideos: course.videos.map(v => ({
           videoId:         v._id,
+          videoName:       v.title,
           watchedDuration: 0,
           totalDuration:   v.duration,
           completed:       false
         }))
       })
     }
-
     res.json({ success: true, progress })
   } catch (err) {
     res.status(500).json({ success: false, message: err.message })
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// POST /api/progress/:courseId/video
-// ─────────────────────────────────────────────────────────────
 export const updateVideoProgress = async (req, res) => {
   try {
-    const userId   = req.userId
-    const courseId = req.params.courseId
+    const userId = getUserId(req)
     const { videoId, watchedDuration, totalDuration } = req.body
 
-    const course = await Course.findById(courseId)
-    if (!course)
-      return res.status(404).json({ success: false, message: 'Course not found' })
+    const course = await Course.findById(req.params.courseId)
+    if (!course) return res.status(404).json({ success: false, message: 'Course not found' })
 
-    let progress = await Progress.findOne({ user: userId, course: courseId })
+    let progress = await Progress.findOne({ user: userId, course: req.params.courseId })
 
     if (!progress) {
+      const email = await getUserEmail(req)
       progress = await Progress.create({
-        user:   userId,
-        course: courseId,
+        user:       userId,
+        course:     req.params.courseId,
+        userEmail:  email,
+        courseName: course.title,
         watchedVideos: course.videos.map(v => ({
           videoId:         v._id,
+          videoName:       v.title,
           watchedDuration: 0,
           totalDuration:   v.duration,
           completed:       false
@@ -63,87 +77,57 @@ export const updateVideoProgress = async (req, res) => {
       })
     }
 
-    const isCompleted = totalDuration > 0 && watchedDuration >= totalDuration * 0.95
+    if (!progress.userEmail) {
+      const email = await getUserEmail(req)
+      if (email) progress.userEmail = email
+    }
+    if (!progress.courseName) progress.courseName = course.title
+
     const idx = progress.watchedVideos.findIndex(
       wv => wv.videoId.toString() === videoId.toString()
     )
+
+    const isCompleted = totalDuration > 0 && watchedDuration >= totalDuration * 0.95
+    const videoDoc    = course.videos.find(v => v._id.toString() === videoId.toString())
+    const videoName   = videoDoc?.title || ''
+
+    progress.currentVideoName = videoName
 
     if (idx > -1) {
       if (watchedDuration > progress.watchedVideos[idx].watchedDuration)
         progress.watchedVideos[idx].watchedDuration = watchedDuration
       progress.watchedVideos[idx].completed = isCompleted
+      if (!progress.watchedVideos[idx].videoName)
+        progress.watchedVideos[idx].videoName = videoName
     } else {
-      progress.watchedVideos.push({ videoId, watchedDuration, totalDuration, completed: isCompleted })
+      progress.watchedVideos.push({ videoId, videoName, watchedDuration, totalDuration, completed: isCompleted })
     }
 
     progress.completedVideos  = progress.watchedVideos.filter(v => v.completed).length
     progress.allVideosWatched = progress.completedVideos >= course.videos.length
-
     await progress.save()
+
     res.json({ success: true, progress })
   } catch (err) {
     res.status(500).json({ success: false, message: err.message })
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/progress/all
-// Logged-in user ki details + saare courses ka progress
-// ─────────────────────────────────────────────────────────────
 export const getAllProgress = async (req, res) => {
   try {
-    const userId = req.userId
-
-    // ✅ Logged-in user ki details
-    const user = await User.findById(userId).select('fullName email avatar role city')
-    if (!user)
-      return res.status(404).json({ success: false, message: 'User not found' })
-
-    // ✅ Us user ke saare courses ka progress
+    const userId = getUserId(req)
     const allProgress = await Progress.find({ user: userId })
-      .populate('course', 'title level totalVideos icon color description')
+      .populate('course', 'title level totalVideos icon color')
       .lean()
 
-    const progressList = allProgress.map(p => {
-      const completedVideos = p.watchedVideos?.filter(v => v.completed).length ?? 0
-      const totalVideos     = p.course?.totalVideos ?? p.watchedVideos?.length ?? 0
+    const fixed = allProgress.map(p => {
+      const completedVideos = p.watchedVideos?.filter(v => v.completed).length || 0
+      const totalVideos     = p.course?.totalVideos || p.watchedVideos?.length || 0
       const pct             = totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0
-
-      return {
-        _id:               p._id,
-        course:            p.course,
-        completedVideos,
-        totalVideos,
-        pct,
-        allVideosWatched:  p.allVideosWatched,
-        quizPassed:        p.quizPassed,
-        quizScore:         p.quizScore,
-        bestScore:         p.bestScore,
-        certificateIssued: p.certificateIssued,
-        watchedVideos:     p.watchedVideos?.map(wv => ({
-          videoId:         wv.videoId,
-          completed:       wv.completed,
-          watchedDuration: wv.watchedDuration,
-          totalDuration:   wv.totalDuration,
-        })) ?? []
-      }
+      return { ...p, completedVideos, totalVideos, pct }
     })
 
-    // ✅ Response — user info + progress saath mein
-    res.json({
-      success: true,
-      user: {
-        fullName: user.fullName,
-        email:    user.email,
-        avatar:   user.avatar,
-        role:     user.role,
-        city:     user.city,
-      },
-      totalCoursesStarted:   progressList.length,
-      totalCoursesCompleted: progressList.filter(p => p.allVideosWatched).length,
-      totalCertificates:     progressList.filter(p => p.certificateIssued).length,
-      allProgress:           progressList
-    })
+    res.json({ success: true, allProgress: fixed })
   } catch (err) {
     res.status(500).json({ success: false, message: err.message })
   }

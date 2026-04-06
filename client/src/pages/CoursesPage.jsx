@@ -16,35 +16,29 @@ export default function CoursesPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const params = new URLSearchParams()
-      if (level !== 'All') params.set('level', level)
-      if (search.trim())   params.set('search', search.trim())
-      const query = params.toString() ? `?${params.toString()}` : ''
-
-      const [coursesRes, progressRes] = await Promise.all([
-        api.get(`/courses${query}`),
+      const [coursesRes, progressRes] = await Promise.allSettled([
+        api.get(`/courses?level=${level !== 'All' ? level : ''}&search=${search}`),
         api.get('/progress/all')
       ])
 
-      // Guard: API may return array directly or nested under .courses
-      const rawCourses = coursesRes.data?.courses ?? coursesRes.data
-      setCourses(Array.isArray(rawCourses) ? rawCourses : [])
+      if (coursesRes.status === 'fulfilled') {
+        setCourses(coursesRes.value.data.courses ?? [])
+      } else {
+        console.error('Courses fetch failed:', coursesRes.reason)
+        setCourses([])
+      }
 
-      // Guard: API may return array directly or nested under .allProgress
-      const rawProgress = progressRes.data?.allProgress ?? progressRes.data
-      const progressList = Array.isArray(rawProgress) ? rawProgress : []
-      const pMap = {}
-      progressList.forEach(p => {
-        if (p && (p.course?._id || p.course)) {
+      if (progressRes.status === 'fulfilled') {
+        const pMap = {}
+        progressRes.value.data.allProgress?.forEach(p => {
           pMap[p.course?._id || p.course] = p
-        }
-      })
-      setProgress(pMap)
+        })
+        setProgress(pMap)
+      }
 
     } catch (err) {
       console.error('Failed to load courses:', err)
       setCourses([])
-      setProgress({})
     } finally {
       setLoading(false)
     }
@@ -64,15 +58,56 @@ export default function CoursesPage() {
   const getStatusLabel = (courseId) => {
     const p = progress[courseId]
     if (!p) return null
-    if (p.certificateIssued) return { label: '🏆 Certified',      cls: styles.statusCert }
-    if (p.quizPassed)        return { label: '✅ Passed Quiz',    cls: styles.statusPassed }
-    if (p.allVideosWatched)  return { label: '🧠 Quiz Unlocked',  cls: styles.statusQuiz }
-    if (p.completedVideos > 0) return { label: '▶ In Progress',  cls: styles.statusProgress }
+    if (p.certificateIssued)   return { label: '🏆 Certified',     cls: styles.statusCert }
+    if (p.quizPassed)          return { label: '✅ Passed Quiz',   cls: styles.statusPassed }
+    if (p.allVideosWatched)    return { label: '🧠 Quiz Unlocked', cls: styles.statusQuiz }
+    if (p.completedVideos > 0) return { label: '▶ In Progress',   cls: styles.statusProgress }
     return null
   }
 
   return (
     <div className={styles.page}>
+
+      {/* ✅ Fixed back button — always visible at top */}
+      <div style={{
+        position:   'sticky',
+        top:        0,
+        zIndex:     100,
+        background: 'rgba(255,255,255,0.95)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid rgba(79,70,229,0.1)',
+        padding:    '10px 24px',
+        display:    'flex',
+        alignItems: 'center',
+        gap:        12,
+      }}>
+        <button
+          onClick={() => navigate('/dashboard')}
+          style={{
+            display:      'inline-flex',
+            alignItems:   'center',
+            gap:          6,
+            padding:      '8px 16px',
+            background:   '#4F46E5',
+            color:        '#fff',
+            border:       'none',
+            borderRadius: 10,
+            cursor:       'pointer',
+            fontSize:     13,
+            fontWeight:   700,
+            boxShadow:    '0 4px 12px rgba(79,70,229,0.25)',
+            fontFamily:   'inherit',
+            transition:   'opacity .15s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+        >
+          ← Dashboard
+        </button>
+        <span style={{ fontSize: 15, fontWeight: 700, color: '#0F172A' }}>
+          Learning Courses
+        </span>
+      </div>
 
       {/* Hero */}
       <section className={styles.hero}>
@@ -158,7 +193,7 @@ export default function CoursesPage() {
 
                   <div className={styles.cardBody}>
                     <div className={styles.cardTop}>
-                      <span className={`badge badge-${course.level.toLowerCase()}`}>
+                      <span className={`badge badge-${course.level?.toLowerCase()}`}>
                         {course.level}
                       </span>
                       {status && (
