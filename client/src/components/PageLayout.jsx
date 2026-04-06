@@ -142,13 +142,16 @@ export function PageLayout({ badge, title, subtitle, updated, readTime, tocItems
           <div className="pg-logo" onClick={() => navigate('/')}>
             <ShieldIcon /> CyberShield
           </div>
-          <div className="pg-nav-links">
+
+
+          {/* <div className="pg-nav-links">
             {navLinks.map(l => (
               <button key={l.path} className={`pg-nav-link ${current === l.path ? 'pg-active' : ''}`} onClick={() => navigate(l.path)}>
                 {l.label}
               </button>
-            ))}
-          </div>
+            ))} */}
+          {/* </div> */}
+          
           <button className="pg-back-btn" onClick={() => navigate(-1)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
             Go Back
