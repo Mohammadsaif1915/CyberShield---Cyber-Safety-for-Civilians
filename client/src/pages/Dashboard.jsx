@@ -22,33 +22,33 @@ import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar,
 } from "recharts";
 
-// ─── THEME ────────────────────────────────────────────────────────────────────
+// ─── THEME (LIGHT) ────────────────────────────────────────────────────────────
 const T = {
-  bg:          "#0A0E1A",
-  surface:     "#111827",
-  surfaceHov:  "#1A2235",
-  card:        "#141C2E",
-  border:      "rgba(99,102,241,0.12)",
-  borderHov:   "rgba(99,102,241,0.3)",
-  brand:       "#6366F1",
-  brandDark:   "#4F46E5",
-  brandGlow:   "rgba(99,102,241,0.25)",
-  teal:        "#14B8A6",
-  tealDim:     "rgba(20,184,166,0.15)",
-  violet:      "#8B5CF6",
-  amber:       "#F59E0B",
-  amberDim:    "rgba(245,158,11,0.15)",
-  red:         "#EF4444",
-  redDim:      "rgba(239,68,68,0.15)",
-  green:       "#10B981",
-  greenDim:    "rgba(16,185,129,0.15)",
-  pink:        "#EC4899",
-  pinkDim:     "rgba(236,72,153,0.15)",
-  text:        "#F1F5F9",
-  textMd:      "#94A3B8",
-  textDim:     "#475569",
-  sh:          "0 2px 8px rgba(0,0,0,0.4)",
-  shMd:        "0 8px 32px rgba(0,0,0,0.5)",
+  bg:          "#F0F2F8",
+  surface:     "#FFFFFF",
+  surfaceHov:  "#F5F7FF",
+  card:        "#FFFFFF",
+  border:      "rgba(99,102,241,0.14)",
+  borderHov:   "rgba(99,102,241,0.32)",
+  brand:       "#4F46E5",
+  brandDark:   "#3730A3",
+  brandGlow:   "rgba(79,70,229,0.18)",
+  teal:        "#0D9488",
+  tealDim:     "rgba(13,148,136,0.10)",
+  violet:      "#7C3AED",
+  amber:       "#D97706",
+  amberDim:    "rgba(217,119,6,0.10)",
+  red:         "#DC2626",
+  redDim:      "rgba(220,38,38,0.08)",
+  green:       "#059669",
+  greenDim:    "rgba(5,150,105,0.10)",
+  pink:        "#DB2777",
+  pinkDim:     "rgba(219,39,119,0.10)",
+  text:        "#111827",
+  textMd:      "#4B5563",
+  textDim:     "#9CA3AF",
+  sh:          "0 1px 4px rgba(0,0,0,0.07)",
+  shMd:        "0 4px 20px rgba(0,0,0,0.10)",
 };
 
 // ─── MOCK DATA ────────────────────────────────────────────────────────────────
@@ -144,15 +144,15 @@ const computeLevel = (score) => {
 };
 
 const SEV = {
-  critical: { color:"#EF4444", bg:"rgba(239,68,68,0.12)", label:"Critical" },
-  high:     { color:"#F97316", bg:"rgba(249,115,22,0.12)", label:"High" },
-  medium:   { color:"#F59E0B", bg:"rgba(245,158,11,0.12)", label:"Medium" },
-  low:      { color:"#10B981", bg:"rgba(16,185,129,0.12)", label:"Low" },
+  critical: { color:"#DC2626", bg:"rgba(220,38,38,0.08)",  label:"Critical" },
+  high:     { color:"#EA580C", bg:"rgba(234,88,12,0.08)",  label:"High" },
+  medium:   { color:"#D97706", bg:"rgba(217,119,6,0.08)",  label:"Medium" },
+  low:      { color:"#059669", bg:"rgba(5,150,105,0.08)",  label:"Low" },
 };
 
 const STATUS_C = {
-  active:"#EF4444", blocked:"#10B981", mitigating:"#F59E0B",
-  investigating:"#8B5CF6", contained:"#14B8A6", quarantined:"#6366F1",
+  active:"#DC2626", blocked:"#059669", mitigating:"#D97706",
+  investigating:"#7C3AED", contained:"#0D9488", quarantined:"#4F46E5",
 };
 
 // ─── REUSABLES ────────────────────────────────────────────────────────────────
@@ -161,8 +161,8 @@ const G = () => (
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Nunito:wght@400;500;600;700;800&display=swap');
     *{box-sizing:border-box;margin:0;padding:0}
     @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
-    @keyframes glow{0%,100%{box-shadow:0 0 12px rgba(99,102,241,0.3)}50%{box-shadow:0 0 24px rgba(99,102,241,0.6)}}
+    @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+    @keyframes glow{0%,100%{box-shadow:0 0 10px rgba(79,70,229,0.2)}50%{box-shadow:0 0 20px rgba(79,70,229,0.4)}}
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
     @keyframes flash{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}
@@ -172,10 +172,10 @@ const G = () => (
     .flash{animation:flash .6s ease}
     ::-webkit-scrollbar{width:4px;height:4px}
     ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.2);border-radius:4px}
-    ::-webkit-scrollbar-thumb:hover{background:rgba(99,102,241,0.4)}
-    input:-webkit-autofill{-webkit-box-shadow:0 0 0 100px #141C2E inset!important;-webkit-text-fill-color:#F1F5F9!important}
-    button:focus-visible{outline:2px solid #6366F1;outline-offset:2px}
+    ::-webkit-scrollbar-thumb{background:rgba(79,70,229,0.18);border-radius:4px}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(79,70,229,0.35)}
+    input:-webkit-autofill{-webkit-box-shadow:0 0 0 100px #FFFFFF inset!important;-webkit-text-fill-color:#111827!important}
+    button:focus-visible{outline:2px solid #4F46E5;outline-offset:2px}
     input:focus{outline:none}
   `}</style>
 );
@@ -183,7 +183,7 @@ const G = () => (
 function Bdg({ color, bg, children, size="sm" }) {
   return (
     <span style={{ fontSize:size==="sm"?9:11, fontWeight:700, color, background:bg,
-      border:`1px solid ${color}25`, borderRadius:99,
+      border:`1px solid ${color}30`, borderRadius:99,
       padding:size==="sm"?"2px 7px":"4px 12px", whiteSpace:"nowrap",
       fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.02em" }}>
       {children}
@@ -194,7 +194,7 @@ function Bdg({ color, bg, children, size="sm" }) {
 function CTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:10,
+    <div style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:10,
       padding:"10px 14px", boxShadow:T.shMd, fontSize:11,
       fontFamily:"'Nunito',sans-serif" }}>
       <p style={{ color:T.textMd, marginBottom:6, fontWeight:700, fontSize:10, letterSpacing:"0.06em" }}>{label}</p>
@@ -210,11 +210,11 @@ function CTip({ active, payload, label }) {
 function EmptyState({ icon:Icon, title, desc, actionLabel, onAction, color=T.brand }) {
   return (
     <div style={{ textAlign:"center", padding:"36px 24px",
-      background:`${color}06`, border:`1px dashed ${color}25`,
+      background:`${color}06`, border:`1px dashed ${color}30`,
       borderRadius:16 }}>
-      <div style={{ width:48, height:48, borderRadius:14, background:`${color}12`,
+      <div style={{ width:48, height:48, borderRadius:14, background:`${color}10`,
         display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px" }}>
-        <Icon size={20} style={{ color:`${color}70` }} />
+        <Icon size={20} style={{ color:`${color}90` }} />
       </div>
       <p style={{ fontSize:13, fontWeight:700, color:T.text, margin:"0 0 5px",
         fontFamily:"'Syne',sans-serif" }}>{title}</p>
@@ -269,17 +269,17 @@ function NotificationPanel({ user, onClose, onMarkRead }) {
   const typeBg = (type) => {
     switch(type) {
       case "threat":      return T.redDim;
-      case "quiz":        return `${T.brand}18`;
+      case "quiz":        return `${T.brand}12`;
       case "achievement": return T.amberDim;
       case "streak":      return T.amberDim;
       case "phishing":    return T.tealDim;
-      default:            return `${T.brand}18`;
+      default:            return `${T.brand}12`;
     }
   };
   return (
     <div style={{ position:"fixed", top:62, right:16, width:360,
       background:T.card, border:`1px solid ${T.border}`,
-      borderRadius:18, boxShadow:"0 24px 64px rgba(0,0,0,0.6)",
+      borderRadius:18, boxShadow:"0 12px 40px rgba(0,0,0,0.12)",
       zIndex:999, overflow:"hidden", animation:"slideIn .2s ease" }}>
       <div style={{ padding:"14px 18px", borderBottom:`1px solid ${T.border}`,
         display:"flex", alignItems:"center", justifyContent:"space-between" }}>
@@ -291,14 +291,14 @@ function NotificationPanel({ user, onClose, onMarkRead }) {
           {unread > 0 && (
             <button onClick={onMarkRead} style={{ fontSize:10, color:T.brand, fontWeight:700, border:"none", background:"none", cursor:"pointer", fontFamily:"inherit" }}>Mark all read</button>
           )}
-          <button onClick={onClose} style={{ border:"none", background:T.surface, borderRadius:8, width:26, height:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <button onClick={onClose} style={{ border:"none", background:T.bg, borderRadius:8, width:26, height:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <X size={12} style={{ color:T.textMd }}/>
           </button>
         </div>
       </div>
       <div style={{ maxHeight:400, overflowY:"auto" }}>
         {notifs.map((n) => (
-          <div key={n.id} style={{ padding:"12px 18px", borderBottom:`1px solid ${T.border}`, background:n.read?"transparent":`${T.brand}06`, display:"flex", alignItems:"flex-start", gap:10 }}>
+          <div key={n.id} style={{ padding:"12px 18px", borderBottom:`1px solid ${T.border}`, background:n.read?"transparent":`${T.brand}04`, display:"flex", alignItems:"flex-start", gap:10 }}>
             <div style={{ width:32, height:32, borderRadius:9, flexShrink:0, background:typeBg(n.type), display:"flex", alignItems:"center", justifyContent:"center" }}>
               {typeIcon(n.type)}
             </div>
@@ -306,7 +306,7 @@ function NotificationPanel({ user, onClose, onMarkRead }) {
               <p style={{ fontSize:11, fontWeight:n.read?400:700, color:T.text, margin:"0 0 3px", lineHeight:1.4 }}>{n.message}</p>
               <p style={{ fontSize:9, color:T.textDim, margin:0 }}>{n.time}</p>
             </div>
-            {!n.read && <div style={{ width:6, height:6, borderRadius:"50%", background:T.brand, marginTop:4, flexShrink:0, boxShadow:`0 0 6px ${T.brand}` }}/>}
+            {!n.read && <div style={{ width:6, height:6, borderRadius:"50%", background:T.brand, marginTop:4, flexShrink:0 }}/>}
           </div>
         ))}
       </div>
@@ -340,8 +340,8 @@ function SearchOverlay({ onClose, setPage, navigate }) {
     all.filter(p => (p.label+(p.desc||"")+(p.path||"")).toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:1000, display:"flex", alignItems:"flex-start", justifyContent:"center", paddingTop:80 }} onClick={onClose}>
-      <div style={{ width:560, background:T.card, borderRadius:18, boxShadow:"0 32px 80px rgba(0,0,0,0.7)", overflow:"hidden", border:`1px solid ${T.border}`, animation:"fadeUp .2s ease" }} onClick={e => e.stopPropagation()}>
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.25)", backdropFilter:"blur(4px)", zIndex:1000, display:"flex", alignItems:"flex-start", justifyContent:"center", paddingTop:80 }} onClick={onClose}>
+      <div style={{ width:560, background:T.card, borderRadius:18, boxShadow:"0 20px 60px rgba(0,0,0,0.15)", overflow:"hidden", border:`1px solid ${T.border}`, animation:"fadeUp .2s ease" }} onClick={e => e.stopPropagation()}>
         <div style={{ display:"flex", alignItems:"center", gap:10, padding:"13px 16px", borderBottom:`1px solid ${T.border}` }}>
           <Search size={14} style={{ color:T.textDim }}/>
           <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)} placeholder="Search pages, features…"
@@ -356,7 +356,7 @@ function SearchOverlay({ onClose, setPage, navigate }) {
               style={{ display:"flex", alignItems:"center", gap:11, padding:"11px 16px", cursor:"pointer", transition:"background .1s", borderBottom:`1px solid ${T.border}` }}
               onMouseEnter={e => e.currentTarget.style.background=T.surfaceHov}
               onMouseLeave={e => e.currentTarget.style.background="transparent"}>
-              <div style={{ width:34, height:34, borderRadius:9, background:`${T.brand}15`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <div style={{ width:34, height:34, borderRadius:9, background:`${T.brand}10`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 {item.icon && <item.icon size={14} style={{ color:T.brand }}/>}
               </div>
               <div style={{ flex:1 }}>
@@ -398,7 +398,7 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
   const NavBtn = ({ item, active }) => (
     <div style={{ position:"relative" }}>
       <button onClick={() => handleNav(item)} title={collapsed ? item.label : ""}
-        style={{ width:"100%", display:"flex", alignItems:"center", gap:collapsed?0:9, padding:collapsed?"10px":"8px 11px", justifyContent:collapsed?"center":"flex-start", borderRadius:10, border:"none", background:active?`${T.brand}15`:"transparent", color:active?T.brand:T.textMd, cursor:"pointer", transition:"all .15s", marginBottom:1, fontFamily:"'Nunito',sans-serif", fontSize:12, fontWeight:active?700:500, textAlign:"left" }}
+        style={{ width:"100%", display:"flex", alignItems:"center", gap:collapsed?0:9, padding:collapsed?"10px":"8px 11px", justifyContent:collapsed?"center":"flex-start", borderRadius:10, border:"none", background:active?`${T.brand}10`:"transparent", color:active?T.brand:T.textMd, cursor:"pointer", transition:"all .15s", marginBottom:1, fontFamily:"'Nunito',sans-serif", fontSize:12, fontWeight:active?700:500, textAlign:"left" }}
         onMouseEnter={e => { if(!active){e.currentTarget.style.background=T.surfaceHov;e.currentTarget.style.color=T.text;} }}
         onMouseLeave={e => { if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.textMd;} }}>
         <item.icon size={14} style={{ flexShrink:0 }}/>
@@ -406,15 +406,15 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
           <>
             <span style={{ flex:1, whiteSpace:"nowrap" }}>{item.label}</span>
             {item.badge && (
-              <span style={{ fontSize:8, background:T.redDim, color:T.red, border:`1px solid ${T.red}20`, borderRadius:99, padding:"1px 5px", fontWeight:800, letterSpacing:"0.05em" }}>{item.badge}</span>
+              <span style={{ fontSize:8, background:T.redDim, color:T.red, border:`1px solid ${T.red}25`, borderRadius:99, padding:"1px 5px", fontWeight:800, letterSpacing:"0.05em" }}>{item.badge}</span>
             )}
             {item.external && <ChevronRight size={10} style={{ color:T.textDim }}/>}
-            {active && !item.external && <div style={{ width:4, height:4, borderRadius:"50%", background:T.brand, boxShadow:`0 0 8px ${T.brand}` }}/>}
+            {active && !item.external && <div style={{ width:4, height:4, borderRadius:"50%", background:T.brand }}/>}
           </>
         )}
       </button>
       {collapsed && item.badge && (
-        <div style={{ position:"absolute", top:7, right:7, width:5, height:5, borderRadius:"50%", background:T.red, boxShadow:`0 0 6px ${T.red}` }}/>
+        <div style={{ position:"absolute", top:7, right:7, width:5, height:5, borderRadius:"50%", background:T.red }}/>
       )}
     </div>
   );
@@ -424,7 +424,7 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
       <div style={{ padding:collapsed?"14px 8px":"18px 16px 14px", borderBottom:`1px solid ${T.border}`, display:"flex", alignItems:"center", justifyContent:collapsed?"center":"space-between", minHeight:62, gap:8 }}>
         {!collapsed && (
           <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-            <div style={{ width:34, height:34, borderRadius:10, background:`linear-gradient(135deg,${T.brand},${T.violet})`, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 4px 14px ${T.brand}35`, flexShrink:0, animation:"glow 3s infinite" }}>
+            <div style={{ width:34, height:34, borderRadius:10, background:`linear-gradient(135deg,${T.brand},${T.violet})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
               <Shield size={16} style={{ color:"#fff" }}/>
             </div>
             <div>
@@ -498,7 +498,7 @@ function TopBar({ page, user, notifCount, onNotifClick, onProfileClick, onSearch
           </span>
         )}
       </button>
-      <button onClick={onProfileClick} style={{ width:32, height:32, borderRadius:9, overflow:"hidden", border:"none", background:`linear-gradient(135deg,${T.brand},${T.violet})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"#fff", cursor:"pointer", flexShrink:0, boxShadow:`0 0 12px ${T.brand}30` }}>
+      <button onClick={onProfileClick} style={{ width:32, height:32, borderRadius:9, overflow:"hidden", border:"none", background:`linear-gradient(135deg,${T.brand},${T.violet})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"#fff", cursor:"pointer", flexShrink:0 }}>
         {user?.avatar ? <img src={user.avatar} alt="" style={{ width:32,height:32,objectFit:"cover" }}/> : firstName(user).charAt(0).toUpperCase()}
       </button>
     </div>
@@ -560,20 +560,20 @@ function OverviewPage({ user, setPage, navigate }) {
     <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
       {/* Hero */}
       <div className="fu" style={{ borderRadius:22, padding:"26px 30px", position:"relative", overflow:"hidden",
-        background:`linear-gradient(135deg, #1E1B4B 0%, #1a1035 40%, #0F172A 100%)`,
-        border:`1px solid ${T.brand}20`, boxShadow:`0 20px 60px rgba(99,102,241,0.2)` }}>
-        <div style={{ position:"absolute", inset:0, pointerEvents:"none", backgroundImage:`linear-gradient(rgba(99,102,241,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.04) 1px,transparent 1px)`, backgroundSize:"40px 40px" }}/>
-        <div style={{ position:"absolute", top:-60, right:-40, width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle,${T.brand}18,transparent 70%)`, pointerEvents:"none" }}/>
-        <div style={{ position:"absolute", bottom:-40, left:60, width:140, height:140, borderRadius:"50%", background:`radial-gradient(circle,${T.violet}12,transparent 70%)`, pointerEvents:"none" }}/>
+        background:`linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 50%, #EDE9FE 100%)`,
+        border:`1px solid ${T.brand}20`, boxShadow:T.sh }}>
+        <div style={{ position:"absolute", inset:0, pointerEvents:"none", backgroundImage:`linear-gradient(rgba(79,70,229,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,0.04) 1px,transparent 1px)`, backgroundSize:"40px 40px" }}/>
+        <div style={{ position:"absolute", top:-60, right:-40, width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle,${T.brand}12,transparent 70%)`, pointerEvents:"none" }}/>
+        <div style={{ position:"absolute", bottom:-40, left:60, width:140, height:140, borderRadius:"50%", background:`radial-gradient(circle,${T.violet}08,transparent 70%)`, pointerEvents:"none" }}/>
 
         <div style={{ position:"relative", zIndex:1, display:"flex", alignItems:"center", justifyContent:"space-between", gap:20 }}>
           <div style={{ flex:1 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(16,185,129,0.12)", borderRadius:99, padding:"3px 10px", border:"1px solid rgba(16,185,129,0.2)" }}>
-                <div style={{ width:5, height:5, borderRadius:"50%", background:T.green, boxShadow:`0 0 8px ${T.green}`, animation:"pulse 2s infinite" }}/>
-                <span style={{ fontSize:9, fontWeight:700, color:"rgba(16,185,129,0.9)", letterSpacing:"0.12em", fontFamily:"'JetBrains Mono',monospace" }}>PROTECTED</span>
+              <div style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(5,150,105,0.10)", borderRadius:99, padding:"3px 10px", border:"1px solid rgba(5,150,105,0.25)" }}>
+                <div style={{ width:5, height:5, borderRadius:"50%", background:T.green, animation:"pulse 2s infinite" }}/>
+                <span style={{ fontSize:9, fontWeight:700, color:T.green, letterSpacing:"0.12em", fontFamily:"'JetBrains Mono',monospace" }}>PROTECTED</span>
               </div>
-              <span style={{ fontSize:10, color:T.textDim }}>
+              <span style={{ fontSize:10, color:T.textMd }}>
                 {new Date().toLocaleDateString("en-IN", {weekday:"long", day:"numeric", month:"long"})}
               </span>
             </div>
@@ -581,12 +581,12 @@ function OverviewPage({ user, setPage, navigate }) {
             <h1 style={{ fontSize:32, fontWeight:800, color:T.text, fontFamily:"'Syne',sans-serif", margin:"0 0 4px", lineHeight:1.1 }}>
               {greeting}, {fname} 👋
             </h1>
-            <p style={{ fontSize:12, color:T.textDim, margin:"0 0 4px" }}>
+            <p style={{ fontSize:12, color:T.textMd, margin:"0 0 4px" }}>
               {getFullName(user) !== user?.email?.split("@")[0] ? (user?.role || "Cybersecurity Learner") : "Cybersecurity Learner"}
               {level > 1 ? ` · Level ${level} Security Analyst` : " · Building foundations 🚀"}
             </p>
 
-            <div style={{ display:"inline-flex", alignItems:"center", gap:7, background:"rgba(99,102,241,0.08)", border:"1px solid rgba(99,102,241,0.2)", borderRadius:10, padding:"6px 12px", margin:"14px 0 18px" }}>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:7, background:"rgba(79,70,229,0.06)", border:"1px solid rgba(79,70,229,0.18)", borderRadius:10, padding:"6px 12px", margin:"14px 0 18px" }}>
               <Zap size={11} style={{ color:T.amber, flexShrink:0 }}/>
               <span style={{ fontSize:11, color:T.textMd, fontStyle:"italic" }}>{tip}</span>
             </div>
@@ -598,18 +598,18 @@ function OverviewPage({ user, setPage, navigate }) {
                 { v:streak > 0 ? `${streak}d 🔥` : "0d",      l:"Streak",  c:T.amber },
                 { v:quizDone > 0 ? quizDone : "—",             l:"Quizzes", c:T.teal },
               ].map(({ v, l, c }, i) => (
-                <div key={i} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:11, padding:"8px 14px", textAlign:"center", minWidth:70 }}>
+                <div key={i} style={{ background:"rgba(255,255,255,0.7)", border:"1px solid rgba(79,70,229,0.12)", borderRadius:11, padding:"8px 14px", textAlign:"center", minWidth:70, backdropFilter:"blur(4px)" }}>
                   <div style={{ fontSize:18, fontWeight:800, color:c, lineHeight:1, fontFamily:"'Syne',sans-serif" }}>{v}</div>
                   <div style={{ fontSize:9, color:T.textDim, marginTop:2, letterSpacing:"0.06em" }}>{l}</div>
                 </div>
               ))}
-              <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:11, padding:"8px 14px", minWidth:160 }}>
+              <div style={{ background:"rgba(255,255,255,0.7)", border:"1px solid rgba(79,70,229,0.12)", borderRadius:11, padding:"8px 14px", minWidth:160, backdropFilter:"blur(4px)" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", fontSize:9, color:T.textDim, marginBottom:6 }}>
                   <span>Level {level} Progress</span>
                   <span style={{ fontFamily:"'JetBrains Mono',monospace", color:T.brand }}>{xpInLevel}/500 XP</span>
                 </div>
-                <div style={{ height:4, background:"rgba(255,255,255,0.08)", borderRadius:99 }}>
-                  <div style={{ height:4, width:`${xpPct}%`, background:`linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius:99, transition:"width 1s ease", boxShadow:`0 0 8px ${T.brand}` }}/>
+                <div style={{ height:4, background:"rgba(79,70,229,0.12)", borderRadius:99 }}>
+                  <div style={{ height:4, width:`${xpPct}%`, background:`linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius:99, transition:"width 1s ease" }}/>
                 </div>
               </div>
             </div>
@@ -618,11 +618,10 @@ function OverviewPage({ user, setPage, navigate }) {
           {/* XP Donut */}
           <div style={{ textAlign:"center", flexShrink:0 }}>
             <svg width={100} height={100} viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(99,102,241,0.1)" strokeWidth="6"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(79,70,229,0.12)" strokeWidth="6"/>
               <circle cx="50" cy="50" r="42" fill="none" stroke={T.brand} strokeWidth="6"
                 strokeDasharray={`${2*Math.PI*42*xpPct/100} ${2*Math.PI*42}`}
-                strokeLinecap="round" transform="rotate(-90 50 50)"
-                style={{ filter:`drop-shadow(0 0 6px ${T.brand})` }}/>
+                strokeLinecap="round" transform="rotate(-90 50 50)"/>
               <text x="50" y="45" textAnchor="middle" fill={T.text} fontSize="18" fontWeight="800" fontFamily="'Syne',sans-serif">{xpPct}%</text>
               <text x="50" y="59" textAnchor="middle" fill={T.textDim} fontSize="8" fontFamily="'JetBrains Mono',monospace">XP</text>
             </svg>
@@ -637,9 +636,9 @@ function OverviewPage({ user, setPage, navigate }) {
           {quickActions.map((item, i) => (
             <button key={i} onClick={item.action}
               style={{ padding:"14px 8px", border:`1px solid ${T.border}`, textAlign:"center", cursor:"pointer", background:T.card, borderRadius:16, transition:"all .2s", fontFamily:"inherit", boxShadow:T.sh }}
-              onMouseEnter={e => { e.currentTarget.style.background=`${item.color}10`; e.currentTarget.style.borderColor=`${item.color}30`; e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow=`0 12px 28px ${item.color}15`; }}
+              onMouseEnter={e => { e.currentTarget.style.background=`${item.color}08`; e.currentTarget.style.borderColor=`${item.color}25`; e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow=`0 8px 20px ${item.color}15`; }}
               onMouseLeave={e => { e.currentTarget.style.background=T.card; e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow=T.sh; }}>
-              <div style={{ width:38, height:38, borderRadius:11, background:`${item.color}15`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 8px" }}>
+              <div style={{ width:38, height:38, borderRadius:11, background:`${item.color}10`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 8px" }}>
                 <item.icon size={16} style={{ color:item.color }}/>
               </div>
               <p style={{ fontSize:11, fontWeight:700, color:T.text, margin:"0 0 2px", fontFamily:"'Syne',sans-serif" }}>{item.label}</p>
@@ -660,10 +659,10 @@ function OverviewPage({ user, setPage, navigate }) {
           const [hov, setHov] = useState(false);
           return (
             <div key={i}
-              style={{ background:hov?`${s.color}0a`:T.card, border:`1px solid ${hov?s.color+"25":T.border}`, borderRadius:18, padding:"18px 20px", cursor:"default", transition:"all .2s", boxShadow:T.sh }}
+              style={{ background:hov?`${s.color}06`:T.card, border:`1px solid ${hov?s.color+"20":T.border}`, borderRadius:18, padding:"18px 20px", cursor:"default", transition:"all .2s", boxShadow:T.sh }}
               onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-                <div style={{ width:38, height:38, borderRadius:12, background:`${s.color}15`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ width:38, height:38, borderRadius:12, background:`${s.color}10`, display:"flex", alignItems:"center", justifyContent:"center" }}>
                   <s.icon size={16} style={{ color:s.color }}/>
                 </div>
               </div>
@@ -697,7 +696,7 @@ function OverviewPage({ user, setPage, navigate }) {
             <RadarChart data={domainData}>
               <PolarGrid stroke={T.border}/>
               <PolarAngleAxis dataKey="subject" tick={{ fontSize:9, fill:T.textMd }}/>
-              <Radar name="Score" dataKey="A" stroke={T.brand} fill={T.brand} fillOpacity={0.15} strokeWidth={2}/>
+              <Radar name="Score" dataKey="A" stroke={T.brand} fill={T.brand} fillOpacity={0.12} strokeWidth={2}/>
             </RadarChart>
           </ResponsiveContainer>
         </div>
@@ -713,7 +712,7 @@ function OverviewPage({ user, setPage, navigate }) {
             </p>
           </div>
           <button onClick={() => navigate("/quiz")}
-            style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:10, border:"none", background:`linear-gradient(135deg,${T.brand},${T.violet})`, color:"#fff", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", boxShadow:`0 4px 14px ${T.brand}30` }}>
+            style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:10, border:"none", background:`linear-gradient(135deg,${T.brand},${T.violet})`, color:"#fff", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif" }}>
             <Brain size={11}/>{history.length > 0 ? "New Quiz" : "Start First Quiz"}
           </button>
         </div>
@@ -723,8 +722,8 @@ function OverviewPage({ user, setPage, navigate }) {
               const pct = r.score || r.percentage || 0;
               const col = pct >= 80 ? T.green : pct >= 60 ? T.brand : T.amber;
               return (
-                <div key={idx} style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:13, padding:13, cursor:"pointer", transition:"all .2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor=`${col}30`; e.currentTarget.style.transform="translateY(-2px)"; }}
+                <div key={idx} style={{ background:T.bg, border:`1px solid ${T.border}`, borderRadius:13, padding:13, cursor:"pointer", transition:"all .2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor=`${col}25`; e.currentTarget.style.transform="translateY(-2px)"; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform="none"; }}>
                   <p style={{ fontSize:11, fontWeight:700, color:T.text, margin:"0 0 4px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                     {r.quiz || r.moduleTitle || `Module ${idx+1}`}
@@ -755,9 +754,9 @@ function OverviewPage({ user, setPage, navigate }) {
             <div style={{ display:"flex", flexDirection:"column", gap:1 }}>
               {user.recentActivity.slice(0,6).map((a, i) => (
                 <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"7px 8px", borderRadius:9, transition:"background .15s" }}
-                  onMouseEnter={e => e.currentTarget.style.background=T.surface}
+                  onMouseEnter={e => e.currentTarget.style.background=T.bg}
                   onMouseLeave={e => e.currentTarget.style.background="transparent"}>
-                  <div style={{ width:5, height:5, borderRadius:"50%", background:T.brand, marginTop:5, flexShrink:0, boxShadow:`0 0 6px ${T.brand}` }}/>
+                  <div style={{ width:5, height:5, borderRadius:"50%", background:T.brand, marginTop:5, flexShrink:0 }}/>
                   <div style={{ flex:1 }}>
                     <p style={{ fontSize:11, color:T.text, margin:0, lineHeight:1.4, fontWeight:500 }}>{a.msg || a}</p>
                     <p style={{ fontSize:9, color:T.textDim, margin:"1px 0 0" }}>{a.time || ""}</p>
@@ -780,9 +779,9 @@ function OverviewPage({ user, setPage, navigate }) {
           {(user?.badges || []).length > 0 ? (
             <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
               {user.badges.map((b, i) => (
-                <div key={i} style={{ textAlign:"center", padding:"10px 11px", background:T.surface, border:`1px solid ${T.border}`, borderRadius:12, cursor:"default", transition:"all .2s" }}
+                <div key={i} style={{ textAlign:"center", padding:"10px 11px", background:T.bg, border:`1px solid ${T.border}`, borderRadius:12, cursor:"default", transition:"all .2s" }}
                   onMouseEnter={e => { e.currentTarget.style.background=T.amberDim; e.currentTarget.style.transform="scale(1.06)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background=T.surface; e.currentTarget.style.transform="scale(1)"; }}>
+                  onMouseLeave={e => { e.currentTarget.style.background=T.bg; e.currentTarget.style.transform="scale(1)"; }}>
                   <div style={{ fontSize:20, lineHeight:1 }}>{b.emoji || "🏅"}</div>
                   <p style={{ fontSize:9, color:T.textMd, marginTop:5, fontWeight:700 }}>{b.label || b}</p>
                 </div>
@@ -826,12 +825,12 @@ function ThreatsPage() {
         {[
           { label:"Total Detected", value:liveCount, color:T.brand,    icon:ShieldAlert, live:true },
           { label:"Critical",       value:counts.critical, color:T.red,    icon:AlertTriangle },
-          { label:"High",           value:counts.high,     color:"#F97316", icon:Zap },
+          { label:"High",           value:counts.high,     color:"#EA580C", icon:Zap },
           { label:"Medium",         value:counts.medium,   color:T.amber,   icon:Eye },
         ].map((item, i) => (
           <div key={i} style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px 18px", boxShadow:T.sh }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-              <div style={{ width:34, height:34, borderRadius:10, background:`${item.color}15`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <div style={{ width:34, height:34, borderRadius:10, background:`${item.color}10`, display:"flex", alignItems:"center", justifyContent:"center" }}>
                 <item.icon size={14} style={{ color:item.color }}/>
               </div>
               {item.live && <span style={{ fontSize:8, fontWeight:700, color:T.red, background:T.redDim, border:`1px solid ${T.red}20`, borderRadius:99, padding:"2px 7px", letterSpacing:"0.08em", fontFamily:"'JetBrains Mono',monospace" }}>● LIVE</span>}
@@ -849,7 +848,7 @@ function ThreatsPage() {
             <p style={{ fontSize:10, color:T.textMd, margin:"2px 0 0" }}>Real-time detection frequency</p>
           </div>
           <div style={{ display:"flex", gap:12 }}>
-            {[{c:T.red,l:"Critical"},{c:"#F97316",l:"High"},{c:T.amber,l:"Medium"}].map(d => (
+            {[{c:T.red,l:"Critical"},{c:"#EA580C",l:"High"},{c:T.amber,l:"Medium"}].map(d => (
               <div key={d.l} style={{ display:"flex", alignItems:"center", gap:4, fontSize:10, color:T.textMd }}>
                 <div style={{ width:6, height:6, borderRadius:2, background:d.c }}/>{d.l}
               </div>
@@ -859,9 +858,9 @@ function ThreatsPage() {
         <ResponsiveContainer width="100%" height={160}>
           <AreaChart data={THREAT_TREND}>
             <defs>
-              {[{id:"cr",c:T.red},{id:"hi",c:"#F97316"},{id:"me",c:T.amber}].map(g => (
+              {[{id:"cr",c:T.red},{id:"hi",c:"#EA580C"},{id:"me",c:T.amber}].map(g => (
                 <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={g.c} stopOpacity={0.2}/>
+                  <stop offset="5%"  stopColor={g.c} stopOpacity={0.15}/>
                   <stop offset="95%" stopColor={g.c} stopOpacity={0}/>
                 </linearGradient>
               ))}
@@ -871,7 +870,7 @@ function ThreatsPage() {
             <YAxis tick={{ fontSize:9, fill:T.textDim }} axisLine={false} tickLine={false}/>
             <Tooltip content={<CTip/>}/>
             <Area type="monotone" dataKey="critical" name="Critical" stroke={T.red} fill="url(#cr)" strokeWidth={2} dot={false}/>
-            <Area type="monotone" dataKey="high" name="High" stroke="#F97316" fill="url(#hi)" strokeWidth={1.5} dot={false}/>
+            <Area type="monotone" dataKey="high" name="High" stroke="#EA580C" fill="url(#hi)" strokeWidth={1.5} dot={false}/>
             <Area type="monotone" dataKey="medium" name="Medium" stroke={T.amber} fill="url(#me)" strokeWidth={1.5} dot={false}/>
           </AreaChart>
         </ResponsiveContainer>
@@ -881,7 +880,7 @@ function ThreatsPage() {
         <div style={{ display:"flex", gap:6 }}>
           {["all","critical","high","medium"].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              style={{ padding:"6px 13px", borderRadius:8, border:`1px solid ${filter===f?T.brand:T.border}`, background:filter===f?`${T.brand}15`:T.card, color:filter===f?T.brand:T.textMd, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", textTransform:"capitalize", transition:"all .15s" }}>
+              style={{ padding:"6px 13px", borderRadius:8, border:`1px solid ${filter===f?T.brand:T.border}`, background:filter===f?`${T.brand}10`:T.card, color:filter===f?T.brand:T.textMd, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", textTransform:"capitalize", transition:"all .15s" }}>
               {f} {f!=="all" && `(${THREATS.filter(t=>t.severity===f).length})`}
             </button>
           ))}
@@ -897,7 +896,7 @@ function ThreatsPage() {
       </div>
 
       <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18, overflow:"hidden", boxShadow:T.sh }}>
-        <div style={{ display:"grid", gridTemplateColumns:"100px 100px 1fr 130px 110px 110px 80px", padding:"10px 18px", background:T.surface, borderBottom:`1px solid ${T.border}`, fontSize:8, fontWeight:700, color:T.textDim, letterSpacing:"0.1em", fontFamily:"'JetBrains Mono',monospace" }}>
+        <div style={{ display:"grid", gridTemplateColumns:"100px 100px 1fr 130px 110px 110px 80px", padding:"10px 18px", background:T.bg, borderBottom:`1px solid ${T.border}`, fontSize:8, fontWeight:700, color:T.textDim, letterSpacing:"0.1em", fontFamily:"'JetBrains Mono',monospace" }}>
           <span>TYPE</span><span>SEVERITY</span><span>DESCRIPTION</span><span>SOURCE</span><span>TARGET</span><span>STATUS</span><span>TIME</span>
         </div>
         {filtered.map((t, i) => {
@@ -906,7 +905,7 @@ function ThreatsPage() {
           const isSel = selected?.id === t.id;
           return (
             <div key={t.id} onClick={() => setSelected(isSel ? null : t)}
-              style={{ display:"grid", gridTemplateColumns:"100px 100px 1fr 130px 110px 110px 80px", padding:"11px 18px", borderBottom:i<filtered.length-1?`1px solid ${T.border}`:"none", cursor:"pointer", transition:"background .12s", background:isSel?`${T.brand}08`:"transparent" }}
+              style={{ display:"grid", gridTemplateColumns:"100px 100px 1fr 130px 110px 110px 80px", padding:"11px 18px", borderBottom:i<filtered.length-1?`1px solid ${T.border}`:"none", cursor:"pointer", transition:"background .12s", background:isSel?`${T.brand}06`:"transparent" }}
               onMouseEnter={e => { if(!isSel) e.currentTarget.style.background=T.surfaceHov; }}
               onMouseLeave={e => { if(!isSel) e.currentTarget.style.background="transparent"; }}>
               <span style={{ fontSize:11, fontWeight:700, color:T.text, alignSelf:"center" }}>{t.type}</span>
@@ -914,7 +913,7 @@ function ThreatsPage() {
               <span style={{ fontSize:10, color:T.textMd, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", alignSelf:"center" }}>{t.desc}</span>
               <span style={{ fontSize:10, color:T.text, fontFamily:"'JetBrains Mono',monospace", alignSelf:"center" }}>{t.source.length>15?t.source.substring(0,14)+"…":t.source}</span>
               <span style={{ fontSize:10, color:T.textMd, alignSelf:"center" }}>{t.target}</span>
-              <div style={{ alignSelf:"center" }}><Bdg color={sc} bg={`${sc}15`}>{t.status}</Bdg></div>
+              <div style={{ alignSelf:"center" }}><Bdg color={sc} bg={`${sc}12`}>{t.status}</Bdg></div>
               <span style={{ fontSize:9, color:T.textDim, alignSelf:"center", fontFamily:"'JetBrains Mono',monospace" }}>{t.time}</span>
             </div>
           );
@@ -929,7 +928,7 @@ function ThreatsPage() {
               <h3 style={{ fontSize:13, fontWeight:700, color:T.text, margin:0, fontFamily:"'Syne',sans-serif" }}>{selected.type} — Detailed Analysis</h3>
               <Bdg color={SEV[selected.severity].color} bg={SEV[selected.severity].bg} size="md">{selected.severity.toUpperCase()}</Bdg>
             </div>
-            <button onClick={() => setSelected(null)} style={{ border:"none", background:T.surface, borderRadius:7, width:26, height:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <button onClick={() => setSelected(null)} style={{ border:"none", background:T.bg, borderRadius:7, width:26, height:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
               <X size={11} style={{ color:T.textMd }}/>
             </button>
           </div>
@@ -942,13 +941,13 @@ function ThreatsPage() {
               { l:"Status",          v:selected.status },
               { l:"Detected",        v:selected.time },
             ].map((item, i) => (
-              <div key={i} style={{ background:T.surface, borderRadius:10, padding:"10px 12px" }}>
+              <div key={i} style={{ background:T.bg, borderRadius:10, padding:"10px 12px" }}>
                 <div style={{ fontSize:8, color:T.textDim, fontWeight:700, letterSpacing:"0.1em", marginBottom:4, fontFamily:"'JetBrains Mono',monospace" }}>{item.l}</div>
                 <div style={{ fontSize:11, color:T.text, fontWeight:700, fontFamily:"'JetBrains Mono',monospace" }}>{item.v}</div>
               </div>
             ))}
           </div>
-          <div style={{ background:T.surface, borderRadius:10, padding:"12px 14px" }}>
+          <div style={{ background:T.bg, borderRadius:10, padding:"12px 14px" }}>
             <div style={{ fontSize:8, color:T.textDim, fontWeight:700, marginBottom:5, fontFamily:"'JetBrains Mono',monospace" }}>FULL DESCRIPTION</div>
             <p style={{ fontSize:12, color:T.text, margin:0, lineHeight:1.6 }}>{selected.desc}</p>
           </div>
@@ -1008,7 +1007,7 @@ function PhishingPage({ user, onUserUpdate }) {
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-      <div style={{ background:T.card, border:`1px solid ${T.amber}20`, borderRadius:18, padding:"16px 20px", display:"flex", alignItems:"center", gap:14 }}>
+      <div style={{ background:T.card, border:`1px solid ${T.amber}25`, borderRadius:18, padding:"16px 20px", display:"flex", alignItems:"center", gap:14 }}>
         <div style={{ width:44, height:44, borderRadius:13, background:T.amberDim, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
           <Mail size={18} style={{ color:T.amber }}/>
         </div>
@@ -1017,11 +1016,11 @@ function PhishingPage({ user, onUserUpdate }) {
           <p style={{ fontSize:11, color:T.textMd, margin:0 }}>Analyse each email: legitimate or phishing? Results sync to your profile instantly.</p>
         </div>
         <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-          <div style={{ background:`${T.brand}12`, border:`1px solid ${T.brand}20`, borderRadius:9, padding:"5px 12px", fontSize:11, fontWeight:700, color:T.brand, fontFamily:"'JetBrains Mono',monospace" }}>
+          <div style={{ background:`${T.brand}08`, border:`1px solid ${T.brand}20`, borderRadius:9, padding:"5px 12px", fontSize:11, fontWeight:700, color:T.brand, fontFamily:"'JetBrains Mono',monospace" }}>
             Session: {sessionScore}/{sessionTotal}{sessionTotal > 0 && ` (${accuracy}%)`}
           </div>
           {overallAcc !== null && (
-            <div style={{ background:`${T.teal}12`, border:`1px solid ${T.teal}20`, borderRadius:9, padding:"5px 12px", fontSize:11, fontWeight:700, color:T.teal, fontFamily:"'JetBrains Mono',monospace" }}>
+            <div style={{ background:`${T.teal}08`, border:`1px solid ${T.teal}20`, borderRadius:9, padding:"5px 12px", fontSize:11, fontWeight:700, color:T.teal, fontFamily:"'JetBrains Mono',monospace" }}>
               All-time: {overallAcc}%
             </div>
           )}
@@ -1030,7 +1029,7 @@ function PhishingPage({ user, onUserUpdate }) {
 
       <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"10px 16px", display:"flex", alignItems:"center", gap:12 }}>
         <span style={{ fontSize:10, color:T.textDim, whiteSpace:"nowrap", fontFamily:"'JetBrains Mono',monospace" }}>Email {step+1} of {PHISHING_EMAILS.length}</span>
-        <div style={{ flex:1, height:4, background:T.surface, borderRadius:99 }}>
+        <div style={{ flex:1, height:4, background:T.bg, borderRadius:99 }}>
           <div style={{ height:4, borderRadius:99, width:`${((step+1)/PHISHING_EMAILS.length)*100}%`, background:`linear-gradient(90deg,${T.amber},${T.brand})`, transition:"width .4s ease" }}/>
         </div>
         <span style={{ fontSize:10, color:T.brand, fontWeight:700, fontFamily:"'JetBrains Mono',monospace" }}>{Math.round(((step+1)/PHISHING_EMAILS.length)*100)}%</span>
@@ -1038,7 +1037,7 @@ function PhishingPage({ user, onUserUpdate }) {
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:14 }}>
         <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18, overflow:"hidden", boxShadow:T.sh, opacity:animating?0.6:1, transition:"opacity .2s" }}>
-          <div style={{ background:T.surface, borderBottom:`1px solid ${T.border}`, padding:"8px 14px", display:"flex", alignItems:"center", gap:6 }}>
+          <div style={{ background:T.bg, borderBottom:`1px solid ${T.border}`, padding:"8px 14px", display:"flex", alignItems:"center", gap:6 }}>
             <div style={{ width:8, height:8, borderRadius:"50%", background:"#FF5F57" }}/>
             <div style={{ width:8, height:8, borderRadius:"50%", background:"#FEBC2E" }}/>
             <div style={{ width:8, height:8, borderRadius:"50%", background:"#28C840" }}/>
@@ -1046,7 +1045,7 @@ function PhishingPage({ user, onUserUpdate }) {
           </div>
           <div style={{ padding:"14px 18px 12px", borderBottom:`1px solid ${T.border}` }}>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:8 }}>
-              <div style={{ width:36, height:36, borderRadius:10, background:`${T.brand}15`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:T.brand, flexShrink:0 }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:`${T.brand}10`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:T.brand, flexShrink:0 }}>
                 {current.from.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -1058,7 +1057,7 @@ function PhishingPage({ user, onUserUpdate }) {
           </div>
           <div style={{ padding:"16px 18px" }}>
             {current.body.split("\n").map((line, i) => (
-              <p key={i} style={{ fontSize:12, color:line.startsWith("http")||line.startsWith("https") ? "#60A5FA" : T.textMd, margin:"0 0 3px", lineHeight:1.7, fontFamily:line.startsWith("http")?"'JetBrains Mono',monospace":"inherit", textDecoration:line.startsWith("http")?"underline":"none" }}>
+              <p key={i} style={{ fontSize:12, color:line.startsWith("http")||line.startsWith("https") ? T.brand : T.textMd, margin:"0 0 3px", lineHeight:1.7, fontFamily:line.startsWith("http")?"'JetBrains Mono',monospace":"inherit", textDecoration:line.startsWith("http")?"underline":"none" }}>
                 {line || "\u00A0"}
               </p>
             ))}
@@ -1072,13 +1071,13 @@ function PhishingPage({ user, onUserUpdate }) {
               <p style={{ fontSize:10, color:T.textMd, margin:"0 0 13px" }}>Is this email safe or a phishing attempt?</p>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 <button onClick={() => handleAnswer(false)}
-                  style={{ padding:"11px 13px", borderRadius:11, border:`1px solid ${T.green}30`, background:T.greenDim, color:T.green, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", display:"flex", alignItems:"center", gap:8, transition:"all .2s" }}
+                  style={{ padding:"11px 13px", borderRadius:11, border:`1px solid ${T.green}25`, background:T.greenDim, color:T.green, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", display:"flex", alignItems:"center", gap:8, transition:"all .2s" }}
                   onMouseEnter={e => { e.currentTarget.style.background=T.green; e.currentTarget.style.color="#fff"; }}
                   onMouseLeave={e => { e.currentTarget.style.background=T.greenDim; e.currentTarget.style.color=T.green; }}>
                   <CheckCircle size={14}/> Legitimate Email ✓
                 </button>
                 <button onClick={() => handleAnswer(true)}
-                  style={{ padding:"11px 13px", borderRadius:11, border:`1px solid ${T.red}30`, background:T.redDim, color:T.red, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", display:"flex", alignItems:"center", gap:8, transition:"all .2s" }}
+                  style={{ padding:"11px 13px", borderRadius:11, border:`1px solid ${T.red}20`, background:T.redDim, color:T.red, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", display:"flex", alignItems:"center", gap:8, transition:"all .2s" }}
                   onMouseEnter={e => { e.currentTarget.style.background=T.red; e.currentTarget.style.color="#fff"; }}
                   onMouseLeave={e => { e.currentTarget.style.background=T.redDim; e.currentTarget.style.color=T.red; }}>
                   <AlertTriangle size={14}/> Phishing Attempt ⚠️
@@ -1086,7 +1085,7 @@ function PhishingPage({ user, onUserUpdate }) {
               </div>
             </div>
           ) : (
-            <div style={{ background:result.correct?T.greenDim:T.redDim, border:`1px solid ${result.correct?T.green:T.red}25`, borderRadius:16, padding:16, animation:"fadeUp .3s ease" }}>
+            <div style={{ background:result.correct?T.greenDim:T.redDim, border:`1px solid ${result.correct?T.green:T.red}20`, borderRadius:16, padding:16, animation:"fadeUp .3s ease" }}>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                 {result.correct ? <CheckCircle size={18} style={{ color:T.green }}/> : <AlertTriangle size={18} style={{ color:T.red }}/>}
                 <h3 style={{ fontSize:13, fontWeight:800, color:result.correct?T.green:T.red, margin:0, fontFamily:"'Syne',sans-serif" }}>
@@ -1122,7 +1121,7 @@ function PhishingPage({ user, onUserUpdate }) {
             <div style={{ fontSize:10, color:T.textDim, marginBottom:8, fontFamily:"'JetBrains Mono',monospace" }}>SESSION PROGRESS</div>
             <div style={{ display:"flex", gap:4 }}>
               {PHISHING_EMAILS.map((_, i) => (
-                <div key={i} style={{ flex:1, height:4, borderRadius:99, background:i<step?T.brand:i===step?T.amber:T.surface, boxShadow:i===step?`0 0 8px ${T.amber}`:"none" }}/>
+                <div key={i} style={{ flex:1, height:4, borderRadius:99, background:i<step?T.brand:i===step?T.amber:T.bg }}/>
               ))}
             </div>
           </div>
@@ -1214,21 +1213,21 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
       win.document.write(`<html><head><title>CyberShield Report — ${name}</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@700;800&display=swap');
-          body{font-family:'JetBrains Mono',monospace;padding:40px;color:#0F172A;background:#F8FAFC;font-size:12px}
+          body{font-family:'JetBrains Mono',monospace;padding:40px;color:#111827;background:#F9FAFB;font-size:12px}
           .header{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;padding:32px;border-radius:12px;margin-bottom:28px}
           .header h1{font-family:'Syne',sans-serif;font-size:22px;margin:0 0 6px}
-          .header p{margin:3px 0;opacity:0.85;font-size:11px}
-          .section{background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:20px 24px;margin-bottom:16px}
-          .section h2{font-family:'Syne',sans-serif;font-size:14px;color:#4F46E5;margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid #E2E8F0}
-          .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #F1F5F9}
+          .header p{margin:3px 0;opacity:0.9;font-size:11px}
+          .section{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:20px 24px;margin-bottom:16px}
+          .section h2{font-family:'Syne',sans-serif;font-size:14px;color:#4F46E5;margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid #E5E7EB}
+          .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #F3F4F6}
           .row:last-child{border-bottom:none}
-          .label{color:#64748B;font-size:11px}
-          .value{font-weight:600;color:#0F172A;font-size:11px}
-          .badge{display:inline-block;background:#EEF2FF;color:#4338CA;border-radius:6px;padding:3px 10px;font-size:10px;font-weight:600;margin:3px}
-          .rec{background:#F0FDF4;border-left:3px solid #10B981;padding:8px 12px;margin:5px 0;border-radius:0 6px 6px 0;font-size:11px;color:#065F46}
-          .footer{text-align:center;color:#94A3B8;font-size:10px;margin-top:24px}
-          .accuracy-bar{height:8px;background:#E2E8F0;border-radius:99px;margin-top:6px}
-          .accuracy-fill{height:8px;border-radius:99px;background:linear-gradient(90deg,#6366F1,#8B5CF6)}
+          .label{color:#6B7280;font-size:11px}
+          .value{font-weight:600;color:#111827;font-size:11px}
+          .badge{display:inline-block;background:#EEF2FF;color:#3730A3;border-radius:6px;padding:3px 10px;font-size:10px;font-weight:600;margin:3px}
+          .rec{background:#F0FDF4;border-left:3px solid #059669;padding:8px 12px;margin:5px 0;border-radius:0 6px 6px 0;font-size:11px;color:#065F46}
+          .footer{text-align:center;color:#9CA3AF;font-size:10px;margin-top:24px}
+          .accuracy-bar{height:8px;background:#E5E7EB;border-radius:99px;margin-top:6px}
+          .accuracy-fill{height:8px;border-radius:99px;background:linear-gradient(90deg,#4F46E5,#7C3AED)}
         </style></head>
         <body>
           <div class="header">
@@ -1236,7 +1235,6 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
             <p><strong>${name}</strong> &nbsp;·&nbsp; ${user?.email || ""} &nbsp;·&nbsp; ${user?.role || "Student"}</p>
             <p>Generated: ${new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p>
           </div>
-
           <div class="section">
             <h2>📊 Performance Summary</h2>
             ${[
@@ -1249,7 +1247,6 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
               ["Courses Completed", user?.coursesCompleted||0],
             ].map(([l,v]) => `<div class="row"><span class="label">${l}</span><span class="value">${v}</span></div>`).join("")}
           </div>
-
           <div class="section">
             <h2>🎣 Phishing Simulator</h2>
             ${[
@@ -1260,23 +1257,20 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
             ].map(([l,v]) => `<div class="row"><span class="label">${l}</span><span class="value">${v}</span></div>`).join("")}
             ${phAcc !== null ? `<div class="accuracy-bar"><div class="accuracy-fill" style="width:${phAcc}%"></div></div>` : ""}
           </div>
-
           ${(user?.quizHistory||[]).length > 0 ? `
           <div class="section">
             <h2>🧠 Quiz History</h2>
             ${user.quizHistory.slice(0,8).map(r => {
               const pct = r.score||r.percentage||0;
-              const col = pct>=80?"#10B981":pct>=60?"#6366F1":"#F59E0B";
+              const col = pct>=80?"#059669":pct>=60?"#4F46E5":"#D97706";
               return `<div class="row"><span class="label">${r.quiz||r.moduleTitle||"Module"}</span><span class="value" style="color:${col}">${pct}% &nbsp; [${fmtDate(r.date||r.updatedAt)}]</span></div>`;
             }).join("")}
           </div>` : ""}
-
           ${(user?.badges||[]).length > 0 ? `
           <div class="section">
             <h2>🏅 Achievements</h2>
             ${user.badges.map(b => `<span class="badge">${b.emoji||"🏅"} ${b.label||b}</span>`).join("")}
           </div>` : ""}
-
           <div class="section">
             <h2>💡 Recommendations</h2>
             ${[
@@ -1286,7 +1280,6 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
               "Complete all security domain modules for a full skill profile.",
             ].map(r => `<div class="rec">→ ${r}</div>`).join("")}
           </div>
-
           <div class="footer">Confidential — CyberShield Security Suite — ${new Date().getFullYear()}</div>
         </body></html>`);
       win.document.close();
@@ -1316,9 +1309,9 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
           ].map((item, i) => (
             <div key={i} onClick={item.action}
               style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"18px 20px", boxShadow:T.sh, display:"flex", alignItems:"center", gap:13, cursor:"pointer", transition:"all .18s" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor=`${item.color}30`; e.currentTarget.style.transform="translateY(-2px)"; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor=`${item.color}25`; e.currentTarget.style.transform="translateY(-2px)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform="none"; }}>
-              <div style={{ width:42, height:42, borderRadius:12, background:`${item.color}12`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <div style={{ width:42, height:42, borderRadius:12, background:`${item.color}10`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 <item.icon size={18} style={{ color:item.color }}/>
               </div>
               <div>
@@ -1336,7 +1329,6 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-      {/* Export */}
       <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"14px 18px", display:"flex", alignItems:"center", gap:14, boxShadow:T.sh }}>
         <div style={{ flex:1 }}>
           <h3 style={{ fontSize:13, fontWeight:700, color:T.text, margin:"0 0 2px", fontFamily:"'Syne',sans-serif" }}>Export Your Report</h3>
@@ -1347,15 +1339,14 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
           { l:"TXT Export", fmt:"txt", icon:FileText,  color:T.brand },
         ].map((item, i) => (
           <button key={i} onClick={() => handleDownload(item.fmt)}
-            style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 16px", borderRadius:10, border:`1px solid ${item.color}20`, background:`${item.color}0e`, color:item.color, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", transition:"all .2s" }}
+            style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 16px", borderRadius:10, border:`1px solid ${item.color}20`, background:`${item.color}08`, color:item.color, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", transition:"all .2s" }}
             onMouseEnter={e => { e.currentTarget.style.background=item.color; e.currentTarget.style.color="#fff"; }}
-            onMouseLeave={e => { e.currentTarget.style.background=`${item.color}0e`; e.currentTarget.style.color=item.color; }}>
+            onMouseLeave={e => { e.currentTarget.style.background=`${item.color}08`; e.currentTarget.style.color=item.color; }}>
             {exporting===item.fmt ? <Loader2 size={12} className="spin"/> : <item.icon size={12}/>} {item.l}
           </button>
         ))}
       </div>
 
-      {/* Stats */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
         {[
           { l:"Total Score",       v:(user?.score||0).toLocaleString(), c:T.brand,  icon:Star },
@@ -1364,7 +1355,7 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
           { l:"Login Streak",      v:`${user?.loginStreak||0}d`,          c:T.teal,   icon:Flame },
         ].map((s, i) => (
           <div key={i} style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px 18px", boxShadow:T.sh }}>
-            <div style={{ width:34, height:34, borderRadius:10, background:`${s.c}15`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10 }}>
+            <div style={{ width:34, height:34, borderRadius:10, background:`${s.c}10`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10 }}>
               <s.icon size={14} style={{ color:s.c }}/>
             </div>
             <div style={{ fontSize:26, fontWeight:800, color:s.c, fontFamily:"'Syne',sans-serif" }}>{s.v}</div>
@@ -1373,14 +1364,13 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
         ))}
       </div>
 
-      {/* Phishing accuracy bar */}
       {phAcc !== null && (
         <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px 18px", boxShadow:T.sh }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
             <h3 style={{ fontSize:12, fontWeight:700, color:T.text, margin:0, fontFamily:"'Syne',sans-serif" }}>Phishing Detection Accuracy</h3>
             <span style={{ fontSize:16, fontWeight:800, color:phAcc>=80?T.green:phAcc>=60?T.amber:T.red, fontFamily:"'Syne',sans-serif" }}>{phAcc}%</span>
           </div>
-          <div style={{ height:8, background:T.surface, borderRadius:99, overflow:"hidden" }}>
+          <div style={{ height:8, background:T.bg, borderRadius:99, overflow:"hidden" }}>
             <div style={{ height:8, width:`${phAcc}%`, background:`linear-gradient(90deg,${phAcc>=80?T.green:phAcc>=60?T.amber:T.red},${T.brand})`, borderRadius:99, transition:"width 1s ease" }}/>
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", marginTop:6, fontSize:9, color:T.textDim, fontFamily:"'JetBrains Mono',monospace" }}>
@@ -1390,13 +1380,12 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
         </div>
       )}
 
-      {/* Quiz history table */}
       {(user?.quizHistory||[]).length > 0 && (
         <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18, overflow:"hidden", boxShadow:T.sh }}>
           <div style={{ padding:"13px 18px", borderBottom:`1px solid ${T.border}` }}>
             <h3 style={{ fontSize:12, fontWeight:700, color:T.text, margin:0, fontFamily:"'Syne',sans-serif" }}>Quiz History</h3>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 100px 100px 100px", padding:"9px 18px", background:T.surface, borderBottom:`1px solid ${T.border}`, fontSize:8, fontWeight:700, color:T.textDim, letterSpacing:"0.1em", fontFamily:"'JetBrains Mono',monospace" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 100px 100px 100px", padding:"9px 18px", background:T.bg, borderBottom:`1px solid ${T.border}`, fontSize:8, fontWeight:700, color:T.textDim, letterSpacing:"0.1em", fontFamily:"'JetBrains Mono',monospace" }}>
             <span>MODULE</span><span>SCORE</span><span>GRADE</span><span>DATE</span>
           </div>
           {user.quizHistory.slice(0,8).map((r, i) => {
@@ -1406,7 +1395,7 @@ ${(user?.loginStreak || 0) < 3 ? "  • Log in daily to build your streak and un
               <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 100px 100px 100px", padding:"10px 18px", borderBottom:i<Math.min(user.quizHistory.length,8)-1?`1px solid ${T.border}`:"none" }}>
                 <span style={{ fontSize:11, color:T.text, fontWeight:500 }}>{r.quiz || r.moduleTitle || `Module ${i+1}`}</span>
                 <span style={{ fontSize:11, fontWeight:800, color:col, fontFamily:"'Syne',sans-serif" }}>{pct}%</span>
-                <div><Bdg color={col} bg={`${col}15`}>{pct>=90?"A+":pct>=80?"A":pct>=70?"B":pct>=60?"C":"D"}</Bdg></div>
+                <div><Bdg color={col} bg={`${col}12`}>{pct>=90?"A+":pct>=80?"A":pct>=70?"B":pct>=60?"C":"D"}</Bdg></div>
                 <span style={{ fontSize:9, color:T.textDim, fontFamily:"'JetBrains Mono',monospace" }}>{fmtDate(r.date || r.updatedAt)}</span>
               </div>
             );
@@ -1486,7 +1475,7 @@ function ProfilePage({ user, onUserUpdate }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       {saved && (
-        <div style={{ background:T.greenDim, border:`1px solid ${T.green}25`, borderRadius:12, padding:"10px 16px", display:"flex", alignItems:"center", gap:8, animation:"slideIn .2s ease" }}>
+        <div style={{ background:T.greenDim, border:`1px solid ${T.green}20`, borderRadius:12, padding:"10px 16px", display:"flex", alignItems:"center", gap:8, animation:"slideIn .2s ease" }}>
           <CheckCircle2 size={14} style={{ color:T.green }}/>
           <span style={{ fontSize:12, fontWeight:600, color:T.green }}>Profile updated successfully!</span>
         </div>
@@ -1497,8 +1486,8 @@ function ProfilePage({ user, onUserUpdate }) {
           <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:20, padding:"24px 20px", textAlign:"center", boxShadow:T.sh }}>
             <div style={{ position:"relative", width:88, height:88, margin:"0 auto 13px", cursor:"pointer" }} onClick={() => fileRef.current?.click()}>
               {avatar
-                ? <img src={avatar} alt="avatar" style={{ width:88, height:88, borderRadius:"50%", objectFit:"cover", border:`3px solid ${T.brand}30` }}/>
-                : <div style={{ width:88, height:88, borderRadius:"50%", background:`linear-gradient(135deg,${T.brand},${T.violet})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, fontWeight:800, color:"#fff", boxShadow:`0 8px 20px ${T.brand}30` }}>
+                ? <img src={avatar} alt="avatar" style={{ width:88, height:88, borderRadius:"50%", objectFit:"cover", border:`3px solid ${T.brand}20` }}/>
+                : <div style={{ width:88, height:88, borderRadius:"50%", background:`linear-gradient(135deg,${T.brand},${T.violet})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, fontWeight:800, color:"#fff" }}>
                     {(form.fullName||"U").charAt(0).toUpperCase()}
                   </div>}
               <div style={{ position:"absolute", bottom:0, right:0, width:26, height:26, borderRadius:"50%", background:T.brand, border:`3px solid ${T.card}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1509,16 +1498,16 @@ function ProfilePage({ user, onUserUpdate }) {
             <h2 style={{ fontSize:16, fontWeight:800, color:T.text, margin:"0 0 3px", fontFamily:"'Syne',sans-serif" }}>{form.fullName || getFullName(user)}</h2>
             <p style={{ fontSize:11, color:T.textMd, margin:"0 0 10px" }}>{form.role || "Cybersecurity Learner"}</p>
             <div style={{ display:"inline-flex" }}>
-              <Bdg color={T.brand} bg={`${T.brand}15`} size="md">Level {level} Analyst</Bdg>
+              <Bdg color={T.brand} bg={`${T.brand}10`} size="md">Level {level} Analyst</Bdg>
             </div>
 
-            <div style={{ marginTop:14, padding:"10px 12px", background:T.surface, borderRadius:10 }}>
+            <div style={{ marginTop:14, padding:"10px 12px", background:T.bg, borderRadius:10 }}>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:9, color:T.textDim, marginBottom:6 }}>
                 <span>Level Progress</span>
                 <span style={{ fontFamily:"'JetBrains Mono',monospace", color:T.brand }}>{xpInLevel}/500 XP</span>
               </div>
-              <div style={{ height:4, background:T.bg, borderRadius:99 }}>
-                <div style={{ height:4, width:`${xpPct}%`, background:`linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius:99, boxShadow:`0 0 8px ${T.brand}` }}/>
+              <div style={{ height:4, background:"rgba(79,70,229,0.1)", borderRadius:99 }}>
+                <div style={{ height:4, width:`${xpPct}%`, background:`linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius:99 }}/>
               </div>
             </div>
           </div>
@@ -1527,7 +1516,7 @@ function ProfilePage({ user, onUserUpdate }) {
             <h3 style={{ fontSize:10, fontWeight:700, color:T.textDim, margin:"0 0 11px", letterSpacing:"0.1em", fontFamily:"'JetBrains Mono',monospace" }}>PERFORMANCE STATS</h3>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
               {statItems.map((s, i) => (
-                <div key={i} style={{ background:T.surface, borderRadius:10, padding:"10px 12px", textAlign:"center" }}>
+                <div key={i} style={{ background:T.bg, borderRadius:10, padding:"10px 12px", textAlign:"center" }}>
                   <div style={{ fontSize:16, fontWeight:800, color:s.c, fontFamily:"'Syne',sans-serif" }}>{s.v}</div>
                   <div style={{ fontSize:8, color:T.textDim, marginTop:2, fontWeight:700, letterSpacing:"0.06em" }}>{s.l}</div>
                 </div>
@@ -1557,7 +1546,7 @@ function ProfilePage({ user, onUserUpdate }) {
                 <label style={{ fontSize:9, fontWeight:700, color:T.textDim, letterSpacing:"0.08em", display:"block", marginBottom:5, fontFamily:"'JetBrains Mono',monospace" }}>
                   {field.label.toUpperCase()}
                 </label>
-                <div style={{ display:"flex", alignItems:"center", gap:8, background:editMode?T.surface:T.bg, border:`1px solid ${editMode?`${T.brand}30`:T.border}`, borderRadius:10, padding:"9px 12px" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, background:editMode?T.bg:T.bg, border:`1px solid ${editMode?`${T.brand}25`:T.border}`, borderRadius:10, padding:"9px 12px" }}>
                   <field.icon size={13} style={{ color:T.textDim, flexShrink:0 }}/>
                   <input value={form[field.key]} readOnly={!editMode}
                     onChange={e => setForm(f => ({...f,[field.key]:e.target.value}))}
@@ -1574,7 +1563,7 @@ function ProfilePage({ user, onUserUpdate }) {
               <h4 style={{ fontSize:10, fontWeight:700, color:T.textDim, margin:"0 0 11px", letterSpacing:"0.1em", fontFamily:"'JetBrains Mono',monospace" }}>ACHIEVEMENTS</h4>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                 {user.badges.map((b, i) => (
-                  <div key={i} style={{ textAlign:"center", padding:"8px 12px", background:T.surface, border:`1px solid ${T.border}`, borderRadius:10 }}>
+                  <div key={i} style={{ textAlign:"center", padding:"8px 12px", background:T.bg, border:`1px solid ${T.border}`, borderRadius:10 }}>
                     <div style={{ fontSize:18, lineHeight:1 }}>{b.emoji||"🏅"}</div>
                     <p style={{ fontSize:9, color:T.textMd, marginTop:4, fontWeight:700 }}>{b.label||b}</p>
                   </div>
@@ -1619,7 +1608,7 @@ function SettingsPage({ user, onUserUpdate }) {
   };
   const str    = pwStr(pw.newPw);
   const strLbl = ["Too short","Weak","Fair","Strong","Very Strong"];
-  const strClr = [T.textDim, T.red, T.amber, "#84CC16", T.green];
+  const strClr = [T.textDim, T.red, T.amber, "#65A30D", T.green];
 
   const handlePwChange = async () => {
     if (!pw.current || !pw.newPw || !pw.confirm) { setPwStatus({ type:"error", msg:"All fields are required." }); return; }
@@ -1642,8 +1631,8 @@ function SettingsPage({ user, onUserUpdate }) {
   };
 
   const Toggle = ({ checked, onChange, color=T.brand }) => (
-    <div onClick={() => onChange(!checked)} style={{ width:40, height:20, borderRadius:99, background:checked?color:T.textDim, cursor:"pointer", transition:"background .2s", position:"relative", flexShrink:0 }}>
-      <div style={{ width:14, height:14, borderRadius:"50%", background:"#fff", position:"absolute", top:3, left:checked?23:3, transition:"left .2s", boxShadow:"0 1px 4px rgba(0,0,0,0.4)" }}/>
+    <div onClick={() => onChange(!checked)} style={{ width:40, height:20, borderRadius:99, background:checked?color:"#D1D5DB", cursor:"pointer", transition:"background .2s", position:"relative", flexShrink:0 }}>
+      <div style={{ width:14, height:14, borderRadius:"50%", background:"#fff", position:"absolute", top:3, left:checked?23:3, transition:"left .2s", boxShadow:"0 1px 4px rgba(0,0,0,0.2)" }}/>
     </div>
   );
 
@@ -1652,7 +1641,7 @@ function SettingsPage({ user, onUserUpdate }) {
       <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"12px 8px", height:"fit-content", boxShadow:T.sh }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:9, border:"none", background:tab===t.id?(t.id==="danger"?T.redDim:`${T.brand}15`):"transparent", color:tab===t.id?(t.id==="danger"?T.red:T.brand):T.textMd, cursor:"pointer", fontFamily:"'Nunito',sans-serif", fontSize:12, fontWeight:tab===t.id?700:500, marginBottom:2, textAlign:"left" }}>
+            style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:9, border:"none", background:tab===t.id?(t.id==="danger"?T.redDim:`${T.brand}10`):"transparent", color:tab===t.id?(t.id==="danger"?T.red:T.brand):T.textMd, cursor:"pointer", fontFamily:"'Nunito',sans-serif", fontSize:12, fontWeight:tab===t.id?700:500, marginBottom:2, textAlign:"left" }}>
             <t.icon size={13}/>{t.label}
           </button>
         ))}
@@ -1670,7 +1659,7 @@ function SettingsPage({ user, onUserUpdate }) {
               ].map(f => (
                 <div key={f.key}>
                   <label style={{ fontSize:9, fontWeight:700, color:T.textDim, letterSpacing:"0.08em", display:"block", marginBottom:5, fontFamily:"'JetBrains Mono',monospace" }}>{f.label.toUpperCase()}</label>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, background:T.surface, border:`1px solid ${T.border}`, borderRadius:10, padding:"9px 12px" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, background:T.bg, border:`1px solid ${T.border}`, borderRadius:10, padding:"9px 12px" }}>
                     <Key size={13} style={{ color:T.textDim, flexShrink:0 }}/>
                     <input value={pw[f.key]} onChange={e => setPw(p => ({...p,[f.key]:e.target.value}))} type={showPw[f.key]?"text":"password"}
                       style={{ border:"none", background:"transparent", outline:"none", fontSize:13, color:T.text, width:"100%", fontFamily:"'Nunito',sans-serif" }}/>
@@ -1688,20 +1677,20 @@ function SettingsPage({ user, onUserUpdate }) {
                   </div>
                   <div style={{ display:"flex", gap:4 }}>
                     {[1,2,3,4].map(i => (
-                      <div key={i} style={{ flex:1, height:3, borderRadius:99, background:i<=str?strClr[str]:T.surface, transition:"background .3s" }}/>
+                      <div key={i} style={{ flex:1, height:3, borderRadius:99, background:i<=str?strClr[str]:"#E5E7EB", transition:"background .3s" }}/>
                     ))}
                   </div>
                 </div>
               )}
               {pwStatus && (
-                <div style={{ padding:"10px 13px", borderRadius:10, background:pwStatus.type==="success"?T.greenDim:pwStatus.type==="error"?T.redDim:`${T.brand}12`, display:"flex", alignItems:"center", gap:8 }}>
+                <div style={{ padding:"10px 13px", borderRadius:10, background:pwStatus.type==="success"?T.greenDim:pwStatus.type==="error"?T.redDim:`${T.brand}08`, display:"flex", alignItems:"center", gap:8 }}>
                   {pwStatus.type==="loading" ? <Loader2 size={13} style={{ color:T.brand }} className="spin"/> : pwStatus.type==="success" ? <CheckCircle2 size={13} style={{ color:T.green }}/> : <AlertCircle size={13} style={{ color:T.red }}/>}
                   <span style={{ fontSize:11, fontWeight:600, color:pwStatus.type==="success"?T.green:pwStatus.type==="error"?T.red:T.brand }}>
                     {pwStatus.type==="loading" ? "Updating…" : pwStatus.msg}
                   </span>
                 </div>
               )}
-              <button onClick={handlePwChange} style={{ padding:"11px 20px", borderRadius:11, border:"none", background:`linear-gradient(135deg,${T.brand},${T.violet})`, color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", boxShadow:`0 4px 14px ${T.brand}30` }}>
+              <button onClick={handlePwChange} style={{ padding:"11px 20px", borderRadius:11, border:"none", background:`linear-gradient(135deg,${T.brand},${T.violet})`, color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif" }}>
                 Update Password
               </button>
             </div>
@@ -1718,8 +1707,8 @@ function SettingsPage({ user, onUserUpdate }) {
                 { key:"threats", label:"Critical Threat Alerts", desc:"Alerts for critical security events",  icon:ShieldAlert },
                 { key:"weekly",  label:"Weekly Digest",          desc:"Summary every Monday",                icon:BarChart2 },
               ].map(item => (
-                <div key={item.key} style={{ display:"flex", alignItems:"center", gap:11, padding:"13px 15px", background:T.surface, border:`1px solid ${T.border}`, borderRadius:12 }}>
-                  <div style={{ width:34, height:34, borderRadius:9, background:notifs[item.key]?`${T.brand}15`:T.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <div key={item.key} style={{ display:"flex", alignItems:"center", gap:11, padding:"13px 15px", background:T.bg, border:`1px solid ${T.border}`, borderRadius:12 }}>
+                  <div style={{ width:34, height:34, borderRadius:9, background:notifs[item.key]?`${T.brand}10`:"#F3F4F6", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <item.icon size={14} style={{ color:notifs[item.key]?T.brand:T.textDim }}/>
                   </div>
                   <div style={{ flex:1 }}>
@@ -1737,7 +1726,7 @@ function SettingsPage({ user, onUserUpdate }) {
           <div>
             <h3 style={{ fontSize:14, fontWeight:800, color:T.text, margin:"0 0 20px", fontFamily:"'Syne',sans-serif" }}>Security Settings</h3>
             <div style={{ display:"flex", flexDirection:"column", gap:10, maxWidth:480 }}>
-              <div style={{ padding:"14px 16px", background:T.surface, border:`1px solid ${T.border}`, borderRadius:12, display:"flex", alignItems:"center", gap:12 }}>
+              <div style={{ padding:"14px 16px", background:T.bg, border:`1px solid ${T.border}`, borderRadius:12, display:"flex", alignItems:"center", gap:12 }}>
                 <div style={{ width:36, height:36, borderRadius:10, background:twoFa?T.greenDim:T.redDim, display:"flex", alignItems:"center", justifyContent:"center" }}>
                   {twoFa ? <Lock size={15} style={{ color:T.green }}/> : <Unlock size={15} style={{ color:T.red }}/>}
                 </div>
@@ -1748,7 +1737,7 @@ function SettingsPage({ user, onUserUpdate }) {
                 <Toggle checked={twoFa} color={T.green} onChange={v => { setTwoFa(v); onUserUpdate?.({ twoFaEnabled:v }); }}/>
               </div>
 
-              <div style={{ padding:"14px 16px", background:T.surface, border:`1px solid ${T.border}`, borderRadius:12 }}>
+              <div style={{ padding:"14px 16px", background:T.bg, border:`1px solid ${T.border}`, borderRadius:12 }}>
                 <div style={{ fontSize:10, fontWeight:700, color:T.textDim, marginBottom:8, fontFamily:"'JetBrains Mono',monospace" }}>SESSION INFO</div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
                   {[
@@ -1757,7 +1746,7 @@ function SettingsPage({ user, onUserUpdate }) {
                     { l:"Level",       v:`Level ${computeLevel(user?.score||0).level}` },
                     { l:"Account",     v:user?.createdAt ? fmtDate(user.createdAt) : "Recent" },
                   ].map((s, i) => (
-                    <div key={i} style={{ background:T.bg, borderRadius:8, padding:"8px 10px" }}>
+                    <div key={i} style={{ background:T.surface, borderRadius:8, padding:"8px 10px", border:`1px solid ${T.border}` }}>
                       <div style={{ fontSize:8, color:T.textDim, marginBottom:3, fontFamily:"'JetBrains Mono',monospace" }}>{s.l}</div>
                       <div style={{ fontSize:11, color:T.text, fontWeight:700 }}>{s.v}</div>
                     </div>
@@ -1780,12 +1769,12 @@ function SettingsPage({ user, onUserUpdate }) {
                 { title:"Delete Account",     desc:"Permanently delete your account and all data", color:T.red, btn:"Delete",
                   action:() => { if(window.prompt("Type DELETE to confirm:") === "DELETE") { localStorage.clear(); window.location.href="/"; } }},
               ].map((item, i) => (
-                <div key={i} style={{ padding:"14px 16px", background:`${item.color}05`, border:`1px solid ${item.color}18`, borderRadius:12, display:"flex", alignItems:"center", gap:13 }}>
+                <div key={i} style={{ padding:"14px 16px", background:`${item.color}04`, border:`1px solid ${item.color}18`, borderRadius:12, display:"flex", alignItems:"center", gap:13 }}>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight:700, color:T.text }}>{item.title}</div>
                     <div style={{ fontSize:10, color:T.textMd }}>{item.desc}</div>
                   </div>
-                  <button onClick={item.action} style={{ padding:"7px 14px", borderRadius:9, border:`1px solid ${item.color}25`, background:`${item.color}0e`, color:item.color, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif" }}>
+                  <button onClick={item.action} style={{ padding:"7px 14px", borderRadius:9, border:`1px solid ${item.color}20`, background:`${item.color}08`, color:item.color, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif" }}>
                     {item.btn}
                   </button>
                 </div>
@@ -1854,9 +1843,9 @@ function LeaderboardPage({ user }) {
   const myRank = board.findIndex(e => e.isSelf) + 1;
 
   const rankIcon = (rank) => {
-    if (rank===1) return <Crown size={15} style={{ color:"#F59E0B" }}/>;
-    if (rank===2) return <Medal size={15} style={{ color:"#94A3B8" }}/>;
-    if (rank===3) return <Medal size={15} style={{ color:"#CD7C4E" }}/>;
+    if (rank===1) return <Crown size={15} style={{ color:"#D97706" }}/>;
+    if (rank===2) return <Medal size={15} style={{ color:"#6B7280" }}/>;
+    if (rank===3) return <Medal size={15} style={{ color:"#92400E" }}/>;
     return <span style={{ fontSize:11, fontWeight:700, color:T.textDim, fontFamily:"'JetBrains Mono',monospace" }}>#{rank}</span>;
   };
 
@@ -1871,7 +1860,7 @@ function LeaderboardPage({ user }) {
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       <div style={{ background:T.card, border:`1px solid ${T.brand}18`, borderRadius:20, padding:"18px 22px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", alignItems:"center", gap:13 }}>
-          <div style={{ width:48, height:48, borderRadius:14, background:`linear-gradient(135deg,${T.brand},${T.violet})`, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 8px 20px ${T.brand}30` }}>
+          <div style={{ width:48, height:48, borderRadius:14, background:`linear-gradient(135deg,${T.brand},${T.violet})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Trophy size={20} style={{ color:"#fff" }}/>
           </div>
           <div>
@@ -1884,12 +1873,12 @@ function LeaderboardPage({ user }) {
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           {myRank > 0 && (
-            <div style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:12, padding:"11px 16px", textAlign:"center", boxShadow:T.sh }}>
+            <div style={{ background:T.bg, border:`1px solid ${T.border}`, borderRadius:12, padding:"11px 16px", textAlign:"center", boxShadow:T.sh }}>
               <div style={{ fontSize:22, fontWeight:800, color:T.brand, fontFamily:"'Syne',sans-serif" }}>#{myRank}</div>
               <div style={{ fontSize:9, color:T.textMd, fontWeight:600 }}>Your Rank</div>
             </div>
           )}
-          <button onClick={fetchBoard} style={{ width:34, height:34, borderRadius:9, border:`1px solid ${T.border}`, background:T.surface, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <button onClick={fetchBoard} style={{ width:34, height:34, borderRadius:9, border:`1px solid ${T.border}`, background:T.bg, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <RefreshCw size={13} style={{ color:T.textMd }}/>
           </button>
         </div>
@@ -1898,7 +1887,7 @@ function LeaderboardPage({ user }) {
       <div style={{ display:"flex", gap:7 }}>
         {[{id:"score",l:"Score"},{id:"xp",l:"XP"},{id:"quiz",l:"Quizzes"},{id:"streak",l:"Streak"}].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ padding:"6px 15px", borderRadius:8, border:`1px solid ${tab===t.id?T.brand:T.border}`, background:tab===t.id?`${T.brand}15`:T.card, color:tab===t.id?T.brand:T.textMd, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", transition:"all .15s" }}>
+            style={{ padding:"6px 15px", borderRadius:8, border:`1px solid ${tab===t.id?T.brand:T.border}`, background:tab===t.id?`${T.brand}10`:T.card, color:tab===t.id?T.brand:T.textMd, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", transition:"all .15s" }}>
             {t.l}
           </button>
         ))}
@@ -1920,7 +1909,7 @@ function LeaderboardPage({ user }) {
           </div>
         ) : (
           <>
-            <div style={{ display:"grid", gridTemplateColumns:"56px 1fr 130px 80px 80px 80px", padding:"9px 18px", background:T.surface, borderBottom:`1px solid ${T.border}`, fontSize:8, fontWeight:700, color:T.textDim, letterSpacing:"0.1em", fontFamily:"'JetBrains Mono',monospace" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"56px 1fr 130px 80px 80px 80px", padding:"9px 18px", background:T.bg, borderBottom:`1px solid ${T.border}`, fontSize:8, fontWeight:700, color:T.textDim, letterSpacing:"0.1em", fontFamily:"'JetBrains Mono',monospace" }}>
               <span>RANK</span><span>USER</span>
               <span>{tab==="score"?"SCORE":tab==="xp"?"XP":tab==="quiz"?"QUIZZES":"STREAK"}</span>
               <span>QUIZZES</span><span>XP</span><span>STREAK</span>
@@ -1929,15 +1918,15 @@ function LeaderboardPage({ user }) {
               const isMe  = !!entry.isSelf;
               const rank  = i + 1;
               const top3  = rank <= 3;
-              const bLeft = isMe?T.brand:rank===1?"#F59E0B":rank===2?"#94A3B8":rank===3?"#CD7C4E":"transparent";
+              const bLeft = isMe?T.brand:rank===1?"#D97706":rank===2?"#6B7280":rank===3?"#92400E":"transparent";
               return (
                 <div key={entry.userId||i}
-                  style={{ display:"grid", gridTemplateColumns:"56px 1fr 130px 80px 80px 80px", padding:"12px 18px", borderBottom:i<board.length-1?`1px solid ${T.border}`:"none", background:isMe?`${T.brand}08`:top3?`${T.brand}03`:"transparent", transition:"background .12s", borderLeft:`3px solid ${bLeft}` }}
+                  style={{ display:"grid", gridTemplateColumns:"56px 1fr 130px 80px 80px 80px", padding:"12px 18px", borderBottom:i<board.length-1?`1px solid ${T.border}`:"none", background:isMe?`${T.brand}06`:top3?`${T.brand}02`:"transparent", transition:"background .12s", borderLeft:`3px solid ${bLeft}` }}
                   onMouseEnter={e => { if(!isMe) e.currentTarget.style.background=T.surfaceHov; }}
-                  onMouseLeave={e => { if(!isMe) e.currentTarget.style.background=top3?`${T.brand}03`:"transparent"; }}>
+                  onMouseLeave={e => { if(!isMe) e.currentTarget.style.background=top3?`${T.brand}02`:"transparent"; }}>
                   <div style={{ display:"flex", alignItems:"center" }}>{rankIcon(rank)}</div>
                   <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-                    <div style={{ width:34, height:34, borderRadius:9, flexShrink:0, overflow:"hidden", background:isMe?`linear-gradient(135deg,${T.brand},${T.violet})`:`linear-gradient(135deg,${T.textDim},#374151)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"#fff" }}>
+                    <div style={{ width:34, height:34, borderRadius:9, flexShrink:0, overflow:"hidden", background:isMe?`linear-gradient(135deg,${T.brand},${T.violet})`:"#E5E7EB", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:isMe?"#fff":T.textMd }}>
                       {entry.avatar ? <img src={entry.avatar} alt="" style={{ width:34,height:34,objectFit:"cover" }}/> : (entry.name||"?").charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -1971,7 +1960,7 @@ function LeaderboardPage({ user }) {
             { l:"Quizzes", v:user?.quizzesDone||0,               c:T.teal,   e:"🧠" },
             { l:"Streak",  v:`${user?.loginStreak||0} days`,     c:T.amber,  e:"🔥" },
           ].map((s, i) => (
-            <div key={i} style={{ background:T.surface, borderRadius:12, padding:"12px 14px", textAlign:"center", border:`1px solid ${s.c}12` }}>
+            <div key={i} style={{ background:T.bg, borderRadius:12, padding:"12px 14px", textAlign:"center", border:`1px solid ${s.c}12` }}>
               <div style={{ fontSize:18, marginBottom:4 }}>{s.e}</div>
               <div style={{ fontSize:18, fontWeight:800, color:s.c, fontFamily:"'Syne',sans-serif" }}>{s.v}</div>
               <div style={{ fontSize:10, color:T.textMd, marginTop:2 }}>{s.l}</div>
@@ -1989,7 +1978,7 @@ const StubPage = ({ emoji, title, desc, btnLabel, btnColor, onAction }) => (
     <div style={{ fontSize:52, marginBottom:16 }}>{emoji}</div>
     <h2 style={{ fontSize:24, fontWeight:800, color:T.text, fontFamily:"'Syne',sans-serif", margin:"0 0 10px" }}>{title}</h2>
     <p style={{ fontSize:13, color:T.textMd, margin:"0 0 28px", maxWidth:440, marginInline:"auto", lineHeight:1.7 }}>{desc}</p>
-    <button onClick={onAction} style={{ padding:"12px 32px", borderRadius:12, border:"none", background:`linear-gradient(135deg,${btnColor},${btnColor}cc)`, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif", boxShadow:`0 8px 24px ${btnColor}30` }}>
+    <button onClick={onAction} style={{ padding:"12px 32px", borderRadius:12, border:"none", background:`linear-gradient(135deg,${btnColor},${btnColor}cc)`, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito',sans-serif" }}>
       {btnLabel}
     </button>
   </div>
@@ -1999,7 +1988,6 @@ const StubPage = ({ emoji, title, desc, btnLabel, btnColor, onAction }) => (
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  // FIX 1: useDashboardUser called inside component (valid Hook call)
   const { user: dashUser } = useDashboardUser();
 
   const [page,       setPage]      = useState("overview");
@@ -2022,7 +2010,6 @@ export default function Dashboard() {
     } catch { return null; }
   });
 
-  // Sync dashUser into local user state when it changes
   useEffect(() => {
     if (dashUser) {
       setUser(prev => {
@@ -2131,7 +2118,6 @@ export default function Dashboard() {
     }
   }, []);
 
-  // FIX 2: saveGameScore wrapped in a callable function — not at module top level
   const handleSaveGameScore = useCallback(async (finalScore, wave) => {
     await saveGameScore({ score: finalScore, wavesCompleted: wave });
   }, []);
