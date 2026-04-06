@@ -16,6 +16,7 @@ import Blog                from "./components/Blog";
 import Help_Center         from "./components/Help_Center";
 import Contact_Us          from "./components/Contact_us";
 import Faq                 from "./components/Faq";
+import BlogPostPage from "./components/Blogpostpage";
 
 import LeaderboardPage      from "./LeaderboardPage";
 import PhisingSimulatorPage from "./PhisingSimulatorPage";
@@ -58,6 +59,8 @@ function App() {
       <Route path="/login"                   element={<Login />} />
       <Route path="/forgot-password"         element={<ForgotPasswordPopup />} />
       <Route path="/reset-password/:token"   element={<ResetPassword />} />
+      <Route path="/blog" element={<Blog />} />
+<Route path="/blog/:id" element={<BlogPostPage />} />
 
       {/* ── Info pages ── */}
       <Route path="/about_us"                element={<About_us />} />

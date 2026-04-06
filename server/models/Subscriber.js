@@ -1,4 +1,3 @@
-// models/Subscriber.js
 import mongoose from 'mongoose';
 
 const subscriberSchema = new mongoose.Schema({
@@ -8,10 +7,16 @@ const subscriberSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/^\S+@\S+\.\S+$/, 'Invalid email'],
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'],
   },
-  isActive:     { type: Boolean, default: true },
-  subscribedAt: { type: Date,    default: Date.now },
+  subscribedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 export default mongoose.model('Subscriber', subscriberSchema);

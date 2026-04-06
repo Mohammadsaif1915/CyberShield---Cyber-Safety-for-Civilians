@@ -14,6 +14,8 @@ const CyberSafetyLanding = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const statsRef = useRef(null);
   const heroRef = useRef(null);
+  // ✅ FIX 1: Added featuresRef
+  const featuresRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -40,6 +42,14 @@ const CyberSafetyLanding = () => {
       if (statsRef.current) observer.unobserve(statsRef.current);
     };
   }, []);
+
+  // ✅ FIX 2: Added scrollToFeatures handler
+  const scrollToFeatures = () => {
+    featuresRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
@@ -191,7 +201,8 @@ const CyberSafetyLanding = () => {
                     <span></span>
                   </div>
                 </Link>
-                <button className="btn-hero-secondary-3d">
+                {/* ✅ FIX 3: Added onClick={scrollToFeatures} to Learn More button */}
+                <button className="btn-hero-secondary-3d" onClick={scrollToFeatures}>
                   <span>Learn More</span>
                   <div className="btn-border-animate"></div>
                 </button>
@@ -257,8 +268,8 @@ const CyberSafetyLanding = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features-section-3d">
+      {/* ✅ FIX 4: Added ref={featuresRef} to Features Section */}
+      <section ref={featuresRef} className="features-section-3d">
         <div className="features-container">
           <div className="section-header-3d">
             <h2 className="section-title-3d">Comprehensive Cyber Awareness</h2>
@@ -464,21 +475,20 @@ const CyberSafetyLanding = () => {
             </div>
 
             <div className="footer-column">
-  <h4 className="footer-heading">Platform</h4>
-  <ul className="footer-links-list">
-    {[
-      ['Features', '/features'],
-     
-      ['Community', '/community'],
-    ].map(([label, path]) => (
-      <li key={path}>
-        <Link to={path} className="footer-link-item">
-          {label}
-        </Link>
-      </li>
-    ))}
-  </ul>
-</div>
+              <h4 className="footer-heading">Platform</h4>
+              <ul className="footer-links-list">
+                {[
+                  ['Features', '/features'],
+                  ['Community', '/community'],
+                ].map(([label, path]) => (
+                  <li key={path}>
+                    <Link to={path} className="footer-link-item">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <div className="footer-column">
               <h4 className="footer-heading">Company</h4>
@@ -494,12 +504,11 @@ const CyberSafetyLanding = () => {
                 ))}
               </ul>
             </div>
-            
 
             <div className="footer-column">
               <h4 className="footer-heading">Support</h4>
               <ul className="footer-links-list">
-               {[
+                {[
                   ['Help Center', '/help_center'],
                   ['Contact Us', '/contact_us'],
                   ['Faq', '/faq'],
@@ -531,42 +540,42 @@ const CyberSafetyLanding = () => {
                 </button>
               </form>
 
-             {/* Subscribe Success Modal */}
-{subStatus === 'success' && (
-  <div className="sub-modal-overlay" onClick={() => setSubStatus('')}>
-    <div className="sub-modal-card" onClick={e => e.stopPropagation()}>
-      <button className="sub-modal-close" onClick={() => setSubStatus('')}>✕</button>
+              {/* Subscribe Success Modal */}
+              {subStatus === 'success' && (
+                <div className="sub-modal-overlay" onClick={() => setSubStatus('')}>
+                  <div className="sub-modal-card" onClick={e => e.stopPropagation()}>
+                    <button className="sub-modal-close" onClick={() => setSubStatus('')}>✕</button>
 
-      <div className="sub-modal-icon">
-        <CheckCircle2 size={36} color="#fff" strokeWidth={2} />
-        <div className="sub-modal-icon-ring"></div>
-      </div>
+                    <div className="sub-modal-icon">
+                      <CheckCircle2 size={36} color="#fff" strokeWidth={2} />
+                      <div className="sub-modal-icon-ring"></div>
+                    </div>
 
-      <h2 className="sub-modal-title">You're In! 🎉</h2>
-      <p className="sub-modal-sub">
-        Thank you for subscribing to <strong>CyberShield</strong>.<br />
-        A welcome email is on its way to your inbox.
-      </p>
+                    <h2 className="sub-modal-title">You're In! 🎉</h2>
+                    <p className="sub-modal-sub">
+                      Thank you for subscribing to <strong>CyberShield</strong>.<br />
+                      A welcome email is on its way to your inbox.
+                    </p>
 
-      <div className="sub-modal-perks">
-        {[
-          'Weekly cybersecurity tips & tricks',
-          'Early access to new courses & features',
-          'Exclusive platform updates & alerts',
-        ].map((perk, i) => (
-          <div className="sub-modal-perk" key={i}>
-            <span className="perk-dot"></span>
-            {perk}
-          </div>
-        ))}
-      </div>
+                    <div className="sub-modal-perks">
+                      {[
+                        'Weekly cybersecurity tips & tricks',
+                        'Early access to new courses & features',
+                        'Exclusive platform updates & alerts',
+                      ].map((perk, i) => (
+                        <div className="sub-modal-perk" key={i}>
+                          <span className="perk-dot"></span>
+                          {perk}
+                        </div>
+                      ))}
+                    </div>
 
-      <button className="sub-modal-btn" onClick={() => setSubStatus('')}>
-        Awesome, Got It!
-      </button>
-    </div>
-  </div>
-)}
+                    <button className="sub-modal-btn" onClick={() => setSubStatus('')}>
+                      Awesome, Got It!
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {subStatus === 'error' && (
                 <div className="error-popup">
@@ -587,23 +596,23 @@ const CyberSafetyLanding = () => {
           </div>
 
           <div className="footer-bottom">
-  <div className="footer-bottom-content">
-    <p className="footer-copyright">© 2026 CyberShield. All rights reserved.</p>
-    <div className="footer-legal">
-      {[
-        ['Privacy Policy', '/privacy-policy'],
-        ['Terms of Service', '/terms-of-service'],
-        ['Cookie Policy', '/cookie-policy'],
-        ['Accessibility', '/accessibility'],
-      ].map(([label, path], i, arr) => (
-        <React.Fragment key={path}>
-          <Link to={path} className="legal-link">{label}</Link>
-          {i < arr.length - 1 && <span className="legal-divider">•</span>}
-        </React.Fragment>
-      ))}
-    </div>
-  </div>
-</div>
+            <div className="footer-bottom-content">
+              <p className="footer-copyright">© 2026 CyberShield. All rights reserved.</p>
+              <div className="footer-legal">
+                {[
+                  ['Privacy Policy', '/privacy-policy'],
+                  ['Terms of Service', '/terms-of-service'],
+                  ['Cookie Policy', '/cookie-policy'],
+                  ['Accessibility', '/accessibility'],
+                ].map(([label, path], i, arr) => (
+                  <React.Fragment key={path}>
+                    <Link to={path} className="legal-link">{label}</Link>
+                    {i < arr.length - 1 && <span className="legal-divider">•</span>}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

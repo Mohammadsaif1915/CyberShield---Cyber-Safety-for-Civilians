@@ -19,7 +19,7 @@ const Our_Team = () => {
       name: 'Shahim Shaikh',
       role: 'Frontend Designer',
       description: 'Crafting beautiful and intuitive user interfaces for enhanced user experience',
-      image: '/shahim.jpg',
+      image: '/shahim.jpeg',
       skills: ['UI/UX', 'React', 'Design'],
       linkedin: '#',
       github: '#'
@@ -29,7 +29,7 @@ const Our_Team = () => {
       name: 'Mohammad Maniyar',
       role: 'Backend Developer',
       description: 'Building robust server architecture and ensuring data security',
-      image: '/maniyar.jpg',
+      image: '/mohammad.jpeg',
       skills: ['Node.js', 'Database', 'API'],
       linkedin: '#',
       github: '#'
@@ -39,9 +39,9 @@ const Our_Team = () => {
       name: 'Rehan Shaikh',
       role: 'Documentation Specialist',
       description: 'Creating comprehensive documentation and technical content',
-      image: '/rehan.jpg',
+      image: '/Rehan.png',
       skills: ['Technical Writing', 'Content', 'Research'],
-      linkedin: '#',
+      linkedin: 'https://www.linkedin.com/in/rehan-shaikh-7509132b1',
       github: '#'
     }
   ];

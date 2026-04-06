@@ -16,7 +16,9 @@ import QuizResult      from './models/QuizResult.js';
 import courseRoutes      from './routes/courseRoutes.js';
 import progressRoutes    from './routes/progressRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
-import leaderboardRoutes from './routes/leaderboardRoutes.js'; // ✅ ADDED
+import leaderboardRoutes from './routes/leaderboardRoutes.js';
+import blogRoutes from './routes/blogRoutes.js';
+ // ✅ ADDED
 
 dotenv.config();
 
@@ -61,6 +63,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.use('/api', blogRoutes);
 // ── MongoDB Connection ───────────────────────────────────────
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
