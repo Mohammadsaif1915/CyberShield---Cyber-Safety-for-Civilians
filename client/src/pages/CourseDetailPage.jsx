@@ -5,43 +5,9 @@ import toast from 'react-hot-toast'
 import styles from './CourseDetailPage.module.css'
 
 // ══════════════════════════════════════════════════════════════════════
-// APNE REAL VIDEO LINKS YAHAN LAGAO
-// Har course ke 5 videos ke MP4 links
-// ══════════════════════════════════════════════════════════════════════
-const COURSE_VIDEOS = {
-  'Phishing Attacks':          ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Malware Analysis':          ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Ransomware':                ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Social Engineering':        ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Password Security':         ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Network Security Basics':   ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Firewall & IDS/IPS':        ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Encryption & Cryptography': ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Ethical Hacking':           ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'SQL Injection':             ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'XSS Attacks':               ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Man-in-the-Middle Attack':  ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'DoS & DDoS Attacks':        ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'VPN Security':              ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Wi-Fi Hacking & Security':  ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Cyber Laws & Compliance':   ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Digital Forensics':         ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Identity Theft':            ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Spyware & Adware':          ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Trojans & Backdoors':       ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Rootkits':                  ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Cloud Security':            ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Mobile Security':           ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Email Security':            ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-  'Zero-Day Attacks':          ['https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4','https://www.w3schools.com/html/mov_bbb.mp4'],
-}
-
-const DEFAULT_LINKS = ['https://www.w3schools.com/html/mov_bbb.mp4']
-
-const getVideoLink = (courseTitle, videoIndex) => {
-  const links = COURSE_VIDEOS[courseTitle] || DEFAULT_LINKS
-  return links[videoIndex] || links[0]
-}
+// Video durations come from database (course.videos[i].duration in seconds)
+// Video URLs come from database (course.videos[i].url)
+// ═══════════════════════════════════════════════════════════════════════
 
 export default function CourseDetailPage() {
   const { id } = useParams()
@@ -49,6 +15,7 @@ export default function CourseDetailPage() {
 
   const [course,     setCourse]     = useState(null)
   const [progress,   setProgress]   = useState(null)
+  const [user,       setUser]       = useState(null)
   const [loading,    setLoading]    = useState(true)
   const [activeIdx,  setActiveIdx]  = useState(0)
   const [isPlaying,  setIsPlaying]  = useState(false)
@@ -61,17 +28,19 @@ export default function CourseDetailPage() {
   const isCompleting  = useRef(false)
   const maxReachedRef = useRef(0) // Max position reached — rewatch prevent
 
-  // ── Load course + progress ────────────────────────────────────────────────
+  // ── Load course + progress + user data ────────────────────────────────────
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       try {
-        const [cRes, pRes] = await Promise.all([
+        const [cRes, pRes, uRes] = await Promise.all([
           api.get(`/courses/${id}`),
-          api.get(`/progress/${id}`)
+          api.get(`/progress/${id}`),
+          api.get('/auth/me')
         ])
         setCourse(cRes.data.course)
         setProgress(pRes.data.progress)
+        setUser(uRes.data.user)
         progressRef.current = pRes.data.progress
         const firstUnwatched = pRes.data.progress.watchedVideos.findIndex(v => !v.completed)
         setActiveIdx(firstUnwatched >= 0 ? firstUnwatched : 0)
@@ -234,9 +203,13 @@ export default function CourseDetailPage() {
   const totalVideos    = course?.videos?.length || 0
   const pct            = totalVideos > 0 ? Math.round((completedCount / totalVideos) * 100) : 0
 
-  const vidDuration = duration || activeVideo?.duration || 300
+  const vidDuration = duration || activeVideo?.duration || 600 // Default 10 minutes if not specified
   const timerPct    = Math.min(100, Math.round((maxReachedRef.current / vidDuration) * 100))
-  const formatTime  = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s) % 60).padStart(2, '0')}`
+  const formatTime  = (s) => {
+    const minutes = Math.floor(s / 60)
+    const seconds = Math.floor(s) % 60
+    return `${minutes}:${String(seconds).padStart(2, '0')}`
+  }
 
   const isVideoCompleted = (videoId) => {
     const vid = videoId?._id?.toString() || videoId?.toString()
@@ -264,23 +237,22 @@ export default function CourseDetailPage() {
   )
   if (!course) return null
 
-  const currentVideoLink = getVideoLink(course.title, activeIdx)
-  const videoDone        = isVideoCompleted(activeVideo?._id)
+  const videoDone = isVideoCompleted(activeVideo?._id)
 
   return (
     <div className={styles.page}>
 
-      {/* Top bar */}
+      {/* Top bar with course and user info */}
       <div className={styles.topBar}>
         <div className={`container ${styles.topInner}`}>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate('/courses')}>
-            ← Back
+            ← Back to Courses
           </button>
           <div className={styles.topMeta}>
-            <span className={styles.topIcon}>{course.icon}</span>
+            <span className={styles.topIcon}>{course?.icon}</span>
             <div>
-              <h2 className={styles.topTitle}>{course.title}</h2>
-              <span className={`badge badge-${course.level.toLowerCase()}`}>{course.level}</span>
+              <h2 className={styles.topTitle}>{course?.title}</h2>
+              <span className={`badge badge-${course?.level.toLowerCase() || 'beginner'}`}>{course?.level}</span>
             </div>
           </div>
           <div className={styles.topProgress}>
@@ -289,6 +261,17 @@ export default function CourseDetailPage() {
             </div>
             <span className={styles.topPct}>{completedCount}/{totalVideos} videos</span>
           </div>
+          {user && (
+            <div className={styles.userInfo}>
+              <div className={styles.userAvatar}>
+                {user.name?.charAt(0).toUpperCase() || '👤'}
+              </div>
+              <div className={styles.userName}>
+                <span className={styles.userNameText}>{user.name || 'User'}</span>
+                <span className={styles.userScore}>{user.scores || 0} pts</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -304,7 +287,7 @@ export default function CourseDetailPage() {
               <video
                 ref={videoRef}
                 key={`video-${activeIdx}-${course.title}`}
-                src={currentVideoLink}
+                src={activeVideo?.url || ''}
                 controls
                 controlsList="nodownload noplaybackrate"
                 disablePictureInPicture

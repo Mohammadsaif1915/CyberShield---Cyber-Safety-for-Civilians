@@ -68,91 +68,75 @@ export default function CoursesPage() {
   return (
     <div className={styles.page}>
 
-      {/* ✅ Fixed back button — always visible at top */}
-      <div style={{
-        position:   'sticky',
-        top:        0,
-        zIndex:     100,
-        background: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(79,70,229,0.1)',
-        padding:    '10px 24px',
-        display:    'flex',
-        alignItems: 'center',
-        gap:        12,
-      }}>
-        <button
-          onClick={() => navigate('/dashboard')}
-          style={{
-            display:      'inline-flex',
-            alignItems:   'center',
-            gap:          6,
-            padding:      '8px 16px',
-            background:   '#4F46E5',
-            color:        '#fff',
-            border:       'none',
-            borderRadius: 10,
-            cursor:       'pointer',
-            fontSize:     13,
-            fontWeight:   700,
-            boxShadow:    '0 4px 12px rgba(79,70,229,0.25)',
-            fontFamily:   'inherit',
-            transition:   'opacity .15s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-        >
-          ← Dashboard
-        </button>
-        <span style={{ fontSize: 15, fontWeight: 700, color: '#0F172A' }}>
-          Learning Courses
-        </span>
-      </div>
-
-      {/* Hero */}
+      {/* Hero Section */}
       <section className={styles.hero}>
         <div className="container">
-          <h1 className={styles.heroTitle}>
-            Master <span>Cybersecurity</span><br />One Course at a Time
-          </h1>
-          <p className={styles.heroSub}>
-            25+ expert-crafted courses with video lessons, quizzes, and certificates.
-          </p>
-          <div className={styles.searchWrap}>
-            <span className={styles.searchIcon}>🔍</span>
-            <input
-              type="text"
-              placeholder="Search courses…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className={styles.searchInput}
-            />
-            {search && (
-              <button className={styles.clearBtn} onClick={() => setSearch('')}>✕</button>
-            )}
+          <div className={styles.heroContent}>
+            <div>
+              <h1 className={styles.heroTitle}>
+                Master <span style={{ color: '#38bdf8' }}>Cybersecurity</span>
+              </h1>
+              <p className={styles.heroSub}>
+                Learn from industry experts with 25+ comprehensive courses covering all aspects of cyber security. Each course includes video lessons, practical exercises, and certificates upon completion.
+              </p>
+            </div>
+            <div className={styles.heroBadge}>
+              <div className={styles.heroBadgeNumber}>25+</div>
+              <div className={styles.heroBadgeText}>Expert Courses</div>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="container">
-        {/* Filters */}
-        <div className={styles.filters}>
-          <span className={styles.filterLabel}>Filter by level:</span>
-          {LEVELS.map(l => (
-            <button
-              key={l}
-              className={`${styles.filterBtn} ${level === l ? styles.filterActive : ''}`}
-              onClick={() => setLevel(l)}
-            >
-              {l}
-            </button>
-          ))}
-          <span className={styles.countBadge}>
-            {loading ? '…' : `${courses.length} courses`}
-          </span>
-        </div>
+      {/* Search & Filters Section */}
+      <div className={styles.controlsSection}>
+        <div className="container">
+          <div className={styles.searchAndFilters}>
+            {/* Search Bar */}
+            <div className={styles.searchWrap}>
+              <span className={styles.searchIcon}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search courses by name or topic…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className={styles.searchInput}
+              />
+              {search && (
+                <button className={styles.clearBtn} onClick={() => setSearch('')} aria-label="Clear search">
+                  ✕
+                </button>
+              )}
+            </div>
 
-        {/* Loading */}
+            {/* Filters */}
+            <div className={styles.filtersGroup}>
+              <span className={styles.filterLabel}>Level:</span>
+              <div className={styles.filterButtons}>
+                {LEVELS.map(l => (
+                  <button
+                    key={l}
+                    className={`${styles.filterBtn} ${level === l ? styles.filterActive : ''}`}
+                    onClick={() => setLevel(l)}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <div className={styles.resultsCount}>
+              <span className={styles.countBadge}>
+                {loading ? '...' : `${courses.length} course${courses.length !== 1 ? 's' : ''}`}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container">
+        {/* Loading State */}
         {loading && (
           <div className={styles.loadingWrap}>
             <div className="spinner" />
@@ -160,76 +144,96 @@ export default function CoursesPage() {
           </div>
         )}
 
-        {/* Empty */}
+        {/* Empty State */}
         {!loading && courses.length === 0 && (
-          <div className="empty-state fade-up">
-            <div className="icon">🔎</div>
-            <h3>No courses found</h3>
-            <p>Try adjusting your search or filter.</p>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🔎</div>
+            <h3 className={styles.emptyTitle}>No courses found</h3>
+            <p className={styles.emptyText}>Try adjusting your search or filter to find more courses.</p>
+            <button
+              onClick={() => { setSearch(''); setLevel('All') }}
+              className={styles.resetButton}
+            >
+              Clear Filters
+            </button>
           </div>
         )}
 
         {/* Course Grid */}
         {!loading && courses.length > 0 && (
-          <div className={styles.grid}>
-            {courses.map((course, i) => {
-              const pct    = getProgressPercent(course._id, course.totalVideos)
-              const status = getStatusLabel(course._id)
-              return (
-                <div
-                  key={course._id}
-                  className={`${styles.courseCard} fade-up`}
-                  style={{ animationDelay: `${i * 40}ms` }}
-                  onClick={() => navigate(`/courses/${course._id}`)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={e => e.key === 'Enter' && navigate(`/courses/${course._id}`)}
-                >
-                  <div className={styles.cardAccent} style={{ background: course.color }} />
+          <div className={styles.gridWrapper}>
+            <div className={styles.grid}>
+              {courses.map((course, i) => {
+                const pct    = getProgressPercent(course._id, course.totalVideos)
+                const status = getStatusLabel(course._id)
+                return (
+                  <div
+                    key={course._id}
+                    className={`${styles.courseCard} fade-up`}
+                    style={{ animationDelay: `${i * 40}ms` }}
+                    onClick={() => navigate(`/courses/${course._id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => e.key === 'Enter' && navigate(`/courses/${course._id}`)}
+                  >
+                    {/* Card Accent Bar */}
+                    <div className={styles.cardAccent} style={{ background: course.color }} />
 
-                  <div className={styles.cardThumb} style={{ background: `${course.color}18` }}>
-                    <span className={styles.courseIcon}>{course.icon}</span>
-                  </div>
-
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardTop}>
-                      <span className={`badge badge-${course.level?.toLowerCase()}`}>
-                        {course.level}
-                      </span>
+                    {/* Card Header with Icon */}
+                    <div className={styles.cardHeader}>
+                      <div className={styles.iconBox} style={{ background: `${course.color}15`, borderLeft: `3px solid ${course.color}` }}>
+                        <span className={styles.courseIcon}>{course.icon}</span>
+                      </div>
                       {status && (
-                        <span className={`${styles.statusTag} ${status.cls}`}>{status.label}</span>
+                        <span className={`${styles.statusBadge} ${status.cls}`}>
+                          {status.label}
+                        </span>
                       )}
                     </div>
 
-                    <h3 className={styles.courseTitle}>{course.title}</h3>
-                    <p className={styles.courseDesc}>{course.description}</p>
+                    {/* Card Body */}
+                    <div className={styles.cardBody}>
+                      <div className={styles.badgeRow}>
+                        <span className={`badge badge-${course.level?.toLowerCase() || 'beginner'}`}>
+                          {course.level}
+                        </span>
+                        <span className={styles.duration}>💾 {course.totalVideos} videos</span>
+                      </div>
 
-                    <div className={styles.courseMeta}>
-                      <span>📹 {course.totalVideos} videos</span>
-                      <span>📝 15 questions</span>
+                      <h3 className={styles.courseTitle}>{course.title}</h3>
+                      <p className={styles.courseDesc}>{course.description}</p>
+
+                      <div className={styles.courseMeta}>
+                        <span>⏱️ {course.totalVideos * 15} min estimated</span>
+                      </div>
                     </div>
 
+                    {/* Progress Section */}
                     {pct > 0 && (
-                      <div className={styles.progressWrap}>
+                      <div className={styles.progressSection}>
                         <div className="progress-bar-wrap">
                           <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
                         </div>
-                        <span className={styles.progressPct}>{pct}%</span>
+                        <span className={styles.progressText}>{pct}% complete</span>
                       </div>
                     )}
-                  </div>
 
-                  <div className={styles.cardFooter}>
-                    <button
-                      className={`btn ${pct > 0 ? 'btn-accent' : 'btn-primary'} btn-sm`}
-                      onClick={e => { e.stopPropagation(); navigate(`/courses/${course._id}`) }}
-                    >
-                      {pct === 0 ? 'Start Course' : pct === 100 ? 'Review' : 'Continue'}
-                    </button>
+                    {/* Card Footer */}
+                    <div className={styles.cardFooter}>
+                      <button
+                        className={`btn ${pct > 0 ? 'btn-accent' : 'btn-primary'} btn-sm`}
+                        onClick={e => { e.stopPropagation(); navigate(`/courses/${course._id}`) }}
+                      >
+                        {pct === 0 ? '▶ Start Course' : pct === 100 ? '✅ Review' : '→ Continue'}
+                      </button>
+                      {pct > 0 && (
+                        <div className={styles.progressBadge}>{pct}%</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         )}
       </div>

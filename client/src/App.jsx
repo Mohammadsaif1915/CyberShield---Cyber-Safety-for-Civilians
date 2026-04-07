@@ -41,7 +41,7 @@ function Layout({ children }) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
-      <main style={{ flex: 1, paddingTop: '0' }}>{children}</main>
+      <main style={{ flex: 1, paddingTop: '62px' }}>{children}</main>
     </div>
   );
 }
