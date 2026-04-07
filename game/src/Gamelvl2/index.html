@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cyber Shield Level 2 - Social Media Scam Room. An action-based cybersecurity game.">
+    <title>Cyber Shield – Level 2: Social Media Scam Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="uiOverlay">
+        <div id="hud">
+            <div id="hudLeft">
+                <div class="hud-item" id="scoreDisplay">SCORE: <span id="scoreVal">0</span></div>
+                <div class="hud-item" id="timerDisplay">TIME: <span id="timerVal">180</span></div>
+            </div>
+            <div id="hudCenter">
+                <div id="phaseTitle">PHASE 1: VIRAL GIVEAWAY</div>
+            </div>
+            <div id="hudRight">
+                <div class="hud-item" id="infectionDisplay">
+                    <span>INFECTION</span>
+                    <div id="infectionBarOuter"><div id="infectionBarInner"></div></div>
+                </div>
+            </div>
+        </div>
+        <div id="interactPrompt" class="hidden">
+            <span id="promptText">Hold [E] to Scan</span>
+            <div id="scanBarOuter"><div id="scanBarInner"></div></div>
+        </div>
+        <div id="messageLog"></div>
+    </div>
+    <div id="startScreen">
+        <div id="startContent">
+            <div class="glitch-title" data-text="CYBER SHIELD">CYBER SHIELD</div>
+            <div class="subtitle">Level 2: Social Media Scam Room</div>
+            <div class="mission-brief">
+                <p>MISSION BRIEFING:</p>
+                <p>You are a Cyber Shield agent infiltrating a compromised social media hub.<br>Complete 5 action phases to secure the system.</p>
+                <table style="width:100%;margin:10px 0;border-collapse:collapse;font-size:12px;">
+                  <tr style="color:#ff9040"><td style="padding:2px 6px">PHASE</td><td>OBJECTIVE</td></tr>
+                  <tr><td>1️⃣ Posts</td><td>Scan posts, drag fakes to QUARANTINE BIN</td></tr>
+                  <tr style="color:#a080c0"><td>2️⃣ DMs</td><td>Walk into DM bubbles, hold E to block fakes</td></tr>
+                  <tr><td>3️⃣ Deepfake</td><td>Move mouse over face, hold E on glitch zones</td></tr>
+                  <tr style="color:#a080c0"><td>4️⃣ QR</td><td>Terminal first → sandbox on → then scan QR</td></tr>
+                  <tr><td>5️⃣ Security</td><td>Drag modules to their slots at the top</td></tr>
+                </table>
+                <p style="color:#00ffc8;margin-top:6px">🎮 CONTROLS: WASD / Arrow Keys = Move &nbsp;|&nbsp; Hold [E] or Hold Click = Interact &nbsp;|&nbsp; Click+Drag = Move items</p>
+                <p style="color:#ff9040;font-size:11px">Each phase shows a TUTORIAL POPUP — read it, then press any key to dismiss.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;margin:16px 0 10px;">
+                <label style="color:#00ffc8;font-size:11px;letter-spacing:2px;margin-bottom:8px;font-family:Orbitron;" for="username-input">AGENT CODENAME</label>
+                <input id="username-input" type="text" placeholder="Enter your username..." maxlength="30" autocomplete="off" spellcheck="false"
+                    style="background:#0d1521;border:1.5px solid #b464ff;border-radius:8px;color:#fff;font-family:'Courier New',monospace;font-size:14px;padding:10px 18px;text-align:center;width:240px;outline:none;transition:border-color 0.2s;" 
+                    onfocus="this.style.borderColor='#00ffc8'" onblur="this.style.borderColor='#b464ff'">
+                <span id="username-error" style="color:#ff4466;font-size:11px;margin-top:6px;display:none;">Username must be at least 2 characters</span>
+            </div>
+            <button id="startBtn" onclick="startGame()">INITIALIZE MISSION</button>
+        </div>
+    </div>
+    <div id="endScreen" class="hidden">
+        <div id="endContent">
+            <div class="glitch-title" data-text="MISSION COMPLETE">MISSION COMPLETE</div>
+            <div id="endStats"></div>
+            <div id="save-status" style="font-size:12px;margin-top:8px;letter-spacing:1px;color:#666;">Saving progress...</div>
+            <div id="leaderboard-box" style="margin-top:14px;background:#0d1521;border:1px solid #00ffc833;border-radius:10px;padding:12px 20px;width:340px;max-width:90vw;text-align:left;">
+                <h3 style="color:#00ffc8;font-size:11px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;font-family:Orbitron;">🏆 Top Agents — Level 2</h3>
+                <div id="leaderboard-rows"><p style="color:#555;font-size:12px;">Loading...</p></div>
+            </div>
+            <button id="restartBtn" onclick="restartGame()">RESTART MISSION</button>
+        </div>
+    </div>
+    <div id="failScreen" class="hidden">
+        <div id="failContent">
+            <div class="glitch-title fail-title" data-text="SYSTEM COMPROMISED">SYSTEM COMPROMISED</div>
+            <div id="failReason"></div>
+            <div id="fail-save-status" style="font-size:12px;margin-top:8px;letter-spacing:1px;color:#666;"></div>
+            <button id="retryBtn" onclick="restartGame()">RETRY MISSION</button>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>

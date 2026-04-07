@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cyber Shield Level 5: Cyber City Defense - A 2D top-down action game where you defend a city's infrastructure from cyber attacks.">
+    <title>Cyber Shield – Level 5: Cyber City Defense</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="hud">
+            <div id="hud-left">
+                <div id="timer-display" class="hud-item">
+                    <span class="hud-label">TIME</span>
+                    <span id="timer-value" class="hud-value">10:00</span>
+                </div>
+                <div id="zone-display" class="hud-item">
+                    <span class="hud-label">ZONE</span>
+                    <span id="zone-value" class="hud-value">COMMAND HUB</span>
+                </div>
+            </div>
+            <div id="hud-center">
+                <div id="alert-display" class="hidden">
+                    <span id="alert-icon">⚠</span>
+                    <span id="alert-text"></span>
+                </div>
+            </div>
+            <div id="hud-right">
+                <div id="score-display" class="hud-item">
+                    <span class="hud-label">SCORE</span>
+                    <span id="score-value" class="hud-value">0</span>
+                </div>
+                <div id="zones-completed" class="hud-item">
+                    <span class="hud-label">ZONES</span>
+                    <span id="zones-value" class="hud-value">0/5</span>
+                </div>
+            </div>
+        </div>
+        <div id="zone-progress-bar" class="hidden">
+            <div id="zone-progress-label"></div>
+            <div id="zone-progress-track">
+                <div id="zone-progress-fill"></div>
+            </div>
+            <div id="zone-progress-text"></div>
+        </div>
+        <div id="interaction-prompt" class="hidden">
+            <span class="key-hint">E</span> <span id="interact-text">Interact</span>
+        </div>
+        <div id="zone-meter" class="hidden">
+            <div id="zone-meter-label"></div>
+            <div id="zone-meter-track">
+                <div id="zone-meter-fill"></div>
+            </div>
+        </div>
+        <div id="message-overlay" class="hidden">
+            <div id="message-box">
+                <h2 id="message-title"></h2>
+                <p id="message-text"></p>
+                <div id="message-hint">Press ENTER to continue</div>
+            </div>
+        </div>
+        <div id="game-over-overlay" class="hidden">
+            <div id="game-over-box">
+                <h1 id="game-over-title"></h1>
+                <p id="game-over-text"></p>
+                <div id="final-score"></div>
+                <button id="restart-btn">RESTART MISSION</button>
+            </div>
+        </div>
+        <div id="start-screen">
+            <div id="start-content">
+                <div id="start-logo">CYBER SHIELD</div>
+                <div id="start-subtitle">LEVEL 5: CYBER CITY DEFENSE</div>
+                <div id="start-desc">The city's infrastructure is under coordinated cyber attack.<br>Defend all systems before it's too late.</div>
+                <div id="start-controls">
+                    <div class="control-row"><span class="key-hint">W A S D</span> Move</div>
+                    <div class="control-row"><span class="key-hint">E</span> Interact</div>
+                    <div class="control-row"><span class="key-hint">SPACE</span> Action</div>
+                    <div class="control-row"><span class="key-hint">F</span> Fire / Special</div>
+                    <div class="control-row"><span class="key-hint">H</span> Toggle Help</div>
+                </div>
+                <div id="start-btn-row">
+                    <button id="start-btn">INITIALIZE MISSION</button>
+                    <button id="how-to-play-btn">HOW TO PLAY</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== INSTRUCTIONS OVERLAY ===== -->
+        <div id="instructions-overlay" class="hidden">
+            <div id="instructions-box">
+                <div id="instructions-header">
+                    <span id="instructions-title">📖 HOW TO PLAY</span>
+                    <button id="instructions-close">✕ CLOSE</button>
+                </div>
+                <div id="instructions-body">
+
+                    <div class="inst-section">
+                        <h2 class="inst-section-title">🎯 MISSION OBJECTIVE</h2>
+                        <p class="inst-text">A coordinated cyber attack is targeting the city's infrastructure. You are a Cyber Agent with <strong>10 minutes</strong> to secure all 5 critical systems. Complete all zones before time runs out!</p>
+                    </div>
+
+                    <div class="inst-section">
+                        <h2 class="inst-section-title">🕹️ CONTROLS</h2>
+                        <div class="inst-controls-grid">
+                            <div class="inst-key-row"><span class="key-hint">W A S D</span><span>Move your agent</span></div>
+                            <div class="inst-key-row"><span class="key-hint">↑ ↓ ← →</span><span>Also moves agent</span></div>
+                            <div class="inst-key-row"><span class="key-hint">E</span><span>Interact / Hold to hold-interact</span></div>
+                            <div class="inst-key-row"><span class="key-hint">SPACE</span><span>Action / Intercept / Rotate</span></div>
+                            <div class="inst-key-row"><span class="key-hint">F</span><span>Fire beam (Boss Zone)</span></div>
+                            <div class="inst-key-row"><span class="key-hint">H</span><span>Toggle in-game help panel</span></div>
+                            <div class="inst-key-row"><span class="key-hint">ESC</span><span>Exit current zone → return to hub</span></div>
+                            <div class="inst-key-row"><span class="key-hint">ENTER</span><span>Dismiss message popups</span></div>
+                        </div>
+                    </div>
+
+                    <div class="inst-section">
+                        <h2 class="inst-section-title">🏛️ COMMAND HUB</h2>
+                        <p class="inst-text">You start here. Walk near any terminal and press <span class="key-hint">E</span> to enter that zone. The ⚡ Power Grid (boss) is <strong>locked</strong> until you complete all 4 other zones.</p>
+                        <div class="inst-zone-tags">
+                            <span class="zone-tag green">🏥 Hospital</span>
+                            <span class="zone-tag yellow">🚦 Traffic</span>
+                            <span class="zone-tag orange">🏧 ATM</span>
+                            <span class="zone-tag purple">🏠 Smart Home</span>
+                            <span class="zone-tag red">⚡ Boss (Locked)</span>
+                        </div>
+                    </div>
+
+                    <div class="inst-zone-block green-block">
+                        <h2 class="inst-zone-title green-title">🏥 Zone 1 – Hospital Network</h2>
+                        <ul class="inst-list">
+                            <li>🔴 <strong>Walk into</strong> red glowing virus nodes to destroy them</li>
+                            <li>🔌 <strong>Hold <span class="key-small">E</span></strong> near the top of each server line to reconnect it (4 total)</li>
+                            <li>💾 Once all servers are connected, find the BACKUP node on the right → press <span class="key-small">E</span></li>
+                            <li>✅ Zone complete when all viruses are gone + backup activated</li>
+                            <li>⚠️ Viruses <strong>spread over time</strong> — be fast!</li>
+                        </ul>
+                    </div>
+
+                    <div class="inst-zone-block yellow-block">
+                        <h2 class="inst-zone-title yellow-title">🚦 Zone 2 – Traffic Grid</h2>
+                        <ul class="inst-list">
+                            <li>🚗 Cars will crash if traffic signals are wrong — you have max <strong>8 crashes</strong></li>
+                            <li>🔄 Walk near a signal and press <span class="key-small">SPACE</span> to rotate it</li>
+                            <li>✅ Signal turns green when it points the correct direction</li>
+                            <li>🛡️ Fixed signals slow nearby cars to prevent crashes</li>
+                            <li>⚠️ Fix all 8 signals to complete the zone</li>
+                        </ul>
+                    </div>
+
+                    <div class="inst-zone-block orange-block">
+                        <h2 class="inst-zone-title orange-title">🏧 Zone 3 – ATM Banking Network</h2>
+                        <ul class="inst-list">
+                            <li>🔴 Red diamond packets = malicious — touch them while pressing <span class="key-small">SPACE</span> or <span class="key-small">F</span></li>
+                            <li>🟢 Green square packets = safe — ignore them</li>
+                            <li>🔐 Walk to the 4 purple lock icons and press <span class="key-small">E</span> to activate encryption</li>
+                            <li>🛡️ Active encryption nodes auto-block nearby malicious packets</li>
+                            <li>⚠️ If too many malicious packets escape, the overload meter fills — zone fails!</li>
+                        </ul>
+                    </div>
+
+                    <div class="inst-zone-block purple-block">
+                        <h2 class="inst-zone-title purple-title">🏠 Zone 4 – Smart Home Tower</h2>
+                        <ul class="inst-list">
+                            <li>📱 Walk to red blinking devices and <strong>hold <span class="key-small">E</span></strong> to secure them (wait for bar to fill)</li>
+                            <li>📷 Avoid the sweeping red camera cones — they raise the alarm</li>
+                            <li>🚨 If the alarm meter maxes out, you get kicked back to the hub</li>
+                            <li>💡 Watch camera rotation patterns — sneak between sweeps</li>
+                            <li>✅ Secure all 8 infected devices to complete the zone</li>
+                        </ul>
+                    </div>
+
+                    <div class="inst-zone-block red-block">
+                        <h2 class="inst-zone-title red-title">⚡ Zone 5 – Power Grid Boss Fight</h2>
+                        <ul class="inst-list">
+                            <li>⚡ Collect yellow ⚡ energy fragments to fill your charge meter (5 fragments = full)</li>
+                            <li>🌊 Dodge expanding EMP rings — they drain your charge!</li>
+                            <li>🔫 When fully charged, press <span class="key-small">F</span> or <span class="key-small">SPACE</span> to fire a beam</li>
+                            <li>🛡️ The boss has rotating purple shields with gaps — shoot through the GAPS</li>
+                            <li>💥 Hit the boss 4 times to destroy the AI Core</li>
+                        </ul>
+                    </div>
+
+                    <div class="inst-section">
+                        <h2 class="inst-section-title">🏆 SCORING</h2>
+                        <div class="inst-score-grid">
+                            <span>Destroy virus node</span><span class="score-pts">+50</span>
+                            <span>Reconnect server</span><span class="score-pts">+200</span>
+                            <span>Activate backup server</span><span class="score-pts">+500</span>
+                            <span>Fix traffic signal</span><span class="score-pts">+150</span>
+                            <span>Intercept malicious packet</span><span class="score-pts">+80</span>
+                            <span>Activate encryption node</span><span class="score-pts">+300</span>
+                            <span>Secure smart home device</span><span class="score-pts">+200</span>
+                            <span>Collect energy fragment</span><span class="score-pts">+100</span>
+                            <span>Hit boss with beam</span><span class="score-pts">+500</span>
+                            <span>Complete a zone</span><span class="score-pts">+2000</span>
+                        </div>
+                    </div>
+
+                </div>
+                <div id="instructions-footer">
+                    <button id="instructions-close-bottom">GOT IT — LET'S GO!</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== IN-GAME HELP PANEL ===== -->
+        <button id="help-btn" class="hidden" title="Help (H)">?</button>
+        <div id="help-panel" class="hidden">
+            <div class="help-panel-title">⚡ QUICK REFERENCE</div>
+            <div class="help-section">
+                <div class="help-label">MOVEMENT</div>
+                <div class="help-row"><span class="key-hint">W A S D</span> Move</div>
+            </div>
+            <div class="help-section">
+                <div class="help-label">ACTIONS</div>
+                <div class="help-row"><span class="key-hint">E</span> Interact / Hold-interact</div>
+                <div class="help-row"><span class="key-hint">SPACE</span> Action / Rotate / Intercept</div>
+                <div class="help-row"><span class="key-hint">F</span> Fire beam (Boss)</div>
+                <div class="help-row"><span class="key-hint">ESC</span> Exit zone → Hub</div>
+            </div>
+            <div class="help-section">
+                <div class="help-label">ZONES</div>
+                <div class="help-row"><span class="zone-dot green-dot"></span> 🏥 Touch viruses, hold E on servers</div>
+                <div class="help-row"><span class="zone-dot yellow-dot"></span> 🚦 SPACE to rotate signals</div>
+                <div class="help-row"><span class="zone-dot orange-dot"></span> 🏧 SPACE to intercept red packets, E for encryption</div>
+                <div class="help-row"><span class="zone-dot purple-dot"></span> 🏠 Hold E on devices, avoid cameras</div>
+                <div class="help-row"><span class="zone-dot red-dot"></span> ⚡ Collect ⚡, then F to fire beam through shield gaps</div>
+            </div>
+            <div class="help-close-hint">Press <span class="key-hint">H</span> to close</div>
+        </div>
+    </div>
+    <script src="game-core.js"></script>
+    <script src="game-zones-a.js"></script>
+    <script src="game-zones-b.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

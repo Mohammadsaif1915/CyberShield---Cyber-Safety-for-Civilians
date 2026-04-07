@@ -12,6 +12,7 @@ import { OAuth2Client } from 'google-auth-library';
 import Contact from './models/Contact.js';
 import Subscriber from './models/Subscriber.js';
 import quizRoutes from './routes/quiz.js';
+import gameRoutes from './routes/game.js';
 
 dotenv.config();
 
@@ -740,6 +741,11 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
 // ── QUIZ ROUTES ───────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 app.use('/api/quiz', quizRoutes);
+
+// ══════════════════════════════════════════════════════════════
+// ── GAME PROGRESS ROUTES ──────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+app.use('/api/game', gameRoutes);
 
 // ── Start server ─────────────────────────────────────────────
 app.listen(PORT, () => {

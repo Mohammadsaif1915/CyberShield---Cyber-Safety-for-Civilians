@@ -1,0 +1,341 @@
+/* ========== RESET & BASE ========== */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0015;
+    overflow: hidden;
+    font-family: 'Share Tech Mono', monospace;
+    color: #e0d0ff;
+    width: 100vw;
+    height: 100vh;
+}
+
+canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* ========== HUD ========== */
+#uiOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 24px;
+    pointer-events: none;
+}
+
+#hudLeft, #hudRight {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#hudCenter {
+    text-align: center;
+}
+
+.hud-item {
+    background: rgba(20, 0, 50, 0.85);
+    border: 1px solid rgba(180, 100, 255, 0.4);
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: #c8a0ff;
+    text-shadow: 0 0 8px rgba(180, 100, 255, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+#phaseTitle {
+    background: rgba(20, 0, 50, 0.85);
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    border-radius: 6px;
+    padding: 10px 30px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: #00ffc8;
+    text-shadow: 0 0 12px rgba(0, 255, 200, 0.6);
+    animation: phasePulse 2s ease-in-out infinite;
+}
+
+@keyframes phasePulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 200, 0.2); }
+    50% { box-shadow: 0 0 25px rgba(0, 255, 200, 0.5); }
+}
+
+#infectionBarOuter {
+    width: 140px;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 50, 80, 0.5);
+    border-radius: 5px;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+#infectionBarInner {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff3050, #ff0040);
+    border-radius: 5px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 8px rgba(255, 50, 80, 0.6);
+}
+
+/* ========== INTERACT PROMPT ========== */
+#interactPrompt {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 0, 50, 0.9);
+    border: 1px solid rgba(0, 200, 255, 0.5);
+    border-radius: 8px;
+    padding: 12px 30px;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: #00c8ff;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#interactPrompt.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#scanBarOuter {
+    width: 200px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 200, 255, 0.4);
+    border-radius: 4px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+#scanBarInner {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #00c8ff, #00ffc8);
+    border-radius: 4px;
+    transition: width 0.05s linear;
+    box-shadow: 0 0 6px rgba(0, 200, 255, 0.5);
+}
+
+/* ========== MESSAGE LOG ========== */
+#messageLog {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+}
+
+.log-msg {
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    background: rgba(20, 0, 50, 0.8);
+    border-left: 3px solid #b464ff;
+    animation: logFadeIn 0.3s ease, logFadeOut 0.5s ease 3s forwards;
+    max-width: 400px;
+}
+
+.log-msg.warning {
+    border-left-color: #ff3050;
+    color: #ff8090;
+}
+
+.log-msg.success {
+    border-left-color: #00ffc8;
+    color: #00ffc8;
+}
+
+@keyframes logFadeIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes logFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* ========== START SCREEN ========== */
+#startScreen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(ellipse at center, #1a0030 0%, #0a0015 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: bgFloat 8s ease-in-out infinite;
+}
+
+@keyframes bgFloat {
+    0%, 100% { background-position: center; }
+    50% { background-position: top left; }
+}
+
+#startContent {
+    text-align: center;
+}
+
+.glitch-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 56px;
+    color: #c860ff;
+    text-shadow:
+        0 0 10px rgba(200, 96, 255, 0.8),
+        0 0 30px rgba(200, 96, 255, 0.4),
+        0 0 60px rgba(200, 96, 255, 0.2);
+    position: relative;
+    animation: glitchText 3s infinite;
+    letter-spacing: 4px;
+}
+
+@keyframes glitchText {
+    0%, 95%, 100% { transform: translate(0); }
+    96% { transform: translate(-3px, 2px); text-shadow: 3px 0 #ff0040, -3px 0 #00ffc8; }
+    97% { transform: translate(3px, -2px); text-shadow: -3px 0 #ff0040, 3px 0 #00ffc8; }
+    98% { transform: translate(-1px, 1px); }
+}
+
+.subtitle {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    color: #00ffc8;
+    margin-top: 12px;
+    letter-spacing: 6px;
+    text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+}
+
+.mission-brief {
+    max-width: 500px;
+    margin: 30px auto;
+    background: rgba(20, 0, 50, 0.7);
+    border: 1px solid rgba(180, 100, 255, 0.3);
+    border-radius: 10px;
+    padding: 20px 30px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #c0b0e0;
+    text-align: left;
+}
+
+.mission-brief p:first-child {
+    color: #ff9040;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+}
+
+#startBtn, #restartBtn, #retryBtn {
+    margin-top: 30px;
+    padding: 14px 50px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: #0a0015;
+    background: linear-gradient(135deg, #c860ff, #00ffc8);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    text-transform: uppercase;
+}
+
+#startBtn:hover, #restartBtn:hover, #retryBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(200, 96, 255, 0.6), 0 0 50px rgba(0, 255, 200, 0.3);
+}
+
+/* ========== END / FAIL SCREENS ========== */
+#endScreen, #failScreen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(10, 0, 21, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(6px);
+}
+
+#endScreen.hidden, #failScreen.hidden {
+    display: none;
+}
+
+#endContent, #failContent {
+    text-align: center;
+}
+
+#endStats {
+    margin: 24px 0;
+    font-size: 18px;
+    line-height: 2;
+    color: #c0b0e0;
+}
+
+.fail-title {
+    color: #ff3050 !important;
+    text-shadow:
+        0 0 10px rgba(255, 48, 80, 0.8),
+        0 0 30px rgba(255, 48, 80, 0.4) !important;
+}
+
+#failReason {
+    margin: 24px 0;
+    font-size: 18px;
+    color: #ff8090;
+    max-width: 400px;
+}
+
+/* ========== SCANLINES OVERLAY ========== */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.03) 2px,
+        rgba(0, 0, 0, 0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 200;
+}

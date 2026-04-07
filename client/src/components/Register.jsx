@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { GoogleLogin } from "@react-oauth/google";
 
-const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env?.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:5000';
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');

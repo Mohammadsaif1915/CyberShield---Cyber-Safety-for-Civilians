@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "server": "cd server && npm run dev",
-  "client": "cd client && npm run dev",
-  "dev": "concurrently \"npm run server\" \"npm run client\""
-},
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mohammadsaif1915/CyberShield---Cyber-Safety-for-Civilians.git"
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/Mohammadsaif1915/CyberShield---Cyber-Safety-for-Civilians#readme",
   "dependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "phaser": "^3.90.0"
   }
 }

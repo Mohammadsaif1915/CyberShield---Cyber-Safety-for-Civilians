@@ -14,7 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
-const API_URL = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "http://localhost:5000";
+const API_URL = ((typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "http://localhost:5000").replace(/\/api\/?$/, '');
 const getToken = () => localStorage.getItem("token");
 
 const apiFetch = async (path, opts = {}) => {
