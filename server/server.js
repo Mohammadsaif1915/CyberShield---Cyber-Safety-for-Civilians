@@ -9,12 +9,6 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
-<<<<<<< HEAD
-import Contact from './models/Contact.js';
-import Subscriber from './models/Subscriber.js';
-import quizRoutes from './routes/quiz.js';
-import gameRoutes from './routes/game.js';
-=======
 import User            from './models/User.js';
 import Contact         from './models/Contact.js';
 import Subscriber      from './models/Subscriber.js';
@@ -26,8 +20,8 @@ import leaderboardRoutes from './routes/leaderboardRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import quizSyncRoute   from './routes/quizSyncRoute.js';
- // ✅ ADDED
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
+import quizRoutes from './routes/quiz.js';
+import gameRoutes from './routes/game.js';
 
 dotenv.config();
 

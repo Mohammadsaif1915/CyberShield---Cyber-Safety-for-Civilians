@@ -24,24 +24,6 @@ import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line,
 } from "recharts";
 
-<<<<<<< HEAD
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
-const API_URL = ((typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "http://localhost:5000").replace(/\/api\/?$/, '');
-const getToken = () => localStorage.getItem("token");
-
-const apiFetch = async (path, opts = {}) => {
-  const token = getToken();
-  const res = await fetch(`${API_URL}${path}`, {
-    ...opts,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...opts.headers,
-    },
-  });
-  if (!res.ok) throw new Error(`API ${path} failed: ${res.status}`);
-  return res.json();
-=======
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const T = {
   bg:         "#F0F2F8",
@@ -69,7 +51,6 @@ const T = {
   textDim:    "#9CA3AF",
   sh:         "0 1px 4px rgba(0,0,0,0.07)",
   shMd:       "0 4px 20px rgba(0,0,0,0.10)",
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
 };
 
 // ─── API BASE ─────────────────────────────────────────────────────────────────

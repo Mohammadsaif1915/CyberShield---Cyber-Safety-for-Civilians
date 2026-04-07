@@ -70,12 +70,7 @@ const QuizInterface = ({
     if (onSectionReviewComplete) {
       onSectionReviewComplete();
     }
-<<<<<<< HEAD
     onFinish(normalizedAnswers);
-=======
-    // ✅ Pass shuffled question map so Results can verify correctly
-    onFinish(shuffledQuestions);
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
   };
 
   if (showReview) {

@@ -48,7 +48,6 @@ let musicOn    = true;
 let scanlineOn = true;
 let lightTheme = false;
 
-<<<<<<< HEAD
 /* ========== LEVEL CONFIG ========== */
 const TOTAL_LEVELS = 5;
 const LEVELS_VISIBLE = 5;
@@ -61,11 +60,6 @@ const LEVEL_META = {
   5: { title: "CYBER CITY DEFENSE",    icon: "🏙️", type: "CITY",       diff: "ELITE",  xp: 500, playable: true,  path: "levels/5/index.html" },
 };
 
-=======
-/* ========== LEVEL DATA ========== */
-const TOTAL_LEVELS   = 50;
-const LEVELS_VISIBLE = 50;
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
 let levels = {};
 let currentLevelSelected = null;
 
