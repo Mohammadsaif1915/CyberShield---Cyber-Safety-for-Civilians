@@ -1,18 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDashboardUser } from './hooks/useDashboardUser';
+import { saveGameScore } from '../utils/saveGameScore';
 import {
-  Shield, LayoutDashboard, BookOpen, AlertTriangle, Mail, Brain,
-  BarChart2, Trophy, Settings, Bell, Search, ChevronLeft, ChevronRight,
-  User, LogOut, TrendingUp, Clock, CheckCircle, XCircle, Play,
-  Zap, Eye, EyeOff, X, Award, Target, Activity,
-  AlertCircle, Edit, Save, Trash2, ChevronDown, ChevronUp,
-  Gamepad2, GraduationCap, ShieldAlert, ArrowRight, Flame,
-  Loader2, Rocket, RefreshCw, Camera, ImagePlus,
+  Shield, Brain, Mail, BarChart2, Bell, Search,
+  Zap, X, Award, Activity, CheckCircle,
+  Gamepad2, GraduationCap, ShieldAlert, Flame,
+  Loader2, RefreshCw, Star, TrendingUp,
+  AlertTriangle, Eye, Lock, Unlock,
+  FileText, User, Camera, Key,
+  Phone, MapPin, Save,
+  CheckCircle2, AlertCircle, Home,
+  Settings, LogOut, ChevronRight, ChevronLeft, Plus,
+  Rocket, Trophy, Medal, Crown,
+  FileDown, Send, EyeOff, Edit3,
+  Clock, ArrowUpRight, MessageSquare, Bot,
+  Wifi, WifiOff, Globe, Target, Cpu, Database,
+  TrendingDown, Radio, Crosshair, Layers
 } from "lucide-react";
 import {
-  BarChart, Bar as ReBar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line,
 } from "recharts";
-import { useNavigate } from "react-router-dom";
 
+<<<<<<< HEAD
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const API_URL = ((typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "http://localhost:5000").replace(/\/api\/?$/, '');
 const getToken = () => localStorage.getItem("token");
@@ -29,539 +41,749 @@ const apiFetch = async (path, opts = {}) => {
   });
   if (!res.ok) throw new Error(`API ${path} failed: ${res.status}`);
   return res.json();
+=======
+// ─── THEME ────────────────────────────────────────────────────────────────────
+const T = {
+  bg:         "#F0F2F8",
+  surface:    "#FFFFFF",
+  surfaceHov: "#F5F7FF",
+  card:       "#FFFFFF",
+  border:     "rgba(99,102,241,0.14)",
+  borderHov:  "rgba(99,102,241,0.32)",
+  brand:      "#4F46E5",
+  brandDark:  "#3730A3",
+  brandGlow:  "rgba(79,70,229,0.18)",
+  teal:       "#0D9488",
+  tealDim:    "rgba(13,148,136,0.10)",
+  violet:     "#7C3AED",
+  amber:      "#D97706",
+  amberDim:   "rgba(217,119,6,0.10)",
+  red:        "#DC2626",
+  redDim:     "rgba(220,38,38,0.08)",
+  green:      "#059669",
+  greenDim:   "rgba(5,150,105,0.10)",
+  pink:       "#DB2777",
+  pinkDim:    "rgba(219,39,119,0.10)",
+  text:       "#111827",
+  textMd:     "#4B5563",
+  textDim:    "#9CA3AF",
+  sh:         "0 1px 4px rgba(0,0,0,0.07)",
+  shMd:       "0 4px 20px rgba(0,0,0,0.10)",
+>>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
 };
 
-const handleLogout = async () => {
-  try { await apiFetch("/api/logout", { method: "POST" }); } catch {}
-  finally {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
-  }
+// ─── API BASE ─────────────────────────────────────────────────────────────────
+const API = {
+  headers: () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  }),
+  get: (url) => fetch(url, { headers: API.headers() }).then(r => r.ok ? r.json() : Promise.reject(r)),
+  post: (url, body) => fetch(url, { method: "POST", headers: API.headers(), body: JSON.stringify(body) }).then(r => r.json()),
+  put: (url, body) => fetch(url, { method: "PUT", headers: API.headers(), body: JSON.stringify(body) }).then(r => r.json()),
 };
 
-// ─── LIGHT THEME TOKENS ───────────────────────────────────────────────────────
-const C = {
-  bg:       "#F0F4FA",
-  bgPage:   "#E8EDF5",
-  card:     "#FFFFFF",
-  card2:    "#F7F9FC",
-  sidebar:  "#FFFFFF",
-  border:   "#E2E8F0",
-  borderMd: "#CBD5E1",
-  ink:    "#0F172A",
-  inkMd:  "#475569",
-  inkLt:  "#94A3B8",
-  inkXlt: "#CBD5E1",
-  brand:    "#2563EB",
-  brandLt:  "#EFF6FF",
-  brandMd:  "#DBEAFE",
-  teal:     "#0D9488",
-  tealLt:   "#F0FDFA",
-  violet:   "#7C3AED",
-  violetLt: "#F5F3FF",
-  amber:    "#D97706",
-  amberLt:  "#FFFBEB",
-  red:      "#DC2626",
-  redLt:    "#FEF2F2",
-  green:    "#059669",
-  greenLt:  "#ECFDF5",
-  gradBrand:  "linear-gradient(135deg, #2563EB 0%, #0D9488 100%)",
-  gradViolet: "linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)",
-  gradAmber:  "linear-gradient(135deg, #D97706 0%, #DC2626 100%)",
-  gradGreen:  "linear-gradient(135deg, #059669 0%, #0D9488 100%)",
-  shadow:   "0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.06)",
-  shadowMd: "0 4px 24px rgba(15,23,42,0.10)",
-  shadowLg: "0 12px 48px rgba(15,23,42,0.14)",
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const fmtDate = d => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) : "";
+const fmtTime = d => d ? new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "";
+
+const getFullName = (u) => {
+  if (!u) return "";
+  if (u.fullName?.trim()) return u.fullName.trim();
+  if (u.name?.trim()) return u.name.trim();
+  if (u.username?.trim()) return u.username.trim();
+  if (u.firstName || u.lastName) return `${u.firstName || ""} ${u.lastName || ""}`.trim();
+  if (u.email) return u.email.split("@")[0];
+  return "User";
+};
+
+const firstName = (u) => getFullName(u).split(" ")[0] || "User";
+
+const computeStreak = (user) => {
+  if (!user) return { streak: 1, updated: true, lastDate: new Date().toISOString() };
+  const now = Date.now();
+  const last = user.lastLoginDate ? new Date(user.lastLoginDate).getTime() : 0;
+  const diffHours = last ? (now - last) / (1000 * 60 * 60) : 999;
+  const currentStreak = user.loginStreak || 0;
+  if (diffHours < 12) return { streak: currentStreak, updated: false, lastDate: user.lastLoginDate };
+  if (diffHours <= 48) return { streak: currentStreak + 1, updated: true, lastDate: new Date().toISOString() };
+  return { streak: 1, updated: true, lastDate: new Date().toISOString() };
+};
+
+const computeLevel = (score) => {
+  const xp = score || 0;
+  const level = Math.floor(xp / 500) + 1;
+  return { level, xp, xpInLevel: xp % 500, xpPct: Math.min(100, Math.round(((xp % 500) / 500) * 100)) };
+};
+
+const SEV = {
+  critical: { color: "#DC2626", bg: "rgba(220,38,38,0.08)", label: "Critical" },
+  high: { color: "#EA580C", bg: "rgba(234,88,12,0.08)", label: "High" },
+  medium: { color: "#D97706", bg: "rgba(217,119,6,0.08)", label: "Medium" },
+  low: { color: "#059669", bg: "rgba(5,150,105,0.08)", label: "Low" },
+};
+
+const STATUS_C = {
+  active: "#DC2626", blocked: "#059669", mitigating: "#D97706",
+  investigating: "#7C3AED", contained: "#0D9488", quarantined: "#4F46E5",
 };
 
 // ─── GLOBAL STYLES ────────────────────────────────────────────────────────────
 const G = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap');
-
-    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-    html,body,#root {
-      height:100%;
-      font-family:'Plus Jakarta Sans',sans-serif;
-      background:${C.bg};
-      color:${C.ink};
-      -webkit-font-smoothing:antialiased;
-    }
-    ::-webkit-scrollbar { width:4px; height:4px; }
-    ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:${C.borderMd}; border-radius:99px; }
-    button,input,select,textarea { font-family:inherit; }
-    button:focus,input:focus { outline:none; }
-
-    .mono { font-family:'Fira Code',monospace; }
-
-    @keyframes fadeUp  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
-    @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.3} }
-    @keyframes ping    { 0%{transform:scale(1);opacity:.8} 100%{transform:scale(2.2);opacity:0} }
-    @keyframes spin    { to{transform:rotate(360deg)} }
-    @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
-
-    .page-enter { animation: fadeUp .25s cubic-bezier(.4,0,.2,1); }
-    .spin       { animation: spin .9s linear infinite; }
-
-    .card {
-      background: ${C.card};
-      border: 1px solid ${C.border};
-      border-radius: 16px;
-      box-shadow: ${C.shadow};
-      transition: box-shadow .18s, border-color .18s, transform .18s;
-    }
-    .card:hover { box-shadow: ${C.shadowMd}; border-color: ${C.borderMd}; }
-    .card-click { cursor:pointer; }
-    .card-click:hover { transform: translateY(-2px); }
-
-    .nav-btn {
-      width:100%; display:flex; align-items:center; gap:10px;
-      padding:9px 12px; border-radius:10px; border:none; cursor:pointer;
-      background:transparent; color:${C.inkMd};
-      font-size:13px; font-weight:500;
-      font-family:'Plus Jakarta Sans',sans-serif;
-      transition:all .15s; position:relative;
-    }
-    .nav-btn:hover { background:${C.bgPage}; color:${C.ink}; }
-    .nav-btn.active { background:${C.brandMd}; color:${C.brand}; font-weight:600; }
-
-    .btn {
-      display:inline-flex; align-items:center; gap:7px;
-      padding:9px 18px; border-radius:10px; border:none; cursor:pointer;
-      font-size:13px; font-weight:600;
-      font-family:'Plus Jakarta Sans',sans-serif;
-      transition:all .15s;
-    }
-    .btn-primary {
-      background:${C.gradBrand}; color:#fff;
-      box-shadow:0 4px 14px rgba(37,99,235,0.25);
-    }
-    .btn-primary:hover { opacity:.9; transform:translateY(-1px); }
-    .btn-primary:disabled { opacity:.5; cursor:not-allowed; transform:none; }
-    .btn-ghost {
-      background:transparent; color:${C.inkMd};
-      border:1px solid ${C.border};
-    }
-    .btn-ghost:hover { border-color:${C.borderMd}; color:${C.ink}; background:${C.bgPage}; }
-
-    .tag {
-      display:inline-flex; align-items:center; gap:4px;
-      padding:2px 8px; border-radius:6px;
-      font-size:10px; font-weight:600;
-      font-family:'Fira Code',monospace;
-      letter-spacing:.04em;
-    }
-
-    .stat-card {
-      background:${C.card}; border:1px solid ${C.border}; border-radius:16px;
-      padding:20px; box-shadow:${C.shadow};
-      transition:box-shadow .18s, transform .18s, border-color .18s;
-    }
-    .stat-card:hover { box-shadow:${C.shadowMd}; transform:translateY(-2px); border-color:${C.borderMd}; }
-
-    .prog-wrap { width:100%; background:${C.bgPage}; border-radius:99px; overflow:hidden; }
-    .prog-bar  { height:100%; border-radius:99px; transition:width .7s ease; }
-
-    .dotgrid {
-      background-image: radial-gradient(circle, ${C.borderMd} 1px, transparent 1px);
-      background-size: 22px 22px;
-    }
-
-    .stripe-row:nth-child(even) { background:${C.bgPage}; }
-
-    .notif-dismiss {
-      width:22px; height:22px; border-radius:6px; border:none; cursor:pointer;
-      background:transparent; color:${C.inkLt};
-      display:flex; align-items:center; justify-content:center;
-      flex-shrink:0; transition:all .15s;
-    }
-    .notif-dismiss:hover { background:${C.redLt}; color:${C.red}; }
-
-    .skeleton {
-      background: linear-gradient(90deg, ${C.bgPage} 0%, ${C.border} 50%, ${C.bgPage} 100%);
-      background-size: 400px 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 8px;
-    }
-
-    .av-0 { background: linear-gradient(135deg,#2563EB,#0D9488); }
-    .av-1 { background: linear-gradient(135deg,#7C3AED,#2563EB); }
-    .av-2 { background: linear-gradient(135deg,#D97706,#DC2626); }
-    .av-3 { background: linear-gradient(135deg,#059669,#0D9488); }
-    .av-4 { background: linear-gradient(135deg,#DB2777,#7C3AED); }
-    .av-5 { background: linear-gradient(135deg,#EA580C,#D97706); }
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Nunito:wght@400;500;600;700;800&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    @keyframes countUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes ping{0%{transform:scale(1);opacity:0.8}80%,100%{transform:scale(2.4);opacity:0}}
+    @keyframes radar{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    .fu{animation:fadeUp .35s cubic-bezier(.16,1,.3,1) both}
+    .fu1{animation-delay:.05s}.fu2{animation-delay:.1s}.fu3{animation-delay:.15s}.fu4{animation-delay:.2s}.fu5{animation-delay:.25s}
+    .spin{animation:spin 1s linear infinite}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(79,70,229,0.18);border-radius:4px}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(79,70,229,0.35)}
+    input:-webkit-autofill{-webkit-box-shadow:0 0 0 100px #fff inset!important;-webkit-text-fill-color:#111827!important}
+    button:focus-visible{outline:2px solid #4F46E5;outline-offset:2px}
+    input:focus{outline:none}
+    .ping{animation:ping 1.4s ease-out infinite}
+    .radar-sweep{animation:radar 3s linear infinite;transform-origin:center}
   `}</style>
 );
 
-// ─── HOOKS ────────────────────────────────────────────────────────────────────
-function useUser() {
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const token = getToken();
-    if (!token) { setLoading(false); window.location.href = "/login"; return; }
-
-    apiFetch("/api/me")
-      .then(data => {
-        const u = data.user || data;
-        setUser(u);
-        localStorage.setItem("user", JSON.stringify(u));
-      })
-      .catch(err => {
-        if (err.message.includes("401")) {
-          localStorage.removeItem("token"); localStorage.removeItem("user");
-          window.location.href = "/login";
-        }
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { user, loading };
-}
-
-function useLeaderboard() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = () => {
-    setLoading(true);
-    apiFetch("/api/leaderboard")
-      .then(d => setData(d.leaderboard || d.data || d || []))
-      .catch(() => setData([]))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => { load(); }, []);
-  return { data, loading, reload: load };
-}
-
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-const dName    = u => u?.fullName || u?.name || u?.username || (u?.email ? u.email.split("@")[0] : "User");
-const initials = n => (n || "??").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-const avClass  = n => `av-${Math.abs((n||"U").charCodeAt(0) + ((n||"U").charCodeAt(1)||0)) % 6}`;
-
-// ─── ATOMS ────────────────────────────────────────────────────────────────────
-const Tag = ({ label, color, bg }) => (
-  <span className="tag" style={{ background: bg || color + "15", color, border: `1px solid ${color}25` }}>{label}</span>
-);
-
-const Avatar = ({ name, size = 36, fontSize = 13 }) => {
-  const av  = initials(name);
-  const cls = avClass(name);
+// ─── REUSABLES ────────────────────────────────────────────────────────────────
+function Bdg({ color, bg, children, size = "sm" }) {
   return (
-    <div className={cls} style={{
-      width: size, height: size, borderRadius: "50%",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      flexShrink: 0, color: "#fff", fontWeight: 700,
-      fontSize, letterSpacing: "0.02em",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-    }}>{av}</div>
+    <span style={{ fontSize: size === "sm" ? 9 : 11, fontWeight: 700, color, background: bg, border: `1px solid ${color}30`, borderRadius: 99, padding: size === "sm" ? "2px 7px" : "4px 12px", whiteSpace: "nowrap", fontFamily: "'JetBrains Mono',monospace", letterSpacing: "0.02em" }}>
+      {children}
+    </span>
   );
-};
+}
 
-const LiveDot = () => (
-  <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:99, background:C.redLt, border:`1px solid rgba(220,38,38,0.2)` }}>
-    <div style={{ position:"relative", width:6, height:6 }}>
-      <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:C.red, animation:"ping 1.5s infinite" }}/>
-      <div style={{ width:6, height:6, borderRadius:"50%", background:C.red }}/>
-    </div>
-    <span className="mono" style={{ fontSize:9, fontWeight:600, color:C.red, letterSpacing:"0.1em" }}>LIVE</span>
-  </div>
-);
-
-const Prog = ({ pct, color = C.brand, h = 6 }) => (
-  <div className="prog-wrap" style={{ height: h }}>
-    <div className="prog-bar" style={{ width: `${pct}%`, background: color, height: h }} />
-  </div>
-);
-
-const TT = ({ active, payload, label }) => {
+function CTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:10, padding:"10px 14px", fontSize:11, boxShadow:C.shadowMd }}>
-      <p style={{ color:C.inkMd, marginBottom:4, fontWeight:600 }}>{label}</p>
-      {payload.map((p,i) => <p key={i} style={{ color:p.color }}>{p.name}: <strong>{p.value}</strong></p>)}
+    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 14px", boxShadow: T.shMd, fontSize: 11, fontFamily: "'Nunito',sans-serif" }}>
+      <p style={{ color: T.textMd, marginBottom: 6, fontWeight: 700, fontSize: 10, letterSpacing: "0.06em" }}>{label}</p>
+      {payload.map((p, i) => <p key={i} style={{ color: p.color, margin: "2px 0" }}>{p.name}: <strong>{p.value}</strong></p>)}
     </div>
   );
-};
+}
 
-const EmptyState = ({ icon: Icon, title, desc, action, color = C.brand }) => (
-  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:10, padding:"36px 20px", textAlign:"center" }}>
-    <div style={{ width:52, height:52, borderRadius:14, background:color+"12", border:`1px solid ${color}20`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4 }}>
-      <Icon size={22} style={{ color }}/>
+function EmptyState({ icon: Icon, title, desc, actionLabel, onAction, color = T.brand }) {
+  return (
+    <div style={{ textAlign: "center", padding: "36px 24px", background: `${color}06`, border: `1px dashed ${color}30`, borderRadius: 16 }}>
+      <div style={{ width: 48, height: 48, borderRadius: 14, background: `${color}10`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+        <Icon size={20} style={{ color: `${color}90` }} />
+      </div>
+      <p style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: "0 0 5px", fontFamily: "'Syne',sans-serif" }}>{title}</p>
+      <p style={{ fontSize: 11, color: T.textMd, margin: "0 0 16px", lineHeight: 1.6 }}>{desc}</p>
+      {actionLabel && onAction && (
+        <button onClick={onAction} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg,${color},${color}cc)`, color: "#fff", fontFamily: "'Nunito',sans-serif" }}>
+          <Plus size={12} />{actionLabel}
+        </button>
+      )}
     </div>
-    <p style={{ fontSize:14, fontWeight:700, color:C.ink }}>{title}</p>
-    <p style={{ fontSize:12, color:C.inkMd, lineHeight:1.6, maxWidth:220 }}>{desc}</p>
-    {action}
-  </div>
-);
+  );
+}
 
-const SectionHead = ({ title, sub }) => (
-  <div style={{ marginBottom:24 }}>
-    <h2 style={{ fontSize:22, fontWeight:800, color:C.ink, marginBottom:4, letterSpacing:"-0.02em" }}>{title}</h2>
-    {sub && <p style={{ fontSize:12, color:C.inkMd }}>{sub}</p>}
-  </div>
-);
+// ─── LIVE CLOCK ───────────────────────────────────────────────────────────────
+function LiveClock() {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: T.textMd, fontFamily: "'JetBrains Mono',monospace" }}>
+      <Clock size={11} style={{ color: T.brand }} />
+      {time.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+    </div>
+  );
+}
 
-const INITIAL_NOTIFS = [
-  { id:1, icon:AlertTriangle, msg:"NEW CRITICAL: LockBit 3.0 variant active in your region", time:"2 min ago",  unread:true,  color:C.red   },
-  { id:2, icon:Brain,         msg:"New quiz unlocked: Advanced Network Security",             time:"3 hrs ago",  unread:true,  color:C.violet },
-  { id:3, icon:Shield,        msg:"Security score improved +12 points this week",             time:"2 days ago", unread:false, color:C.green  },
-];
+// ─── REAL-TIME XP COUNTER ─────────────────────────────────────────────────────
+function AnimatedNumber({ value, color = T.brand, size = 28 }) {
+  const [display, setDisplay] = useState(value);
+  const prevRef = useRef(value);
+  useEffect(() => {
+    const prev = prevRef.current;
+    prevRef.current = value;
+    if (prev === value) return;
+    const diff = value - prev;
+    const steps = Math.min(Math.abs(diff), 30);
+    let step = 0;
+    const t = setInterval(() => {
+      step++;
+      setDisplay(Math.round(prev + (diff * step) / steps));
+      if (step >= steps) clearInterval(t);
+    }, 20);
+    return () => clearInterval(t);
+  }, [value]);
+  return (
+    <span style={{ fontSize: size, fontWeight: 800, color, fontFamily: "'Syne',sans-serif", letterSpacing: "-0.03em", transition: "color 0.3s" }}>
+      {display.toLocaleString()}
+    </span>
+  );
+}
 
-// ─── STATIC DATA ──────────────────────────────────────────────────────────────
-const THREATS = [
-  { id:1, name:"LockBit 3.0 Ransomware",  type:"Ransomware",    sev:"Critical", date:"2025-01-13", desc:"Most prolific RaaS. Self-propagation via SMB, data exfiltration before encryption. Avg ransom: $85k USD." },
-  { id:2, name:"APT-29 Cozy Bear",        type:"APT",           sev:"Critical", date:"2025-01-14", desc:"State-sponsored Russian group. Spear-phishing + supply chain. Uses SUNBURST, TEARDROP malware." },
-  { id:3, name:"Log4Shell CVE-2021-44228",type:"Vulnerability", sev:"High",     date:"2025-01-12", desc:"Still exploited in unpatched systems. RCE via JNDI injection in Apache Log4j2." },
-  { id:4, name:"BEC — CEO Impersonation", type:"Phishing",      sev:"Medium",   date:"2025-01-09", desc:"Wave targeting Indian fintech CFOs. AI voice follow-ups. Avg loss: Rs 28 lakh." },
-  { id:5, name:"SSH Brute-Force Campaign",type:"Network",       sev:"Low",      date:"2025-01-07", desc:"45,000+ attempts from 312 Tor exit nodes. Block via fail2ban + IP reputation feeds." },
-];
-const SEV_C = {
-  Critical:{ c:C.red,    bg:C.redLt    },
-  High:    { c:"#EA580C", bg:"#FFF7ED" },
-  Medium:  { c:C.amber,  bg:C.amberLt  },
-  Low:     { c:C.green,  bg:C.greenLt  },
+// ─── CONNECTION STATUS ────────────────────────────────────────────────────────
+function ConnectionStatus({ online }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", fontFamily: "'JetBrains Mono',monospace", color: online ? T.green : T.red }}>
+      {online ? <Wifi size={10} /> : <WifiOff size={10} />}
+      {online ? "LIVE" : "OFFLINE"}
+    </div>
+  );
+}
+
+// ─── NOTIFICATION ENGINE ──────────────────────────────────────────────────────
+const generateNotifications = (user) => {
+  const notifs = [];
+  const now = Date.now();
+  if ((user?.loginStreak || 0) >= 3)
+    notifs.push({ id: "streak", type: "streak", read: false, message: `🔥 ${user.loginStreak}-day streak! Keep it up!`, time: "Just now", createdAt: now });
+  if ((user?.quizzesDone || 0) > 0)
+    notifs.push({ id: "quiz", type: "quiz", read: false, message: `You've completed ${user.quizzesDone} quiz${user.quizzesDone !== 1 ? "zes" : ""}. Earn more XP!`, time: "Today", createdAt: now - 3600000 });
+  if ((user?.phishingSimTotal || 0) > 0) {
+    const acc = Math.round((user.phishingSimCorrect / user.phishingSimTotal) * 100);
+    notifs.push({ id: "phishing", type: "phishing", read: false, message: `Phishing sim accuracy: ${acc}% — ${acc >= 80 ? "Outstanding!" : acc >= 60 ? "Keep practicing" : "Needs work"}`, time: "Today", createdAt: now - 7200000 });
+  }
+  if ((user?.level || 1) > 1)
+    notifs.push({ id: "level", type: "achievement", read: true, message: `Level up! You've reached Level ${user.level}`, time: "Yesterday", createdAt: now - 86400000 });
+  if ((user?.score || 0) === 0)
+    notifs.push({ id: "welcome", type: "info", read: false, message: "Welcome to CyberShield! Complete your first quiz to earn XP.", time: "Today", createdAt: now - 1800000 });
+  return notifs.sort((a, b) => b.createdAt - a.createdAt);
 };
-const PHISHING_EMAILS = [
-  { id:1, from:"PayPal Security",     sender:"security@paypa1.com",       subject:"Urgent: Verify your account",         time:"10:23 AM",  fish:true,  read:false,
-    body:"Dear Customer,\n\nSuspicious activity detected on your PayPal account. It has been temporarily limited.\n\nVerify within 24 hours:\n-> http://paypa1-secure.xyz/login\n\nPayPal Security Team",
-    flags:["Misspelled domain - paypa1.com not paypal.com","Urgent threatening language","Link goes to non-PayPal domain","Generic 'Dear Customer' greeting","Artificial 24-hour deadline"] },
-  { id:2, from:"GitHub",              sender:"noreply@github.com",         subject:"Your pull request #247 was merged",   time:"9:45 AM",   fish:false, read:true,
-    body:"Hi there,\n\nYour pull request #247 'Fix authentication middleware' was merged into main by jsmith.\n\nView: github.com/cybershield/platform\n\nThe GitHub Team", flags:[] },
-  { id:3, from:"HR Department",       sender:"hr-noreply@comp4ny-hr.net",  subject:"Action Required: W-2 Form Update",    time:"Yesterday", fish:true,  read:false,
-    body:"Dear Employee,\n\nAnnual tax filing requires you to update your W-2 information and banking details immediately.\n\nUpdate: http://comp4ny-hr.net/w2-update\n\nDeadline: End of today.",
-    flags:["Unofficial lookalike domain","Requests sensitive banking details","Same-day deadline","No company name mentioned"] },
-  { id:4, from:"State Bank of India", sender:"alerts@sbi-bank-secure.in", subject:"URGENT: KYC Update - Account Blocked", time:"2 days ago",fish:true,  read:false,
-    body:"Dear Valued Customer,\n\nYour SBI account has been blocked due to incomplete KYC.\n\nTo unblock: http://sbi-kyc-update.in/verify\n\nProvide: Account No., Debit Card No., PIN, OTP",
-    flags:["Fake domain - not sbi.co.in","Requests card + PIN + OTP simultaneously","SBI never asks for PIN via email"] },
-  { id:5, from:"Medium Daily Digest", sender:"newsletter@medium.com",      subject:"Your top stories for today",           time:"3 days ago",fish:false, read:true,
-    body:"Good morning,\n\nHere are your personalized stories:\n* The Future of Cybersecurity in 2025\n* Zero Trust Architecture Explained\n* Top 10 Ransomware Prevention Tips\n\nThe Medium Team", flags:[] },
-];
 
-const NAV = [
-  { id:"dashboard",   label:"Overview",     icon:LayoutDashboard },
-  { id:"threats",     label:"Threats",      icon:ShieldAlert     },
-  { id:"learn",       label:"Learn",        icon:BookOpen,       route:"/learn" },
-  { id:"phishing",    label:"Phishing Sim", icon:Mail            },
-  { id:"quiz",        label:"Quiz",         icon:Brain,          route:"/quiz"  },
-  { id:"game",        label:"Game",         icon:Gamepad2,       badge:"NEW",   route:"/game" },
-  { id:"reports",     label:"Reports",      icon:BarChart2       },
-  { id:"leaderboard", label:"Leaderboard",  icon:Trophy          },
-  { id:"profile",     label:"Profile",      icon:User            },
-  { id:"settings",    label:"Settings",     icon:Settings        },
-];
-
-// ══════════════════════════════════════════════════════════════════
-// DASHBOARD PAGE
-// ══════════════════════════════════════════════════════════════════
-function DashboardPage({ user, setPage, navigate, notifs, setNotifs }) {
-  const fname  = dName(user).split(" ")[0];
-  const today  = new Date().toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
-  const xp     = user?.xp    ?? 0;
-  const level  = user?.level ?? 1;
-  const score  = user?.score ?? 0;
-  const streak = user?.streak ?? 0;
-  const rank   = user?.rank  ?? "—";
-  const xpNext = level * 500;
-  const xpPct  = Math.min(100, Math.round((xp / xpNext) * 100));
-  const isNew  = xp === 0 && score === 0;
-
-  const tips = [
-    "Never reuse passwords across accounts.",
-    "Enable 2FA on every critical service.",
-    "Hover over links before clicking — verify the domain.",
-    "Keep your OS and software fully patched.",
-    "Public Wi-Fi? Always use a VPN.",
-  ];
-  const [tip] = useState(() => tips[Math.floor(Math.random() * tips.length)]);
-
-  const goTo = (pageId) => {
-    if (pageId === "quiz")  { navigate("/quiz");  return; }
-    if (pageId === "learn") { navigate("/learn"); return; }
-    if (pageId === "game")  { navigate("/game");  return; }
-    setPage(pageId);
+// ─── NOTIFICATION PANEL ───────────────────────────────────────────────────────
+function NotificationPanel({ user, onClose, onMarkRead }) {
+  const notifs = generateNotifications(user);
+  const unread = notifs.filter(n => !n.read).length;
+  const typeIcon = (type) => {
+    switch (type) {
+      case "threat": return <ShieldAlert size={13} style={{ color: T.red }} />;
+      case "quiz": return <Brain size={13} style={{ color: T.brand }} />;
+      case "achievement": return <Award size={13} style={{ color: T.amber }} />;
+      case "streak": return <Flame size={13} style={{ color: T.amber }} />;
+      case "phishing": return <Mail size={13} style={{ color: T.teal }} />;
+      default: return <Bell size={13} style={{ color: T.brand }} />;
+    }
   };
+  const typeBg = (type) => {
+    switch (type) {
+      case "threat": return T.redDim;
+      case "quiz": return `${T.brand}12`;
+      case "achievement": return T.amberDim;
+      case "streak": return T.amberDim;
+      case "phishing": return T.tealDim;
+      default: return `${T.brand}12`;
+    }
+  };
+  return (
+    <div style={{ position: "fixed", top: 62, right: 16, width: 360, background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, boxShadow: "0 12px 40px rgba(0,0,0,0.12)", zIndex: 999, overflow: "hidden", animation: "slideIn .2s ease" }}>
+      <div style={{ padding: "14px 18px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>Notifications</h3>
+          {unread > 0 && <p style={{ fontSize: 10, color: T.brand, margin: "2px 0 0", fontWeight: 600 }}>{unread} unread</p>}
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {unread > 0 && <button onClick={onMarkRead} style={{ fontSize: 10, color: T.brand, fontWeight: 700, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit" }}>Mark all read</button>}
+          <button onClick={onClose} style={{ border: "none", background: T.bg, borderRadius: 8, width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <X size={12} style={{ color: T.textMd }} />
+          </button>
+        </div>
+      </div>
+      <div style={{ maxHeight: 400, overflowY: "auto" }}>
+        {notifs.length === 0 ? (
+          <div style={{ padding: "28px", textAlign: "center", color: T.textDim, fontSize: 12 }}>No notifications yet</div>
+        ) : notifs.map(n => (
+          <div key={n.id} style={{ padding: "12px 18px", borderBottom: `1px solid ${T.border}`, background: n.read ? "transparent" : `${T.brand}04`, display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: typeBg(n.type), display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {typeIcon(n.type)}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 11, fontWeight: n.read ? 400 : 700, color: T.text, margin: "0 0 3px", lineHeight: 1.4 }}>{n.message}</p>
+              <p style={{ fontSize: 9, color: T.textDim, margin: 0 }}>{n.time}</p>
+            </div>
+            {!n.read && <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.brand, marginTop: 4, flexShrink: 0 }} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── SEARCH OVERLAY ───────────────────────────────────────────────────────────
+function SearchOverlay({ onClose, setPage, navigate }) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef();
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const pages = [
+    { id: "overview", label: "Overview", icon: Home, desc: "Dashboard home" },
+    { id: "threats", label: "Threat Intelligence", icon: ShieldAlert, desc: "Live threat feed" },
+    { id: "phishing", label: "Phishing Simulator", icon: Mail, desc: "Practice detecting phishing" },
+    { id: "reports", label: "Analytics & Reports", icon: BarChart2, desc: "Security analytics" },
+    { id: "profile", label: "My Profile", icon: User, desc: "Account & stats" },
+    { id: "settings", label: "Settings", icon: Settings, desc: "Configure account" },
+    { id: "leaderboard", label: "Leaderboard", icon: Trophy, desc: "Top performers" },
+    { id: "aichat", label: "AI Security Assistant", icon: Bot, desc: "Chat with AI assistant" },
+  ];
+  const external = [
+    { label: "Courses", icon: GraduationCap, path: "/courses" },
+    { label: "Quiz", icon: Brain, path: "/quiz" },
+    { label: "CyberGame", icon: Gamepad2, path: "/game" },
+  ];
+  const all = [...pages, ...external];
+  const filtered = query.length < 1 ? pages.slice(0, 6) :
+    all.filter(p => (p.label + (p.desc || "") + (p.path || "")).toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:22 }} className="page-enter">
-      <div style={{ borderRadius:20, padding:"28px 32px", position:"relative", overflow:"hidden", background:C.gradBrand, boxShadow:"0 8px 40px rgba(37,99,235,0.22)" }}>
-        <div className="dotgrid" style={{ position:"absolute", inset:0, opacity:.1 }}/>
-        <div style={{ position:"absolute", right:-20, top:-20, opacity:.06 }}><Shield size={180}/></div>
-        <div style={{ position:"relative", zIndex:1 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-            <span className="mono" style={{ fontSize:10, color:"rgba(255,255,255,0.7)", letterSpacing:"0.14em" }}>// SECURE SESSION</span>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:"#86EFAC", animation:"pulse 2s infinite" }}/>
-          </div>
-          <p className="mono" style={{ fontSize:11, color:"rgba(255,255,255,0.6)", marginBottom:6 }}>{today}</p>
-          <h1 style={{ fontSize:28, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:10 }}>
-            Welcome back, <span style={{ color:"#BAE6FD" }}>{fname}</span>
-          </h1>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.14)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"7px 14px", marginBottom:16 }}>
-            <Zap size={13} style={{ color:"#FDE68A", flexShrink:0 }}/>
-            <span style={{ fontSize:12, color:"rgba(255,255,255,0.75)" }}>Tip: </span>
-            <span style={{ fontSize:12, color:"#fff", fontWeight:500 }}>{tip}</span>
-          </div>
-          {isNew ? (
-            <div style={{ background:"rgba(255,255,255,0.12)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:12, padding:"14px 18px", maxWidth:480 }}>
-              <p style={{ fontSize:13, color:"#fff", fontWeight:600, marginBottom:4 }}>Your cybersecurity journey starts now!</p>
-              <p style={{ fontSize:12, color:"rgba(255,255,255,0.75)", lineHeight:1.6, margin:0 }}>Complete a quiz to earn your first XP, or try the phishing simulator to sharpen your instincts.</p>
-              <div style={{ display:"flex", gap:10, marginTop:12 }}>
-                <button className="btn" onClick={() => goTo("quiz")} style={{ background:"rgba(255,255,255,0.9)", color:C.brand, fontSize:12, padding:"8px 16px", borderRadius:9, border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:7, fontWeight:700 }}><Brain size={13}/> Take Quiz</button>
-                <button className="btn btn-ghost" onClick={() => goTo("learn")} style={{ color:"rgba(255,255,255,0.85)", borderColor:"rgba(255,255,255,0.3)", fontSize:12, padding:"8px 16px" }}><BookOpen size={13}/> Browse Courses</button>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 80 }} onClick={onClose}>
+      <div style={{ width: 560, background: T.card, borderRadius: 18, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", overflow: "hidden", border: `1px solid ${T.border}`, animation: "fadeUp .2s ease" }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 16px", borderBottom: `1px solid ${T.border}` }}>
+          <Search size={14} style={{ color: T.textDim }} />
+          <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)} placeholder="Search pages, features…" style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: T.text, fontFamily: "'Nunito',sans-serif", background: "transparent" }} />
+          <kbd style={{ fontSize: 9, color: T.textDim, border: `1px solid ${T.border}`, borderRadius: 5, padding: "2px 7px", fontFamily: "monospace" }}>ESC</kbd>
+        </div>
+        <div style={{ maxHeight: 360, overflowY: "auto" }}>
+          {filtered.length === 0 ? (
+            <div style={{ padding: "28px", textAlign: "center", color: T.textDim, fontSize: 12 }}>No results for "{query}"</div>
+          ) : filtered.map((item, i) => (
+            <div key={i} onClick={() => { item.path ? navigate(item.path) : setPage(item.id); onClose(); }} style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 16px", cursor: "pointer", transition: "background .1s", borderBottom: `1px solid ${T.border}` }}
+              onMouseEnter={e => e.currentTarget.style.background = T.surfaceHov}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: `${T.brand}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {item.icon && <item.icon size={14} style={{ color: T.brand }} />}
               </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>{item.label}</p>
+                <p style={{ fontSize: 10, color: T.textMd, margin: 0 }}>{item.desc || item.path}</p>
+              </div>
+              <ChevronRight size={12} style={{ color: T.textDim }} />
             </div>
-          ) : (
-            <>
-              <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
-                {[["Score",score,"#BAE6FD"],["Rank",rank,"#FDE68A"],["Lv."+level,"Level","#DDD6FE"],[streak+"d","Streak","#FCA5A5"]].map(([v,l,c],i)=>(
-                  <div key={i} style={{ background:"rgba(255,255,255,0.14)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:12, padding:"11px 18px", textAlign:"center" }}>
-                    <div style={{ fontSize:18, fontWeight:800, color:c }}>{v}</div>
-                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", marginTop:2 }}>{l}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop:14, maxWidth:320 }}>
-                <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"rgba(255,255,255,0.65)", marginBottom:4 }}>
-                  <span>Level {level} XP</span>
-                  <span className="mono" style={{ color:"#BAE6FD" }}>{xp} / {xpNext}</span>
-                </div>
-                <div style={{ width:"100%", background:"rgba(255,255,255,0.2)", borderRadius:99, height:6 }}>
-                  <div style={{ width:`${xpPct}%`, height:6, background:"linear-gradient(90deg,#fff,#BAE6FD)", borderRadius:99 }}/>
-                </div>
-              </div>
-            </>
-          )}
+          ))}
+        </div>
+        <div style={{ padding: "9px 16px", borderTop: `1px solid ${T.border}`, display: "flex", gap: 12, fontSize: 10, color: T.textDim }}>
+          <span>↩ select</span><span>↑↓ navigate</span><span>ESC close</span>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
-        {[
-          { icon:Brain,         label:"Take a Quiz",       sub:"Test your cybersecurity knowledge", color:C.violet, page:"quiz"  },
-          { icon:GraduationCap, label:"Browse Courses",    sub:"Structured learning with labs",     color:C.brand,  page:"learn" },
-          { icon:Gamepad2,      label:"Play CyberDefense", sub:"Defeat real-world cyber threats",   color:C.teal,   page:"game"  },
-        ].map(item => (
-          <button key={item.label} onClick={() => goTo(item.page)} className="card card-click" style={{ padding:20, border:`1px solid ${C.border}`, textAlign:"left", cursor:"pointer" }}>
-            <div style={{ width:44, height:44, borderRadius:12, background:item.color+"12", border:`1px solid ${item.color}20`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:12 }}>
-              <item.icon size={22} style={{ color:item.color }}/>
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
+function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
+  const nav = [
+    { id: "overview", icon: Home, label: "Overview" },
+    { id: "threats", icon: ShieldAlert, label: "Threats", badge: "Live" },
+    { id: "aichat", icon: Bot, label: "AI Assistant", badge: "New" },
+    { id: "courses", icon: GraduationCap, label: "Courses", external: "/courses" },
+    { id: "phishing", icon: Mail, label: "Phishing Sim" },
+    { id: "quiz", icon: Brain, label: "Quiz", external: "/quiz" },
+    { id: "game", icon: Gamepad2, label: "CyberGame", external: "/game" },
+    { id: "reports", icon: BarChart2, label: "Reports" },
+    { id: "leaderboard", icon: Trophy, label: "Leaderboard" },
+  ];
+  const bottom = [
+    { id: "profile", icon: User, label: "Profile" },
+    { id: "settings", icon: Settings, label: "Settings" },
+  ];
+  const handleNav = item => item.external ? navigate(item.external) : setPage(item.id);
+  const w = collapsed ? 64 : 236;
+
+  const NavBtn = ({ item, active }) => (
+    <div style={{ position: "relative" }}>
+      <button onClick={() => handleNav(item)} title={collapsed ? item.label : ""}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: collapsed ? 0 : 9, padding: collapsed ? "10px" : "8px 11px", justifyContent: collapsed ? "center" : "flex-start", borderRadius: 10, border: "none", background: active ? `${T.brand}10` : "transparent", color: active ? T.brand : T.textMd, cursor: "pointer", transition: "all .15s", marginBottom: 1, fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: active ? 700 : 500, textAlign: "left" }}
+        onMouseEnter={e => { if (!active) { e.currentTarget.style.background = T.surfaceHov; e.currentTarget.style.color = T.text; } }}
+        onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.textMd; } }}>
+        <item.icon size={14} style={{ flexShrink: 0 }} />
+        {!collapsed && (
+          <>
+            <span style={{ flex: 1, whiteSpace: "nowrap" }}>{item.label}</span>
+            {item.badge && (
+              <span style={{ fontSize: 8, background: item.badge === "New" ? `${T.teal}15` : T.redDim, color: item.badge === "New" ? T.teal : T.red, border: `1px solid ${item.badge === "New" ? T.teal : T.red}25`, borderRadius: 99, padding: "1px 5px", fontWeight: 800, letterSpacing: "0.05em" }}>{item.badge}</span>
+            )}
+            {item.external && <ChevronRight size={10} style={{ color: T.textDim }} />}
+            {active && !item.external && <div style={{ width: 4, height: 4, borderRadius: "50%", background: T.brand }} />}
+          </>
+        )}
+      </button>
+      {collapsed && item.badge && (
+        <div style={{ position: "absolute", top: 7, right: 7, width: 5, height: 5, borderRadius: "50%", background: item.badge === "New" ? T.teal : T.red }} />
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ width: w, flexShrink: 0, background: T.surface, borderRight: `1px solid ${T.border}`, display: "flex", flexDirection: "column", height: "100vh", position: "fixed", left: 0, top: 0, zIndex: 100, transition: "width .25s cubic-bezier(.16,1,.3,1)", overflow: "hidden" }}>
+      <div style={{ padding: collapsed ? "14px 8px" : "18px 16px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", minHeight: 62, gap: 8 }}>
+        {!collapsed && (
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Shield size={16} style={{ color: "#fff" }} />
             </div>
-            <p style={{ fontSize:14, fontWeight:700, color:C.ink, margin:"0 0 4px" }}>{item.label}</p>
-            <p style={{ fontSize:11, color:C.inkMd, margin:0 }}>{item.sub}</p>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: T.text, letterSpacing: "-0.01em", fontFamily: "'Syne',sans-serif" }}>CyberShield</div>
+              <div style={{ fontSize: 9, color: T.textDim, fontWeight: 600, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>SECURITY SUITE</div>
+            </div>
+          </div>
+        )}
+        {collapsed && (
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Shield size={16} style={{ color: "#fff" }} />
+          </div>
+        )}
+        <button onClick={() => setCollapsed(c => !c)} style={{ border: "none", background: T.bg, borderRadius: 7, width: 24, height: 24, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: T.textMd }}>
+          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        </button>
+      </div>
+      <nav style={{ flex: 1, padding: "8px 6px", overflowY: "auto", overflowX: "hidden" }}>
+        {!collapsed && <div style={{ fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.12em", padding: "5px 9px 7px", fontFamily: "'JetBrains Mono',monospace" }}>MAIN</div>}
+        {nav.map(item => <NavBtn key={item.id} item={item} active={page === item.id} />)}
+        {!collapsed ? (
+          <div style={{ fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.12em", padding: "11px 9px 7px", marginTop: 8, borderTop: `1px solid ${T.border}`, fontFamily: "'JetBrains Mono',monospace" }}>ACCOUNT</div>
+        ) : <div style={{ height: 1, background: T.border, margin: "8px 4px" }} />}
+        {bottom.map(item => <NavBtn key={item.id} item={item} active={page === item.id} />)}
+      </nav>
+      <div style={{ padding: collapsed ? "9px 6px" : "10px 12px", borderTop: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 8, justifyContent: collapsed ? "center" : "flex-start" }}>
+        <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, overflow: "hidden", background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "#fff" }}>
+          {user?.avatar ? <img src={user.avatar} alt="" style={{ width: 32, height: 32, objectFit: "cover" }} /> : firstName(user).charAt(0).toUpperCase()}
+        </div>
+        {!collapsed && (
+          <>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'Syne',sans-serif" }}>{getFullName(user)}</div>
+              <div style={{ fontSize: 9, color: T.textDim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'JetBrains Mono',monospace" }}>{user?.email || "Not signed in"}</div>
+            </div>
+            <button onClick={() => { localStorage.clear(); window.location.href = "/"; }} style={{ border: "none", background: "none", cursor: "pointer", color: T.textDim, padding: 4 }} title="Sign out">
+              <LogOut size={12} />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── TOPBAR ───────────────────────────────────────────────────────────────────
+function TopBar({ page, user, notifCount, onNotifClick, onProfileClick, onSearchClick, online }) {
+  const labels = {
+    overview: "Overview", threats: "Threat Intelligence", courses: "Learning Courses",
+    phishing: "Phishing Simulator", quiz: "Quiz Center", game: "CyberDefense Game",
+    reports: "Analytics & Reports", profile: "My Profile", settings: "Settings",
+    leaderboard: "Leaderboard", aichat: "AI Security Assistant",
+  };
+  return (
+    <div style={{ height: 62, background: T.surface, borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", padding: "0 22px", gap: 12, position: "sticky", top: 0, zIndex: 50 }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12 }}>
+        <h1 style={{ fontSize: 16, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>{labels[page] || page}</h1>
+        <ConnectionStatus online={online} />
+      </div>
+      <LiveClock />
+      <button onClick={onSearchClick} style={{ display: "flex", alignItems: "center", gap: 7, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "7px 12px", width: 200, cursor: "pointer", fontFamily: "'Nunito',sans-serif", color: T.textDim, fontSize: 11 }}>
+        <Search size={11} /> Search pages… <kbd style={{ marginLeft: "auto", fontSize: 9, border: `1px solid ${T.border}`, borderRadius: 4, padding: "1px 5px", fontFamily: "monospace", color: T.textDim }}>⌘K</kbd>
+      </button>
+      <button onClick={onNotifClick} style={{ position: "relative", width: 34, height: 34, borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Bell size={14} style={{ color: T.textMd }} />
+        {notifCount > 0 && <span style={{ position: "absolute", top: -3, right: -3, background: T.red, color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 8, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${T.surface}`, fontFamily: "monospace" }}>{notifCount > 9 ? "9+" : notifCount}</span>}
+      </button>
+      <button onClick={onProfileClick} style={{ width: 32, height: 32, borderRadius: 9, overflow: "hidden", border: "none", background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "#fff", cursor: "pointer", flexShrink: 0 }}>
+        {user?.avatar ? <img src={user.avatar} alt="" style={{ width: 32, height: 32, objectFit: "cover" }} /> : firstName(user).charAt(0).toUpperCase()}
+      </button>
+    </div>
+  );
+}
+
+// ─── REAL-TIME THREAT TICKER ──────────────────────────────────────────────────
+function ThreatTicker({ threats }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (!threats?.length) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % threats.length), 3500);
+    return () => clearInterval(t);
+  }, [threats]);
+  if (!threats?.length) return null;
+  const t = threats[idx];
+  const sev = SEV[t.severity] || SEV.medium;
+  return (
+    <div style={{ background: `${sev.color}08`, border: `1px solid ${sev.color}20`, borderRadius: 10, padding: "7px 14px", display: "flex", alignItems: "center", gap: 8, overflow: "hidden" }}>
+      <div style={{ width: 6, height: 6, borderRadius: "50%", background: sev.color, flexShrink: 0, animation: "pulse 1.5s infinite" }} />
+      <span style={{ fontSize: 9, fontWeight: 700, color: sev.color, letterSpacing: "0.08em", fontFamily: "'JetBrains Mono',monospace", flexShrink: 0 }}>{t.severity?.toUpperCase()}</span>
+      <span style={{ fontSize: 10, color: T.textMd, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.type}: {t.desc}</span>
+      <span style={{ fontSize: 9, color: T.textDim, flexShrink: 0, fontFamily: "'JetBrains Mono',monospace" }}>{t.time || fmtTime(t.createdAt)}</span>
+    </div>
+  );
+}
+
+// ─── LIVE ACTIVITY FEED ───────────────────────────────────────────────────────
+function LiveActivityFeed({ activities, loading }) {
+  return (
+    <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 18, boxShadow: T.sh }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 13 }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: T.tealDim, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Radio size={12} style={{ color: T.teal }} />
+        </div>
+        <h3 style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>Live Activity Feed</h3>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: T.teal, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>
+          <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.teal, animation: "pulse 1.5s infinite" }} />
+          LIVE
+        </div>
+      </div>
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: "20px", color: T.textDim }}>
+          <Loader2 size={16} className="spin" />
+        </div>
+      ) : activities?.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 1, maxHeight: 260, overflowY: "auto" }}>
+          {activities.map((a, i) => {
+            const isRecent = i < 2;
+            return (
+              <div key={a._id || i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 9px", borderRadius: 9, transition: "background .15s", background: isRecent ? `${T.brand}04` : "transparent", animation: isRecent ? "fadeUp 0.3s ease" : "none" }}
+                onMouseEnter={e => e.currentTarget.style.background = T.bg}
+                onMouseLeave={e => e.currentTarget.style.background = isRecent ? `${T.brand}04` : "transparent"}>
+                <div style={{ width: 24, height: 24, borderRadius: 7, background: a.type === "quiz" ? `${T.brand}10` : a.type === "game" ? `${T.violet}10` : a.type === "phishing" ? `${T.amber}10` : `${T.teal}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {a.type === "quiz" ? <Brain size={10} style={{ color: T.brand }} /> : a.type === "game" ? <Gamepad2 size={10} style={{ color: T.violet }} /> : a.type === "phishing" ? <Mail size={10} style={{ color: T.amber }} /> : <Activity size={10} style={{ color: T.teal }} />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 11, color: T.text, margin: 0, lineHeight: 1.4, fontWeight: isRecent ? 600 : 400 }}>
+                    {a.type === "quiz" ? `Quiz: ${a.score || 0} pts — ${a.result === "pass" ? "✓ Passed" : "✗ Failed"}` :
+                      a.type === "game" ? `Game: Wave ${a.score || 0} completed` :
+                        a.type === "phishing" ? `Phishing sim: ${a.result === "pass" ? "Correct ✓" : "Incorrect ✗"}` :
+                          a.msg || `${a.type} activity`}
+                  </p>
+                  <p style={{ fontSize: 9, color: T.textDim, margin: "1px 0 0", fontFamily: "'JetBrains Mono',monospace" }}>{a.time || fmtDate(a.createdAt) + " " + fmtTime(a.createdAt)}</p>
+                </div>
+                {isRecent && <span style={{ fontSize: 8, background: T.greenDim, color: T.green, border: `1px solid ${T.green}20`, borderRadius: 99, padding: "1px 6px", fontWeight: 700, flexShrink: 0 }}>NEW</span>}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState icon={Activity} title="No activity yet" desc="Your actions appear here as you explore the platform." color={T.teal} />
+      )}
+    </div>
+  );
+}
+
+// ─── AI CHAT ASSISTANT PAGE ───────────────────────────────────────────────────
+function AIChatPage() {
+  const [messages, setMessages] = useState([
+    { role: "assistant", content: "👋 Hi! I'm your CyberShield AI assistant. Ask me anything about cybersecurity — threats, best practices, phishing, malware, or your security posture.", ts: new Date() }
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [scamUrl, setScamUrl] = useState("");
+  const [scamResult, setScamResult] = useState(null);
+  const [scamLoading, setScamLoading] = useState(false);
+  const [tab, setTab] = useState("chat");
+  const chatRef = useRef();
+
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = { role: "user", content: input.trim(), ts: new Date() };
+    setMessages(m => [...m, userMsg]);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: JSON.stringify({ message: input.trim() }),
+      });
+      const data = await res.json();
+      setMessages(m => [...m, { role: "assistant", content: data.reply || data.message || "Sorry, I couldn't process that.", ts: new Date() }]);
+    } catch {
+      setMessages(m => [...m, { role: "assistant", content: "⚠️ Couldn't connect to the AI service. Please try again.", ts: new Date() }]);
+    }
+    setLoading(false);
+  };
+
+  const analyzeLink = async () => {
+    if (!scamUrl.trim() || scamLoading) return;
+    setScamLoading(true);
+    setScamResult(null);
+    try {
+      const res = await fetch("/api/ai/analyze-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: JSON.stringify({ url: scamUrl.trim() }),
+      });
+      const data = await res.json();
+      setScamResult(data);
+    } catch {
+      setScamResult({ verdict: "error", reason: "Analysis service unavailable.", score: 0 });
+    }
+    setScamLoading(false);
+  };
+
+  const quickPrompts = [
+    "What is a zero-day exploit?",
+    "How do I identify a phishing email?",
+    "What's the safest way to use public WiFi?",
+    "Explain SQL injection in simple terms",
+    "How does ransomware work?",
+  ];
+
+  const verdictColor = scamResult?.verdict === "safe" ? T.green : scamResult?.verdict === "phishing" ? T.red : T.amber;
+  const verdictIcon = scamResult?.verdict === "safe" ? <CheckCircle size={16} /> : scamResult?.verdict === "phishing" ? <AlertTriangle size={16} /> : <Eye size={16} />;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", gap: 8 }}>
+        {[{ id: "chat", label: "💬 AI Chat", icon: MessageSquare }, { id: "scanner", label: "🔍 Scam Detector", icon: Target }].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${tab === t.id ? T.brand : T.border}`, background: tab === t.id ? `${T.brand}10` : T.card, color: tab === t.id ? T.brand : T.textMd, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif" }}>
+            {t.label}
           </button>
         ))}
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }}>
-        {[
-          { icon:Zap,        label:"Security Score",  value:score||"—", color:C.brand,  sub:score?"Keep it up!":"Complete a quiz"        },
-          { icon:ShieldAlert,label:"Threats Learned", value:user?.threatsRead??0, color:C.red, sub:"From threat intel"                   },
-          { icon:Brain,      label:"Quizzes Taken",   value:user?.quizzesDone??0, color:C.violet, sub:user?.avgScore?`Avg ${user.avgScore}%`:"None yet" },
-          { icon:Flame,      label:"Day Streak",      value:(streak||0)+"d", color:C.amber, sub:streak>=3?"On fire!":"Login daily"        },
-        ].map(s => (
-          <div key={s.label} className="stat-card">
-            <div style={{ width:40, height:40, borderRadius:11, background:s.color+"12", border:`1px solid ${s.color}20`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14 }}>
-              <s.icon size={18} style={{ color:s.color }}/>
+      {tab === "chat" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: 14 }}>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, overflow: "hidden", boxShadow: T.sh, display: "flex", flexDirection: "column", height: 560 }}>
+            <div style={{ padding: "14px 18px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 11, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Bot size={16} style={{ color: "#fff" }} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 13, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>CyberShield AI</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: T.green, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>
+                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.green, animation: "pulse 2s infinite" }} />Online
+                </div>
+              </div>
             </div>
-            <div style={{ fontSize:26, fontWeight:800, color:C.ink, letterSpacing:"-0.02em" }}>{s.value}</div>
-            <div style={{ fontSize:11, color:C.inkMd, marginTop:3 }}>{s.label}</div>
-            <div className="mono" style={{ fontSize:9, color:s.color, marginTop:4 }}>{s.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display:"grid", gridTemplateColumns:"3fr 2fr", gap:20 }}>
-        <div className="card" style={{ padding:20 }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <ShieldAlert size={15} style={{ color:C.red }}/>
-              <span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Live Threat Feed</span>
-            </div>
-            <LiveDot/>
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-            {THREATS.slice(0,4).map(t => {
-              const sc = SEV_C[t.sev];
-              return (
-                <div key={t.id} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"10px 13px", borderRadius:10, background:C.bgPage, border:`1px solid ${C.border}`, borderLeft:`3px solid ${sc.c}` }}>
-                  <div style={{ flex:1 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
-                      <span style={{ fontSize:12, fontWeight:600, color:C.ink }}>{t.name}</span>
-                      <Tag label={t.sev} color={sc.c} bg={sc.bg}/>
+            <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+              {messages.map((msg, i) => (
+                <div key={i} style={{ display: "flex", gap: 8, justifyContent: msg.role === "user" ? "flex-end" : "flex-start", animation: "fadeUp .25s ease" }}>
+                  {msg.role === "assistant" && (
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+                      <Bot size={12} style={{ color: "#fff" }} />
                     </div>
-                    <p style={{ fontSize:11, color:C.inkMd, margin:0, lineHeight:1.5 }}>{t.desc.slice(0,80)}...</p>
-                  </div>
-                  <span className="mono" style={{ fontSize:9, color:C.inkLt, flexShrink:0 }}>{t.date}</span>
-                </div>
-              );
-            })}
-          </div>
-          <button className="btn btn-ghost" onClick={() => setPage("threats")} style={{ marginTop:12, width:"100%", justifyContent:"center", fontSize:12 }}>
-            View All Threats <ArrowRight size={12}/>
-          </button>
-        </div>
-
-        <div className="card" style={{ padding:20 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
-            <Activity size={15} style={{ color:C.teal }}/>
-            <span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Your Activity</span>
-          </div>
-          {isNew ? (
-            <EmptyState icon={Rocket} title="No activity yet" desc="Complete a quiz or course to see your progress here." color={C.teal}
-              action={
-                <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center" }}>
-                  <button className="btn btn-primary" onClick={() => goTo("quiz")} style={{ fontSize:11, padding:"7px 14px" }}><Brain size={12}/> Quiz</button>
-                  <button className="btn btn-ghost" onClick={() => setPage("phishing")} style={{ fontSize:11, padding:"7px 14px" }}><Mail size={12}/> Phishing Sim</button>
-                </div>
-              }
-            />
-          ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-              {(user?.recentActivity||[]).slice(0,5).map((a,i) => (
-                <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
-                  <div style={{ width:28, height:28, borderRadius:8, background:C.brandMd, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <CheckCircle size={13} style={{ color:C.brand }}/>
-                  </div>
-                  <div>
-                    <p style={{ fontSize:11, color:C.inkMd, margin:0 }}>{a.msg || a}</p>
-                    <p className="mono" style={{ fontSize:9, color:C.inkLt, margin:"2px 0 0" }}>{a.time || ""}</p>
+                  )}
+                  <div style={{ maxWidth: "75%", background: msg.role === "user" ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: msg.role === "user" ? "#fff" : T.text, borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 12, lineHeight: 1.6, fontFamily: "'Nunito',sans-serif" }}>
+                    {msg.content}
+                    <div style={{ fontSize: 9, opacity: 0.6, marginTop: 4, textAlign: "right", fontFamily: "'JetBrains Mono',monospace" }}>
+                      {msg.ts ? fmtTime(msg.ts) : ""}
+                    </div>
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {notifs.length > 0 && (
-        <div className="card" style={{ padding:20 }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <Bell size={15} style={{ color:C.amber }}/>
-              <span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Notifications</span>
-              {notifs.filter(n => n.unread).length > 0 && (
-                <Tag label={`${notifs.filter(n => n.unread).length} new`} color={C.amber} bg={C.amberLt}/>
+              {loading && (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Bot size={12} style={{ color: "#fff" }} />
+                  </div>
+                  <div style={{ background: T.bg, borderRadius: "18px 18px 18px 4px", padding: "14px 18px", display: "flex", gap: 5, alignItems: "center" }}>
+                    {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: T.textDim, animation: `pulse 1.2s ease ${i * 0.2}s infinite` }} />)}
+                  </div>
+                </div>
               )}
             </div>
-            <button onClick={() => setNotifs([])} style={{ fontSize:11, fontWeight:600, color:C.inkLt, background:"none", border:"none", cursor:"pointer" }}>Clear all</button>
+            <div style={{ padding: "12px 18px", borderTop: `1px solid ${T.border}`, display: "flex", gap: 8 }}>
+              <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Ask about cybersecurity…" style={{ flex: 1, border: `1px solid ${T.border}`, borderRadius: 12, padding: "10px 14px", fontSize: 12, fontFamily: "'Nunito',sans-serif", color: T.text, background: T.bg, outline: "none" }} />
+              <button onClick={sendMessage} disabled={loading || !input.trim()} style={{ width: 40, height: 40, borderRadius: 12, border: "none", background: input.trim() ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: input.trim() ? "#fff" : T.textDim, cursor: input.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Send size={14} />
+              </button>
+            </div>
           </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-            {notifs.map(n => (
-              <div key={n.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 13px", borderRadius:10, background:n.unread?n.color+"08":C.bgPage, border:`1px solid ${n.unread?n.color+"20":C.border}` }}>
-                <div style={{ width:30, height:30, borderRadius:8, background:n.color+"14", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <n.icon size={13} style={{ color:n.color }}/>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, boxShadow: T.sh }}>
+              <h4 style={{ fontSize: 11, fontWeight: 700, color: T.text, margin: "0 0 11px", fontFamily: "'Syne',sans-serif" }}>Quick Questions</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {quickPrompts.map((q, i) => (
+                  <button key={i} onClick={() => { setInput(q); }} style={{ padding: "8px 11px", borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.textMd, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito',sans-serif", textAlign: "left", transition: "all .15s" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = `${T.brand}25`; e.currentTarget.style.color = T.brand; e.currentTarget.style.background = `${T.brand}05`; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.textMd; e.currentTarget.style.background = T.bg; }}>
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: `${T.brand}06`, border: `1px solid ${T.brand}20`, borderRadius: 14, padding: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: T.brand, marginBottom: 6, fontFamily: "'Syne',sans-serif" }}>💡 Pro Tip</div>
+              <p style={{ fontSize: 11, color: T.textMd, margin: 0, lineHeight: 1.6 }}>Ask about your specific security situation — the AI tailors advice to cybersecurity scenarios.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "scanner" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: 24, boxShadow: T.sh }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: T.redDim, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Crosshair size={18} style={{ color: T.red }} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>AI Scam Detector</h3>
+                <p style={{ fontSize: 10, color: T.textMd, margin: 0 }}>Paste any URL for instant analysis</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <input value={scamUrl} onChange={e => setScamUrl(e.target.value)} onKeyDown={e => e.key === "Enter" && analyzeLink()} placeholder="https://suspicious-link.com" style={{ border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 16px", fontSize: 13, fontFamily: "'JetBrains Mono',monospace", color: T.text, background: T.bg, outline: "none", width: "100%" }} />
+              <button onClick={analyzeLink} disabled={scamLoading || !scamUrl.trim()} style={{ padding: "12px", borderRadius: 12, border: "none", background: scamUrl.trim() ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: scamUrl.trim() ? "#fff" : T.textDim, fontSize: 13, fontWeight: 700, cursor: scamUrl.trim() ? "pointer" : "not-allowed", fontFamily: "'Nunito',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {scamLoading ? <><Loader2 size={14} className="spin" /> Analyzing…</> : <><Crosshair size={14} /> Analyze URL</>}
+              </button>
+            </div>
+            {scamResult && (
+              <div style={{ marginTop: 18, padding: 16, background: `${verdictColor}08`, border: `1px solid ${verdictColor}25`, borderRadius: 14, animation: "slideUp .3s ease" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ color: verdictColor }}>{verdictIcon}</span>
+                  <h4 style={{ fontSize: 14, fontWeight: 800, color: verdictColor, margin: 0, fontFamily: "'Syne',sans-serif", textTransform: "uppercase" }}>
+                    {scamResult.verdict || "Unknown"}
+                  </h4>
                 </div>
-                <p style={{ fontSize:12, color:n.unread?C.ink:C.inkMd, flex:1, margin:0, fontWeight:n.unread?600:400 }}>{n.msg}</p>
-                <span className="mono" style={{ fontSize:9, color:C.inkLt, flexShrink:0 }}>{n.time}</span>
-                {n.unread && <div style={{ width:7, height:7, borderRadius:"50%", background:n.color, flexShrink:0 }}/>}
-                <button className="notif-dismiss" onClick={() => setNotifs(prev => prev.filter(x => x.id !== n.id))} title="Dismiss">
-                  <X size={11}/>
-                </button>
+                {scamResult.score !== undefined && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: T.textMd, marginBottom: 5 }}>
+                      <span>Risk Score</span><span style={{ fontWeight: 700, color: verdictColor }}>{scamResult.score}/100</span>
+                    </div>
+                    <div style={{ height: 6, background: T.bg, borderRadius: 99 }}>
+                      <div style={{ height: 6, width: `${scamResult.score}%`, background: `linear-gradient(90deg,${T.green},${verdictColor})`, borderRadius: 99 }} />
+                    </div>
+                  </div>
+                )}
+                <p style={{ fontSize: 11, color: T.textMd, margin: 0, lineHeight: 1.6 }}>{scamResult.reason || scamResult.details}</p>
+                {scamResult.flags?.length > 0 && (
+                  <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
+                    {scamResult.flags.map((f, i) => (
+                      <div key={i} style={{ fontSize: 10, color: T.red, display: "flex", alignItems: "center", gap: 5 }}>
+                        <AlertTriangle size={10} />  {f}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: 24, boxShadow: T.sh }}>
+            <h3 style={{ fontSize: 13, fontWeight: 800, color: T.text, margin: "0 0 14px", fontFamily: "'Syne',sans-serif" }}>🛡️ How It Works</h3>
+            {[
+              { icon: Globe, title: "Domain Analysis", desc: "Checks for lookalike domains and typosquatting patterns" },
+              { icon: Layers, title: "Keyword Detection", desc: "Identifies phishing keywords and urgency triggers" },
+              { icon: Database, title: "Pattern Matching", desc: "Cross-references known malicious URL patterns" },
+              { icon: Cpu, title: "AI Scoring", desc: "Machine learning risk score from 0 (safe) to 100 (dangerous)" },
+            ].map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < 3 ? `1px solid ${T.border}` : "none" }}>
+                <div style={{ width: 32, height: 32, borderRadius: 9, background: `${T.brand}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <item.icon size={14} style={{ color: T.brand }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: "0 0 2px" }}>{item.title}</p>
+                  <p style={{ fontSize: 10, color: T.textMd, margin: 0 }}>{item.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -571,154 +793,1012 @@ function DashboardPage({ user, setPage, navigate, notifs, setNotifs }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// THREATS PAGE
-// ══════════════════════════════════════════════════════════════════
-function ThreatsPage() {
-  const [filter, setFilter] = useState("All");
-  const [exp, setExp] = useState(null);
-  const list = THREATS.filter(t => filter === "All" || t.sev === filter);
+// ─── PAGE: OVERVIEW (REAL DATA) ───────────────────────────────────────────────
+function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActivities }) {
+  const hour = new Date().getHours();
+  const greeting = hour < 5 ? "Working late" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const fname = firstName(user);
+  
+  // ✅ REAL DATA FROM USER PROFILE
+  const score = user?.score || 0;
+  const streak = user?.loginStreak || 0;
+  const quizDone = user?.quizzesDone || 0;
+  const avgScore = user?.avgScore || 0;
+  const gameScore = user?.gameScore || 0;
+  const gameHighScore = user?.gameHighScore || 0;
+  const gamesPlayed = user?.gamesPlayed || 0;
+  const phCorrect = user?.phishingSimCorrect || 0;
+  const phTotal = user?.phishingSimTotal || 0;
+  const phishingAccuracy = phTotal > 0 ? Math.round((phCorrect / phTotal) * 100) : 0;
+  const { level, xp, xpInLevel, xpPct } = computeLevel(score);
+
+  const weekData = dashData?.weeklyProgress?.length > 0 ? dashData.weeklyProgress : (user?.weeklyActivity?.length > 0 ? user.weeklyActivity : []);
+  const domainData = dashData?.domainScores || [
+    { subject: "Phishing", A: user?.phishingScore || (phTotal > 0 ? Math.round((phCorrect / phTotal) * 100) : 0) },
+    { subject: "Malware", A: user?.malwareScore || 0 },
+    { subject: "Network", A: user?.networkScore || 0 },
+    { subject: "Privacy", A: user?.privacyScore || 0 },
+    { subject: "Cloud", A: user?.cloudScore || 0 },
+  ];
+
+  const stats = dashData?.stats || {};
+  const history = dashData?.recentActivity || user?.quizHistory || [];
+  const insights = dashData?.insights || [];
+
+  const tips = [
+    "Never reuse passwords across accounts — use a password manager.",
+    "Enable 2FA on every critical service you use today.",
+    "Hover links before clicking — always verify the domain.",
+    "Keep your OS and all software fully patched.",
+    "Public Wi-Fi? Always tunnel through a VPN.",
+    "3-2-1 backup rule: 3 copies, 2 media types, 1 offsite.",
+    "Zero-trust mindset: verify every request, trust nothing by default.",
+  ];
+  const [tip] = useState(() => tips[new Date().getDay() % tips.length]);
+
+  const quickActions = [
+    { icon: Brain, label: "Quiz", sub: "Earn XP", color: T.brand, action: () => navigate("/quiz") },
+    { icon: GraduationCap, label: "Courses", sub: "Learn", color: T.teal, action: () => navigate("/courses") },
+    { icon: Gamepad2, label: "Game", sub: "Defend", color: T.violet, action: () => navigate("/game") },
+    { icon: ShieldAlert, label: "Threats", sub: "Live intel", color: T.red, action: () => setPage("threats") },
+    { icon: Mail, label: "Phishing", sub: "Train", color: T.amber, action: () => setPage("phishing") },
+    { icon: Bot, label: "AI Chat", sub: "Ask AI", color: T.pink, action: () => setPage("aichat") },
+  ];
 
   return (
-    <div className="page-enter">
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
-        <SectionHead title="Threat Intelligence" sub="Real-time IOCs, MITRE ATT&CK mapping, and security advisories"/>
-        <LiveDot/>
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
-        {[["Critical",C.red,C.redLt,"2"],["High","#EA580C","#FFF7ED","5"],["Medium",C.amber,C.amberLt,"1"],["Low",C.green,C.greenLt,"0"]].map(([s,c,bg,n]) => (
-          <div key={s} onClick={() => setFilter(filter === s ? "All" : s)} className="card card-click" style={{ padding:16, textAlign:"center", background:filter===s?bg:C.card, borderColor:filter===s?c+"40":C.border }}>
-            <div style={{ fontSize:26, fontWeight:800, color:c }}>{n}</div>
-            <div style={{ fontSize:11, color:C.inkMd, marginTop:3 }}>{s}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ display:"flex", gap:7, marginBottom:18 }}>
-        {["All","Critical","High","Medium","Low"].map(s => (
-          <button key={s} onClick={() => setFilter(s)} style={{ padding:"6px 14px", borderRadius:8, fontSize:11, fontWeight:600, cursor:"pointer", border:`1px solid ${filter===s?C.brand+"50":C.border}`, background:filter===s?C.brandMd:"transparent", color:filter===s?C.brand:C.inkMd, transition:"all .15s" }}>{s}</button>
-        ))}
-      </div>
-      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-        {list.map(t => {
-          const sc = SEV_C[t.sev]; const open = exp === t.id;
-          return (
-            <div key={t.id} className="card" style={{ overflow:"hidden", borderLeft:`3px solid ${sc.c}` }}>
-              <div style={{ padding:"13px 20px", cursor:"pointer", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }} onClick={() => setExp(open ? null : t.id)}>
-                <div style={{ flex:1 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, flexWrap:"wrap" }}>
-                    <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{t.name}</span>
-                    <Tag label={t.sev} color={sc.c} bg={sc.bg}/>
-                    <Tag label={t.type} color={C.inkMd} bg={C.bgPage}/>
-                  </div>
-                  <p style={{ fontSize:12, color:C.inkMd, margin:0 }}>{open ? t.desc : t.desc.slice(0,90)+"..."}</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Hero */}
+      <div className="fu" style={{ borderRadius: 22, padding: "26px 30px", position: "relative", overflow: "hidden", background: `linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 50%, #EDE9FE 100%)`, border: `1px solid ${T.brand}20`, boxShadow: T.sh }}>
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: `linear-gradient(rgba(79,70,229,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,0.04) 1px,transparent 1px)`, backgroundSize: "40px 40px" }} />
+        <div style={{ position: "absolute", top: -60, right: -40, width: 200, height: 200, borderRadius: "50%", background: `radial-gradient(circle,${T.brand}12,transparent 70%)`, pointerEvents: "none" }} />
+        <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(5,150,105,0.10)", borderRadius: 99, padding: "3px 10px", border: "1px solid rgba(5,150,105,0.25)" }}>
+                <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.green, animation: "pulse 2s infinite" }} />
+                <span style={{ fontSize: 9, fontWeight: 700, color: T.green, letterSpacing: "0.12em", fontFamily: "'JetBrains Mono',monospace" }}>PROTECTED</span>
+              </div>
+              <LiveClock />
+            </div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, color: T.text, fontFamily: "'Syne',sans-serif", margin: "0 0 4px", lineHeight: 1.1 }}>{greeting}, {fname} 👋</h1>
+            <p style={{ fontSize: 12, color: T.textMd, margin: "0 0 14px" }}>
+              {user?.role || "Cybersecurity Learner"}{level > 1 ? ` · Level ${level} Security Analyst` : " · Building foundations 🚀"}
+            </p>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(79,70,229,0.06)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: 10, padding: "6px 12px", marginBottom: 18 }}>
+              <Zap size={11} style={{ color: T.amber, flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: T.textMd, fontStyle: "italic" }}>{tip}</span>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {[
+                { v: score, l: "Score", c: T.brand, animated: true },
+                { v: `Lv.${level}`, l: "Level", c: T.violet },
+                { v: streak > 0 ? `${streak}d 🔥` : "0d", l: "Streak", c: T.amber },
+                { v: quizDone, l: "Quizzes", c: T.teal },
+              ].map(({ v, l, c, animated }, i) => (
+                <div key={i} style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(79,70,229,0.12)", borderRadius: 11, padding: "8px 14px", textAlign: "center", minWidth: 70, backdropFilter: "blur(4px)" }}>
+                  {animated && typeof v === "number" ? (
+                    <AnimatedNumber value={v} color={c} size={18} />
+                  ) : (
+                    <div style={{ fontSize: 18, fontWeight: 800, color: c, lineHeight: 1, fontFamily: "'Syne',sans-serif" }}>{v || "—"}</div>
+                  )}
+                  <div style={{ fontSize: 9, color: T.textDim, marginTop: 2, letterSpacing: "0.06em" }}>{l}</div>
                 </div>
-                <div style={{ display:"flex", gap:8, alignItems:"center", flexShrink:0 }}>
-                  <span className="mono" style={{ fontSize:9, color:C.inkLt }}>{t.date}</span>
-                  <div style={{ width:24, height:24, borderRadius:7, background:sc.bg, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    {open ? <ChevronUp size={12} style={{color:sc.c}}/> : <ChevronDown size={12} style={{color:sc.c}}/>}
-                  </div>
+              ))}
+              <div style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(79,70,229,0.12)", borderRadius: 11, padding: "8px 14px", minWidth: 160, backdropFilter: "blur(4px)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: T.textDim, marginBottom: 6 }}>
+                  <span>Level {level} Progress</span>
+                  <span style={{ fontFamily: "'JetBrains Mono',monospace", color: T.brand }}>{xpInLevel}/500 XP</span>
+                </div>
+                <div style={{ height: 4, background: "rgba(79,70,229,0.12)", borderRadius: 99 }}>
+                  <div style={{ height: 4, width: `${xpPct}%`, background: `linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius: 99, transition: "width 1s ease" }} />
                 </div>
               </div>
-              {open && (
-                <div style={{ padding:"0 20px 16px", borderTop:`1px solid ${C.border}` }}>
-                  <p style={{ fontSize:12, color:C.inkMd, lineHeight:1.75, margin:"14px 0" }}>{t.desc}</p>
-                  <div style={{ display:"flex", gap:8 }}>
-                    {["Full Report","MITRE ATT&CK","IOCs"].map(b => (
-                      <button key={b} className="btn btn-ghost" style={{ fontSize:11 }}>{b}</button>
-                    ))}
-                  </div>
+            </div>
+          </div>
+          <div style={{ textAlign: "center", flexShrink: 0 }}>
+            <svg width={100} height={100} viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(79,70,229,0.12)" strokeWidth="6" />
+              <circle cx="50" cy="50" r="42" fill="none" stroke={T.brand} strokeWidth="6" strokeDasharray={`${2 * Math.PI * 42 * xpPct / 100} ${2 * Math.PI * 42}`} strokeLinecap="round" transform="rotate(-90 50 50)" style={{ transition: "stroke-dasharray 1s ease" }} />
+              <text x="50" y="45" textAnchor="middle" fill={T.text} fontSize="18" fontWeight="800" fontFamily="'Syne',sans-serif">{xpPct}%</text>
+              <text x="50" y="59" textAnchor="middle" fill={T.textDim} fontSize="8" fontFamily="'JetBrains Mono',monospace">XP</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="fu fu1">
+        <div style={{ fontSize: 9, fontWeight: 700, color: T.textDim, marginBottom: 9, letterSpacing: "0.12em", fontFamily: "'JetBrains Mono',monospace" }}>QUICK ACTIONS</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 10 }}>
+          {quickActions.map((item, i) => (
+            <button key={i} onClick={item.action} style={{ padding: "14px 8px", border: `1px solid ${T.border}`, textAlign: "center", cursor: "pointer", background: T.card, borderRadius: 16, transition: "all .2s", fontFamily: "inherit", boxShadow: T.sh }}
+              onMouseEnter={e => { e.currentTarget.style.background = `${item.color}08`; e.currentTarget.style.borderColor = `${item.color}25`; e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 8px 20px ${item.color}15`; }}
+              onMouseLeave={e => { e.currentTarget.style.background = T.card; e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = T.sh; }}>
+              <div style={{ width: 38, height: 38, borderRadius: 11, background: `${item.color}10`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+                <item.icon size={16} style={{ color: item.color }} />
+              </div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: T.text, margin: "0 0 2px", fontFamily: "'Syne',sans-serif" }}>{item.label}</p>
+              <p style={{ fontSize: 9, color: T.textDim, margin: 0 }}>{item.sub}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats from real API */}
+      <div className="fu fu2" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+        {[
+          { label: "Total Score", value: score, icon: Star, color: T.brand, sub: score > 0 ? `${Math.floor(score)} XP` : "Start earning!", animated: true },
+          { label: "Avg Quiz Score", value: avgScore > 0 ? `${avgScore}%` : "—", icon: Brain, color: T.violet, sub: quizDone > 0 ? `${quizDone} quiz${quizDone !== 1 ? "zes" : ""} attempted` : "No quizzes yet" },
+          { label: "Game Score", value: gameScore, icon: Gamepad2, color: T.pink, sub: gamesPlayed > 0 ? `Played ${gamesPlayed}x, Best: ${gameHighScore}` : "No games yet", animated: true },
+          { label: "Phishing Accuracy", value: phTotal > 0 ? `${phishingAccuracy}%` : "—", icon: Mail, color: T.teal, sub: phTotal > 0 ? `${phCorrect}/${phTotal} correct` : "Try the simulator" },
+        ].map((s, i) => {
+          const [hov, setHov] = useState(false);
+          return (
+            <div key={i} style={{ background: hov ? `${s.color}06` : T.card, border: `1px solid ${hov ? s.color + "20" : T.border}`, borderRadius: 18, padding: "18px 20px", cursor: "default", transition: "all .2s", boxShadow: T.sh }}
+              onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 12, background: `${s.color}10`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <s.icon size={16} style={{ color: s.color }} />
                 </div>
+                {dashLoading && <Loader2 size={12} className="spin" style={{ color: T.textDim }} />}
+              </div>
+              {s.animated && typeof s.value === "number" ? (
+                <AnimatedNumber value={s.value} color={s.color} size={28} />
+              ) : (
+                <div style={{ fontSize: 28, fontWeight: 800, color: s.color, letterSpacing: "-0.03em", lineHeight: 1, fontFamily: "'Syne',sans-serif" }}>{s.value}</div>
               )}
+              <div style={{ fontSize: 11, color: T.textMd, marginTop: 4, fontWeight: 500 }}>{s.label}</div>
+              {s.sub && <div style={{ fontSize: 10, color: s.color, marginTop: 2, fontWeight: 600 }}>{s.sub}</div>}
             </div>
           );
         })}
+      </div>
+
+      {/* Charts from real API */}
+      <div className="fu fu3" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14 }}>
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, boxShadow: T.sh }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: "0 0 3px", fontFamily: "'Syne',sans-serif" }}>Weekly Progress</h3>
+          <p style={{ fontSize: 10, color: T.textMd, margin: "0 0 16px" }}>Score progression this week — live data</p>
+          {weekData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={weekData} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: T.textMd }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: T.textDim }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CTip />} />
+                <Bar dataKey="score" name="Score" fill={T.brand} radius={[5, 5, 0, 0]} maxBarSize={24} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ height: 180, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 8, color: T.textDim }}>
+              {dashLoading ? <Loader2 size={20} className="spin" style={{ color: T.brand }} /> : <><BarChart2 size={24} style={{ opacity: 0.3 }} /><span style={{ fontSize: 11 }}>Complete activities to see your progress</span></>}
+            </div>
+          )}
+        </div>
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, boxShadow: T.sh }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: "0 0 3px", fontFamily: "'Syne',sans-serif" }}>Domain Mastery</h3>
+          <p style={{ fontSize: 10, color: T.textMd, margin: "0 0 12px" }}>Skill radar</p>
+          <ResponsiveContainer width="100%" height={180}>
+            <RadarChart data={domainData}>
+              <PolarGrid stroke={T.border} />
+              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: T.textMd }} />
+              <Radar name="Score" dataKey="A" stroke={T.brand} fill={T.brand} fillOpacity={0.12} strokeWidth={2} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Insights from API */}
+      {insights.length > 0 && (
+        <div className="fu fu3" style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, boxShadow: T.sh }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: `${T.violet}10`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Cpu size={12} style={{ color: T.violet }} />
+            </div>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>AI Insights</h3>
+            <span style={{ fontSize: 9, background: `${T.violet}10`, color: T.violet, border: `1px solid ${T.violet}20`, borderRadius: 99, padding: "1px 7px", fontWeight: 700 }}>LIVE</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10 }}>
+            {insights.slice(0, 4).map((ins, i) => (
+              <div key={i} style={{ padding: "12px 14px", background: ins.type === "warning" ? T.amberDim : ins.type === "success" ? T.greenDim : `${T.brand}06`, border: `1px solid ${ins.type === "warning" ? T.amber : ins.type === "success" ? T.green : T.brand}20`, borderRadius: 12 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: ins.type === "warning" ? T.amber : ins.type === "success" ? T.green : T.brand, margin: "0 0 4px" }}>{ins.title}</p>
+                <p style={{ fontSize: 10, color: T.textMd, margin: 0, lineHeight: 1.5 }}>{ins.message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Live Activity + Badges */}
+      <div className="fu fu5" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <LiveActivityFeed activities={liveActivities} loading={dashLoading} />
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 18, boxShadow: T.sh }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 13 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: T.amberDim, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Award size={12} style={{ color: T.amber }} />
+            </div>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>Badges Earned</h3>
+          </div>
+          {(user?.badges || []).length > 0 ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {user.badges.map((b, i) => (
+                <div key={i} style={{ textAlign: "center", padding: "10px 11px", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, cursor: "default", transition: "all .2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = T.amberDim; e.currentTarget.style.transform = "scale(1.06)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = T.bg; e.currentTarget.style.transform = "scale(1)"; }}>
+                  <div style={{ fontSize: 20, lineHeight: 1 }}>{b.emoji || "🏅"}</div>
+                  <p style={{ fontSize: 9, color: T.textMd, marginTop: 5, fontWeight: 700 }}>{b.label || b.badgeName || b}</p>
+                  {b.earnedAt && <p style={{ fontSize: 8, color: T.textDim, margin: "2px 0 0", fontFamily: "'JetBrains Mono',monospace" }}>{fmtDate(b.earnedAt)}</p>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={Star} title="No badges yet" desc="Complete activities and reach milestones to unlock badges." color={T.amber} />
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// PHISHING SIM
-// ══════════════════════════════════════════════════════════════════
-function PhishingPage() {
-  const [sel, setSel] = useState(null);
-  const [ans, setAns] = useState({});
-  const done = Object.keys(ans).length;
-  const ok   = Object.values(ans).filter(a => a.ok).length;
+// ─── PAGE: THREATS (REAL DATA) ────────────────────────────────────────────────
+function ThreatsPage() {
+  const [threats, setThreats] = useState([]);
+  const [trend, setTrend] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState(null);
+  const [liveCount, setLiveCount] = useState(0);
+  const [lastRefresh, setLastRefresh] = useState(null);
+
+  const fetchThreats = useCallback(async () => {
+    try {
+      const data = await API.get("/api/threats");
+      setThreats(Array.isArray(data) ? data : data.threats || []);
+      setTrend(Array.isArray(data?.trend) ? data.trend : []);
+      setLiveCount(data?.totalDetected || (Array.isArray(data) ? data.length : 0));
+      setLastRefresh(new Date());
+    } catch {
+      // Keep existing data on error
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchThreats();
+    const t = setInterval(fetchThreats, 30000); // refresh every 30s
+    return () => clearInterval(t);
+  }, [fetchThreats]);
+
+  const filtered = threats.filter(t =>
+    (filter === "all" || t.severity === filter) &&
+    (t.type + t.source + (t.desc || t.description || "") + t.status).toLowerCase().includes(search.toLowerCase())
+  );
+
+  const counts = {
+    critical: threats.filter(t => t.severity === "critical").length,
+    high: threats.filter(t => t.severity === "high").length,
+    medium: threats.filter(t => t.severity === "medium").length,
+  };
 
   return (
-    <div className="page-enter">
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
-        <SectionHead title="Phishing Simulator" sub="Identify phishing attacks in real-world email samples"/>
-        <div style={{ display:"flex", gap:10 }}>
-          {[["Analyzed",`${done}/${PHISHING_EMAILS.length}`,C.brand],["Correct",ok,C.green],["Accuracy",done?Math.round(ok/done*100)+"%":"—",C.violet]].map(([l,v,c]) => (
-            <div key={l} style={{ textAlign:"center", background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:"10px 16px", boxShadow:C.shadow }}>
-              <div style={{ fontSize:18, fontWeight:800, color:c }}>{v}</div>
-              <div style={{ fontSize:10, color:C.inkMd }}>{l}</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, flex: 1 }}>
+          {[
+            { label: "Total Detected", value: liveCount, color: T.brand, icon: ShieldAlert, live: true },
+            { label: "Critical", value: counts.critical, color: T.red, icon: AlertTriangle },
+            { label: "High", value: counts.high, color: "#EA580C", icon: Zap },
+            { label: "Medium", value: counts.medium, color: T.amber, icon: Eye },
+          ].map((item, i) => (
+            <div key={i} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "16px 18px", boxShadow: T.sh }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: `${item.color}10`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <item.icon size={14} style={{ color: item.color }} />
+                </div>
+                {item.live && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    {loading && <Loader2 size={10} className="spin" style={{ color: T.textDim }} />}
+                    <span style={{ fontSize: 8, fontWeight: 700, color: T.red, background: T.redDim, border: `1px solid ${T.red}20`, borderRadius: 99, padding: "2px 7px", letterSpacing: "0.08em", fontFamily: "'JetBrains Mono',monospace" }}>● LIVE</span>
+                  </div>
+                )}
+              </div>
+              <AnimatedNumber value={item.value} color={item.color} size={26} />
+              <div style={{ fontSize: 11, color: T.textMd, fontWeight: 500, marginTop: 2 }}>{item.label}</div>
             </div>
           ))}
         </div>
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"280px 1fr", gap:16 }}>
-        <div className="card" style={{ overflow:"hidden" }}>
-          <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <span style={{ fontSize:12, fontWeight:700, color:C.ink }}>Inbox</span>
-            <Tag label={`${PHISHING_EMAILS.filter(e=>!e.read).length} unread`} color={C.brand} bg={C.brandMd}/>
+
+      {trend.length > 0 && (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, boxShadow: T.sh }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <div>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>24-Hour Threat Timeline</h3>
+              <p style={{ fontSize: 10, color: T.textMd, margin: "2px 0 0" }}>
+                Real-time detection frequency{lastRefresh && ` · Updated ${fmtTime(lastRefresh)}`}
+              </p>
+            </div>
+            <button onClick={fetchThreats} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <RefreshCw size={12} style={{ color: T.textMd }} />
+            </button>
           </div>
-          {PHISHING_EMAILS.map(email => {
-            const a = ans[email.id];
-            return (
-              <div key={email.id} onClick={() => setSel(email)} style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}30`, cursor:"pointer", background:sel?.id===email.id?C.brandLt:"transparent", borderLeft:`3px solid ${sel?.id===email.id?C.brand:"transparent"}`, transition:"all .12s" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:2 }}>
-                  <span style={{ fontSize:12, fontWeight:email.read?400:700, color:C.ink }}>{email.from}</span>
-                  <span className="mono" style={{ fontSize:9, color:C.inkLt }}>{email.time}</span>
+          <ResponsiveContainer width="100%" height={160}>
+            <AreaChart data={trend}>
+              <defs>
+                {[{ id: "cr", c: T.red }, { id: "hi", c: "#EA580C" }, { id: "me", c: T.amber }].map(g => (
+                  <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={g.c} stopOpacity={0.15} />
+                    <stop offset="95%" stopColor={g.c} stopOpacity={0} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+              <XAxis dataKey="h" tick={{ fontSize: 9, fill: T.textDim }} axisLine={false} tickLine={false} interval={3} />
+              <YAxis tick={{ fontSize: 9, fill: T.textDim }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CTip />} />
+              <Area type="monotone" dataKey="critical" name="Critical" stroke={T.red} fill="url(#cr)" strokeWidth={2} dot={false} />
+              <Area type="monotone" dataKey="high" name="High" stroke="#EA580C" fill="url(#hi)" strokeWidth={1.5} dot={false} />
+              <Area type="monotone" dataKey="medium" name="Medium" stroke={T.amber} fill="url(#me)" strokeWidth={1.5} dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", gap: 6 }}>
+          {["all", "critical", "high", "medium"].map(f => (
+            <button key={f} onClick={() => setFilter(f)} style={{ padding: "6px 13px", borderRadius: 8, border: `1px solid ${filter === f ? T.brand : T.border}`, background: filter === f ? `${T.brand}10` : T.card, color: filter === f ? T.brand : T.textMd, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", textTransform: "capitalize", transition: "all .15s" }}>
+              {f} {f !== "all" && `(${threats.filter(t => t.severity === f).length})`}
+            </button>
+          ))}
+        </div>
+        <div style={{ flex: 1 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 9, padding: "6px 12px" }}>
+          <Search size={11} style={{ color: T.textDim }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search threats…" style={{ border: "none", outline: "none", fontSize: 11, fontFamily: "'Nunito',sans-serif", background: "transparent", color: T.text, width: 180 }} />
+          {search && <button onClick={() => setSearch("")} style={{ border: "none", background: "none", cursor: "pointer", color: T.textDim, padding: 0, display: "flex" }}><X size={11} /></button>}
+        </div>
+        <span style={{ fontSize: 10, color: T.textDim }}>{filtered.length} results</span>
+      </div>
+
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden", boxShadow: T.sh }}>
+        {loading ? (
+          <div style={{ padding: "40px", textAlign: "center", color: T.textDim, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+            <Loader2 size={16} className="spin" /> Loading threat intelligence…
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: "40px" }}>
+            <EmptyState icon={ShieldAlert} title="No threats found" desc="No threats match your current filter. Try adjusting your search or filters." color={T.teal} />
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "100px 100px 1fr 130px 110px 110px 80px", padding: "10px 18px", background: T.bg, borderBottom: `1px solid ${T.border}`, fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>
+              <span>TYPE</span><span>SEVERITY</span><span>DESCRIPTION</span><span>SOURCE</span><span>TARGET</span><span>STATUS</span><span>TIME</span>
+            </div>
+            {filtered.map((t, i) => {
+              const sev = SEV[t.severity] || SEV.medium;
+              const sc = STATUS_C[t.status] || T.textDim;
+              const isSel = selected?.id === t.id || selected?._id === t._id;
+              return (
+                <div key={t.id || t._id || i} onClick={() => setSelected(isSel ? null : t)} style={{ display: "grid", gridTemplateColumns: "100px 100px 1fr 130px 110px 110px 80px", padding: "11px 18px", borderBottom: i < filtered.length - 1 ? `1px solid ${T.border}` : "none", cursor: "pointer", transition: "background .12s", background: isSel ? `${T.brand}06` : "transparent" }}
+                  onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = T.surfaceHov; }}
+                  onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = "transparent"; }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: T.text, alignSelf: "center" }}>{t.type}</span>
+                  <div style={{ alignSelf: "center" }}><Bdg color={sev.color} bg={sev.bg}>{sev.label}</Bdg></div>
+                  <span style={{ fontSize: 10, color: T.textMd, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", alignSelf: "center" }}>{t.desc || t.description}</span>
+                  <span style={{ fontSize: 10, color: T.text, fontFamily: "'JetBrains Mono',monospace", alignSelf: "center" }}>{(t.source || "").length > 15 ? t.source.substring(0, 14) + "…" : t.source}</span>
+                  <span style={{ fontSize: 10, color: T.textMd, alignSelf: "center" }}>{t.target}</span>
+                  <div style={{ alignSelf: "center" }}><Bdg color={sc} bg={`${sc}12`}>{t.status}</Bdg></div>
+                  <span style={{ fontSize: 9, color: T.textDim, alignSelf: "center", fontFamily: "'JetBrains Mono',monospace" }}>{t.time || fmtTime(t.createdAt)}</span>
                 </div>
-                <p style={{ fontSize:11, color:C.inkMd, margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{email.subject}</p>
-                {a && <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4, fontSize:10, fontWeight:700, color:a.ok?C.green:C.red }}>
-                  {a.ok?<CheckCircle size={10}/>:<XCircle size={10}/>} {a.ok?"Correct":"Incorrect"}
-                </div>}
+              );
+            })}
+          </>
+        )}
+      </div>
+
+      {selected && (
+        <div style={{ background: T.card, border: `1px solid ${T.brand}20`, borderRadius: 18, padding: 20, boxShadow: T.shMd, animation: "slideIn .2s ease" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+              <ShieldAlert size={15} style={{ color: SEV[selected.severity]?.color || T.brand }} />
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>{selected.type} — Detailed Analysis</h3>
+            </div>
+            <button onClick={() => setSelected(null)} style={{ border: "none", background: T.bg, borderRadius: 7, width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <X size={11} style={{ color: T.textMd }} />
+            </button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 12 }}>
+            {[
+              { l: "IOC / Indicator", v: selected.ioc || selected.indicator || "—" },
+              { l: "Source / Actor", v: selected.source },
+              { l: "Target", v: selected.target },
+              { l: "Origin Country", v: selected.country || "Unknown" },
+              { l: "Status", v: selected.status },
+              { l: "Detected", v: selected.time || fmtDate(selected.createdAt) },
+            ].map((item, i) => (
+              <div key={i} style={{ background: T.bg, borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ fontSize: 8, color: T.textDim, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4, fontFamily: "'JetBrains Mono',monospace" }}>{item.l}</div>
+                <div style={{ fontSize: 11, color: T.text, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>{item.v}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ background: T.bg, borderRadius: 10, padding: "12px 14px" }}>
+            <div style={{ fontSize: 8, color: T.textDim, fontWeight: 700, marginBottom: 5, fontFamily: "'JetBrains Mono',monospace" }}>FULL DESCRIPTION</div>
+            <p style={{ fontSize: 12, color: T.text, margin: 0, lineHeight: 1.6 }}>{selected.desc || selected.description}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── PAGE: PHISHING SIM (REAL DATA) ───────────────────────────────────────────
+function PhishingPage({ user, onUserUpdate }) {
+  const [emails, setEmails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [step, setStep] = useState(0);
+  const [result, setResult] = useState(null);
+  const [sessionScore, setSessionScore] = useState(0);
+  const [sessionTotal, setSessionTotal] = useState(0);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    API.get("/api/phishing/emails")
+      .then(data => setEmails(Array.isArray(data) ? data : data.emails || []))
+      .catch(() => setEmails([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const current = emails[step];
+  const accuracy = sessionTotal > 0 ? Math.round((sessionScore / sessionTotal) * 100) : 0;
+  const overallAcc = user?.phishingSimTotal ? Math.round((user.phishingSimCorrect / user.phishingSimTotal) * 100) : null;
+
+  const handleAnswer = async (isPhish) => {
+    if (animating || !current) return;
+    const correct = isPhish === current.isPhishing;
+    if (correct) setSessionScore(s => s + 1);
+    setSessionTotal(t => t + 1);
+    setResult({ correct, isPhishing: current.isPhishing });
+    setAnimating(true);
+    setTimeout(() => setAnimating(false), 300);
+
+    try {
+      await API.post("/api/activity", { type: "phishing", result: correct ? "pass" : "fail", score: correct ? 1 : 0, emailId: current._id });
+    } catch {}
+
+    if (onUserUpdate) {
+      const prevCorrect = user?.phishingSimCorrect || 0;
+      const prevTotal = user?.phishingSimTotal || 0;
+      onUserUpdate({ phishingSimCorrect: prevCorrect + (correct ? 1 : 0), phishingSimTotal: prevTotal + 1 });
+    }
+  };
+
+  const next = () => {
+    setAnimating(true);
+    setTimeout(() => {
+      if (step < emails.length - 1) setStep(s => s + 1);
+      else { setStep(0); setSessionScore(0); setSessionTotal(0); }
+      setResult(null);
+      setAnimating(false);
+    }, 200);
+  };
+
+  if (loading) return <div style={{ display: "flex", justifyContent: "center", padding: "60px", color: T.textDim, gap: 10, alignItems: "center" }}><Loader2 size={20} className="spin" /> Loading phishing simulations…</div>;
+  if (emails.length === 0) return <EmptyState icon={Mail} title="No phishing emails available" desc="Check back later — the admin will add phishing simulation emails." color={T.amber} />;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ background: T.card, border: `1px solid ${T.amber}25`, borderRadius: 18, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 13, background: T.amberDim, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Mail size={18} style={{ color: T.amber }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: T.text, margin: "0 0 2px", fontFamily: "'Syne',sans-serif" }}>Phishing Simulator</h2>
+          <p style={{ fontSize: 11, color: T.textMd, margin: 0 }}>Analyse each email. Results sync to your profile instantly.</p>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <div style={{ background: `${T.brand}08`, border: `1px solid ${T.brand}20`, borderRadius: 9, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: T.brand, fontFamily: "'JetBrains Mono',monospace" }}>
+            Session: {sessionScore}/{sessionTotal}{sessionTotal > 0 && ` (${accuracy}%)`}
+          </div>
+          {overallAcc !== null && (
+            <div style={{ background: `${T.teal}08`, border: `1px solid ${T.teal}20`, borderRadius: 9, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: T.teal, fontFamily: "'JetBrains Mono',monospace" }}>
+              All-time: {overallAcc}%
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 10, color: T.textDim, whiteSpace: "nowrap", fontFamily: "'JetBrains Mono',monospace" }}>Email {step + 1} of {emails.length}</span>
+        <div style={{ flex: 1, height: 4, background: T.bg, borderRadius: 99 }}>
+          <div style={{ height: 4, borderRadius: 99, width: `${((step + 1) / emails.length) * 100}%`, background: `linear-gradient(90deg,${T.amber},${T.brand})`, transition: "width .4s ease" }} />
+        </div>
+        <span style={{ fontSize: 10, color: T.brand, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>{Math.round(((step + 1) / emails.length) * 100)}%</span>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 14 }}>
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden", boxShadow: T.sh, opacity: animating ? 0.6 : 1, transition: "opacity .2s" }}>
+          <div style={{ background: T.bg, borderBottom: `1px solid ${T.border}`, padding: "8px 14px", display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FEBC2E" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#28C840" }} />
+            <span style={{ fontSize: 10, color: T.textDim, marginLeft: 6, fontFamily: "'JetBrains Mono',monospace" }}>Inbox — {emails.length} unread</span>
+          </div>
+          <div style={{ padding: "14px 18px 12px", borderBottom: `1px solid ${T.border}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${T.brand}10`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: T.brand, flexShrink: 0 }}>
+                {(current?.from || "?").charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: T.text, fontFamily: "'JetBrains Mono',monospace" }}>{current?.from}</div>
+                <div style={{ fontSize: 9, color: T.textDim }}>To: you@company.com · {current?.time || fmtTime(current?.createdAt)}</div>
+              </div>
+            </div>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>{current?.subject}</h3>
+          </div>
+          <div style={{ padding: "16px 18px" }}>
+            {(current?.body || "").split("\n").map((line, i) => (
+              <p key={i} style={{ fontSize: 12, color: line.startsWith("http") || line.startsWith("https") ? T.brand : T.textMd, margin: "0 0 3px", lineHeight: 1.7, fontFamily: line.startsWith("http") ? "'JetBrains Mono',monospace" : "inherit", textDecoration: line.startsWith("http") ? "underline" : "none" }}>
+                {line || "\u00A0"}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+          {!result ? (
+            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, boxShadow: T.sh }}>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: "0 0 4px", fontFamily: "'Syne',sans-serif" }}>Your Verdict</h3>
+              <p style={{ fontSize: 10, color: T.textMd, margin: "0 0 13px" }}>Is this email safe or a phishing attempt?</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <button onClick={() => handleAnswer(false)} style={{ padding: "11px 13px", borderRadius: 11, border: `1px solid ${T.green}25`, background: T.greenDim, color: T.green, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", display: "flex", alignItems: "center", gap: 8, transition: "all .2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = T.green; e.currentTarget.style.color = "#fff"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = T.greenDim; e.currentTarget.style.color = T.green; }}>
+                  <CheckCircle size={14} /> Legitimate Email ✓
+                </button>
+                <button onClick={() => handleAnswer(true)} style={{ padding: "11px 13px", borderRadius: 11, border: `1px solid ${T.red}20`, background: T.redDim, color: T.red, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", display: "flex", alignItems: "center", gap: 8, transition: "all .2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = T.red; e.currentTarget.style.color = "#fff"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = T.redDim; e.currentTarget.style.color = T.red; }}>
+                  <AlertTriangle size={14} /> Phishing Attempt ⚠️
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: result.correct ? T.greenDim : T.redDim, border: `1px solid ${result.correct ? T.green : T.red}20`, borderRadius: 16, padding: 16, animation: "fadeUp .3s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                {result.correct ? <CheckCircle size={18} style={{ color: T.green }} /> : <AlertTriangle size={18} style={{ color: T.red }} />}
+                <h3 style={{ fontSize: 13, fontWeight: 800, color: result.correct ? T.green : T.red, margin: 0, fontFamily: "'Syne',sans-serif" }}>
+                  {result.correct ? "Correct! 🎉" : "Incorrect ⬇️"}
+                </h3>
+              </div>
+              <p style={{ fontSize: 11, color: T.textMd, margin: "0 0 12px" }}>
+                This was {result.isPhishing ? "a phishing / scam email" : "a legitimate email"}.
+              </p>
+              <button onClick={next} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "none", background: result.correct ? T.green : T.red, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif" }}>
+                {step < emails.length - 1 ? "Next Email →" : "Restart ↺"}
+              </button>
+            </div>
+          )}
+
+          {result && current?.clues?.length > 0 && (
+            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 14, boxShadow: T.sh }}>
+              <h4 style={{ fontSize: 11, fontWeight: 700, color: T.text, margin: "0 0 10px", fontFamily: "'Syne',sans-serif" }}>🔍 Key Indicators</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {current.clues.map((clue, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 10, color: T.textMd, lineHeight: 1.5 }}>
+                    <div style={{ width: 14, height: 14, borderRadius: "50%", background: current.isPhishing ? T.redDim : T.greenDim, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                      {current.isPhishing ? <AlertTriangle size={7} style={{ color: T.red }} /> : <CheckCircle size={7} style={{ color: T.green }} />}
+                    </div>
+                    {clue}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 13 }}>
+            <div style={{ fontSize: 10, color: T.textDim, marginBottom: 8, fontFamily: "'JetBrains Mono',monospace" }}>SESSION PROGRESS</div>
+            <div style={{ display: "flex", gap: 4 }}>
+              {emails.map((_, i) => (
+                <div key={i} style={{ flex: 1, height: 4, borderRadius: 99, background: i < step ? T.brand : i === step ? T.amber : T.bg }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PAGE: REPORTS ────────────────────────────────────────────────────────────
+function ReportsPage({ user, navigate, setPage }) {
+  const [exporting, setExporting] = useState(null);
+  const hasData = (user?.quizHistory?.length || 0) > 0 || (user?.phishingSimTotal || 0) > 0 || (user?.score || 0) > 0;
+  const phAcc = user?.phishingSimTotal ? Math.round((user.phishingSimCorrect / user.phishingSimTotal) * 100) : null;
+
+  const handleDownload = async (type) => {
+    setExporting(type);
+    await new Promise(r => setTimeout(r, 700));
+    const name = getFullName(user) || "Unknown";
+    const { level, xp } = computeLevel(user?.score || 0);
+    const report = `CyberShield Security Report\n${"=".repeat(50)}\nUser: ${name}\nDate: ${new Date().toLocaleDateString()}\nScore: ${user?.score || 0}\nLevel: ${level}\nXP: ${xp}\nStreak: ${user?.loginStreak || 0} days\nQuizzes: ${user?.quizzesDone || 0}\nPhishing Accuracy: ${phAcc !== null ? phAcc + "%" : "Not attempted"}\n`;
+    const blob = new Blob([report], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `CyberShield_${name.replace(/\s/g, "_")}_${new Date().toISOString().split("T")[0]}.txt`;
+    a.click();
+    setExporting(null);
+  };
+
+  if (!hasData) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <EmptyState icon={BarChart2} title="No report data yet" desc="Your reports populate automatically as you complete quizzes, phishing simulations, courses, and games." color={T.brand} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
+          {[
+            { icon: Brain, label: "Take a Quiz", desc: "Earn scores and XP", color: T.brand, action: () => navigate("/quiz") },
+            { icon: Mail, label: "Try Phishing Sim", desc: "Test your detection skills", color: T.amber, action: () => setPage("phishing") },
+            { icon: GraduationCap, label: "Complete a Course", desc: "Learn and earn certificates", color: T.teal, action: () => navigate("/courses") },
+            { icon: Gamepad2, label: "Play CyberGame", desc: "Defend against attacks", color: T.violet, action: () => navigate("/game") },
+          ].map((item, i) => (
+            <div key={i} onClick={item.action} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "18px 20px", boxShadow: T.sh, display: "flex", alignItems: "center", gap: 13, cursor: "pointer", transition: "all .18s" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = `${item.color}25`; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "none"; }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: `${item.color}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <item.icon size={18} style={{ color: item.color }} />
+              </div>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: "0 0 2px", fontFamily: "'Syne',sans-serif" }}>{item.label}</p>
+                <p style={{ fontSize: 11, color: T.textMd, margin: 0 }}>{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const { level } = computeLevel(user?.score || 0);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, boxShadow: T.sh }}>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: "0 0 2px", fontFamily: "'Syne',sans-serif" }}>Export Your Report</h3>
+          <p style={{ fontSize: 10, color: T.textMd, margin: 0 }}>Download a personalised security report with your real data</p>
+        </div>
+        {[{ l: "TXT Export", fmt: "txt", icon: FileText, color: T.brand }].map((item, i) => (
+          <button key={i} onClick={() => handleDownload(item.fmt)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 10, border: `1px solid ${item.color}20`, background: `${item.color}08`, color: item.color, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", transition: "all .2s" }}
+            onMouseEnter={e => { e.currentTarget.style.background = item.color; e.currentTarget.style.color = "#fff"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = `${item.color}08`; e.currentTarget.style.color = item.color; }}>
+            {exporting === item.fmt ? <Loader2 size={12} className="spin" /> : <item.icon size={12} />} {item.l}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+        {[
+          { l: "Total Score", v: (user?.score || 0).toLocaleString(), c: T.brand, icon: Star },
+          { l: "Level", v: `Level ${level}`, c: T.violet, icon: Trophy },
+          { l: "Phishing Accuracy", v: phAcc !== null ? `${phAcc}%` : "—", c: T.amber, icon: Mail },
+          { l: "Login Streak", v: `${user?.loginStreak || 0}d`, c: T.teal, icon: Flame },
+        ].map((s, i) => (
+          <div key={i} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "16px 18px", boxShadow: T.sh }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: `${s.c}10`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
+              <s.icon size={14} style={{ color: s.c }} />
+            </div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: s.c, fontFamily: "'Syne',sans-serif" }}>{s.v}</div>
+            <div style={{ fontSize: 11, color: T.textMd, marginTop: 3 }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+      {(user?.quizHistory || []).length > 0 && (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden", boxShadow: T.sh }}>
+          <div style={{ padding: "13px 18px", borderBottom: `1px solid ${T.border}` }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>Quiz History</h3>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px", padding: "9px 18px", background: T.bg, borderBottom: `1px solid ${T.border}`, fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>
+            <span>MODULE</span><span>SCORE</span><span>GRADE</span><span>DATE</span>
+          </div>
+          {user.quizHistory.slice(0, 8).map((r, i) => {
+            const pct = r.score || r.percentage || 0;
+            const col = pct >= 80 ? T.green : pct >= 60 ? T.brand : T.amber;
+            return (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px", padding: "10px 18px", borderBottom: i < Math.min(user.quizHistory.length, 8) - 1 ? `1px solid ${T.border}` : "none" }}>
+                <span style={{ fontSize: 11, color: T.text, fontWeight: 500 }}>{r.quiz || r.moduleTitle || `Module ${i + 1}`}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: col, fontFamily: "'Syne',sans-serif" }}>{pct}%</span>
+                <div><Bdg color={col} bg={`${col}12`}>{pct >= 90 ? "A+" : pct >= 80 ? "A" : pct >= 70 ? "B" : pct >= 60 ? "C" : "D"}</Bdg></div>
+                <span style={{ fontSize: 9, color: T.textDim, fontFamily: "'JetBrains Mono',monospace" }}>{fmtDate(r.date || r.updatedAt)}</span>
               </div>
             );
           })}
         </div>
-        {sel ? (
-          <div className="card" style={{ overflow:"hidden" }}>
-            <div style={{ padding:"14px 20px", borderBottom:`1px solid ${C.border}`, background:sel.fish?C.redLt+"80":C.greenLt+"80" }}>
-              <h4 style={{ fontSize:13, fontWeight:700, color:C.ink, margin:"0 0 5px" }}>{sel.subject}</h4>
-              <div className="mono" style={{ display:"flex", gap:14, fontSize:10, color:C.inkMd }}>
-                <span><strong style={{ color:C.inkMd }}>From:</strong> {sel.sender}</span><span>{sel.time}</span>
+      )}
+    </div>
+  );
+}
+
+// ─── PAGE: PROFILE ────────────────────────────────────────────────────────────
+function ProfilePage({ user, onUserUpdate }) {
+  const [avatar, setAvatar] = useState(user?.avatar || null);
+  const [uploading, setUploading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ fullName: getFullName(user), email: user?.email || "", phone: user?.phone || "", location: user?.location || "", role: user?.role || "", bio: user?.bio || "" });
+  const fileRef = useRef();
+
+  useEffect(() => {
+    setForm({ fullName: getFullName(user), email: user?.email || "", phone: user?.phone || "", location: user?.location || "", role: user?.role || "", bio: user?.bio || "" });
+    setAvatar(user?.avatar || null);
+  }, [user]);
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const url = URL.createObjectURL(file);
+    setAvatar(url);
+    if (onUserUpdate) onUserUpdate({ avatar: url });
+    setUploading(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try { await API.put("/api/auth/profile", form); } catch {}
+    if (onUserUpdate) onUserUpdate({ ...form, name: form.fullName });
+    setSaved(true); setEditMode(false); setSaving(false);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  const { level, xp, xpInLevel, xpPct } = computeLevel(user?.score || 0);
+  const statItems = [
+    { l: "Score", v: (user?.score || 0).toLocaleString(), c: T.brand },
+    { l: "Level", v: level, c: T.violet },
+    { l: "Streak", v: `${user?.loginStreak || 0}d`, c: T.amber },
+    { l: "Quizzes", v: user?.quizzesDone || 0, c: T.teal },
+    { l: "Avg Score", v: user?.avgScore ? `${user.avgScore}%` : "—", c: T.green },
+    { l: "Total XP", v: xp.toLocaleString(), c: T.pink },
+    { l: "Phishing Acc", v: user?.phishingSimTotal ? `${Math.round((user.phishingSimCorrect / user.phishingSimTotal) * 100)}%` : "—", c: T.amber },
+    { l: "Courses", v: user?.coursesCompleted || 0, c: T.brand },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {saved && (
+        <div style={{ background: T.greenDim, border: `1px solid ${T.green}20`, borderRadius: 12, padding: "10px 16px", display: "flex", alignItems: "center", gap: 8, animation: "slideIn .2s ease" }}>
+          <CheckCircle2 size={14} style={{ color: T.green }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: T.green }}>Profile updated successfully!</span>
+        </div>
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: T.sh }}>
+            <div style={{ position: "relative", width: 88, height: 88, margin: "0 auto 13px", cursor: "pointer" }} onClick={() => fileRef.current?.click()}>
+              {avatar ? <img src={avatar} alt="avatar" style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", border: `3px solid ${T.brand}20` }} /> :
+                <div style={{ width: 88, height: 88, borderRadius: "50%", background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, fontWeight: 800, color: "#fff" }}>
+                  {(form.fullName || "U").charAt(0).toUpperCase()}
+                </div>}
+              <div style={{ position: "absolute", bottom: 0, right: 0, width: 26, height: 26, borderRadius: "50%", background: T.brand, border: `3px solid ${T.card}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {uploading ? <Loader2 size={10} style={{ color: "#fff" }} className="spin" /> : <Camera size={10} style={{ color: "#fff" }} />}
+              </div>
+              <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarUpload} />
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 800, color: T.text, margin: "0 0 3px", fontFamily: "'Syne',sans-serif" }}>{form.fullName || getFullName(user)}</h2>
+            <p style={{ fontSize: 11, color: T.textMd, margin: "0 0 10px" }}>{form.role || "Cybersecurity Learner"}</p>
+            <div style={{ display: "inline-flex" }}><Bdg color={T.brand} bg={`${T.brand}10`} size="md">Level {level} Analyst</Bdg></div>
+            <div style={{ marginTop: 14, padding: "10px 12px", background: T.bg, borderRadius: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: T.textDim, marginBottom: 6 }}>
+                <span>Level Progress</span>
+                <span style={{ fontFamily: "'JetBrains Mono',monospace", color: T.brand }}>{xpInLevel}/500 XP</span>
+              </div>
+              <div style={{ height: 4, background: "rgba(79,70,229,0.1)", borderRadius: 99 }}>
+                <div style={{ height: 4, width: `${xpPct}%`, background: `linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius: 99 }} />
               </div>
             </div>
-            <div style={{ padding:"18px 20px" }}>
-              <pre style={{ fontSize:13, color:C.inkMd, whiteSpace:"pre-wrap", fontFamily:"Plus Jakarta Sans,sans-serif", lineHeight:1.75 }}>{sel.body}</pre>
+          </div>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 16, boxShadow: T.sh }}>
+            <h3 style={{ fontSize: 10, fontWeight: 700, color: T.textDim, margin: "0 0 11px", letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>PERFORMANCE STATS</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {statItems.map((s, i) => (
+                <div key={i} style={{ background: T.bg, borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: s.c, fontFamily: "'Syne',sans-serif" }}>{s.v}</div>
+                  <div style={{ fontSize: 8, color: T.textDim, marginTop: 2, fontWeight: 700, letterSpacing: "0.06em" }}>{s.l}</div>
+                </div>
+              ))}
             </div>
-            {!ans[sel.id] ? (
-              <div style={{ padding:"14px 20px", borderTop:`1px solid ${C.border}` }}>
-                <p style={{ fontSize:12, fontWeight:700, color:C.ink, margin:"0 0 10px" }}>Is this email legitimate or phishing?</p>
-                <div style={{ display:"flex", gap:10 }}>
-                  <button className="btn" onClick={() => setAns(p => ({ ...p, [sel.id]:{ ok:sel.fish, pick:true } }))} style={{ flex:1, justifyContent:"center", background:C.redLt, color:C.red, border:`1px solid ${C.red}30`, borderRadius:10 }}>Phishing</button>
-                  <button className="btn" onClick={() => setAns(p => ({ ...p, [sel.id]:{ ok:!sel.fish, pick:false } }))} style={{ flex:1, justifyContent:"center", background:C.greenLt, color:C.green, border:`1px solid ${C.green}30`, borderRadius:10 }}>Legitimate</button>
+          </div>
+        </div>
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: 24, boxShadow: T.sh }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>Profile Information</h3>
+            <button onClick={() => editMode ? handleSave() : setEditMode(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, border: "none", background: editMode ? `linear-gradient(135deg,${T.green},#34D399)` : `linear-gradient(135deg,${T.brand},${T.violet})`, color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif" }}>
+              {saving ? <Loader2 size={11} className="spin" /> : editMode ? <><Save size={11} /> Save Changes</> : <><Edit3 size={11} /> Edit Profile</>}
+            </button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            {[
+              { label: "Full Name", key: "fullName", icon: User, type: "text" },
+              { label: "Email", key: "email", icon: Mail, type: "email" },
+              { label: "Phone", key: "phone", icon: Phone, type: "tel" },
+              { label: "Location", key: "location", icon: MapPin, type: "text" },
+              { label: "Role / Title", key: "role", icon: Shield, type: "text", full: true },
+              { label: "Bio", key: "bio", icon: FileText, type: "text", full: true },
+            ].map((field) => (
+              <div key={field.key} style={{ gridColumn: field.full ? "span 2" : "auto" }}>
+                <label style={{ fontSize: 9, fontWeight: 700, color: T.textDim, letterSpacing: "0.08em", display: "block", marginBottom: 5, fontFamily: "'JetBrains Mono',monospace" }}>{field.label.toUpperCase()}</label>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: T.bg, border: `1px solid ${editMode ? `${T.brand}25` : T.border}`, borderRadius: 10, padding: "9px 12px" }}>
+                  <field.icon size={13} style={{ color: T.textDim, flexShrink: 0 }} />
+                  <input value={form[field.key]} readOnly={!editMode} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))} type={field.type} placeholder={editMode ? `Enter ${field.label.toLowerCase()}` : "—"} style={{ border: "none", background: "transparent", outline: "none", fontSize: 12, color: T.text, width: "100%", fontFamily: "'Nunito',sans-serif", fontWeight: 500 }} />
                 </div>
               </div>
-            ) : (
-              <div style={{ padding:"14px 20px", borderTop:`1px solid ${C.border}` }}>
-                <div style={{ borderRadius:12, padding:"14px 16px", background:ans[sel.id].ok?C.greenLt:C.redLt, border:`1px solid ${ans[sel.id].ok?C.green+"30":C.red+"30"}` }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, fontWeight:700, fontSize:13, marginBottom:10, color:ans[sel.id].ok?C.green:C.red }}>
-                    {ans[sel.id].ok?<CheckCircle size={16}/>:<XCircle size={16}/>}
-                    {ans[sel.id].ok?"Correct!":`Incorrect — This was ${sel.fish?"PHISHING":"LEGITIMATE"}`}
+            ))}
+          </div>
+          {(user?.badges || []).length > 0 && (
+            <div style={{ marginTop: 20, paddingTop: 18, borderTop: `1px solid ${T.border}` }}>
+              <h4 style={{ fontSize: 10, fontWeight: 700, color: T.textDim, margin: "0 0 11px", letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>ACHIEVEMENTS</h4>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {user.badges.map((b, i) => (
+                  <div key={i} style={{ textAlign: "center", padding: "8px 12px", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10 }}>
+                    <div style={{ fontSize: 18, lineHeight: 1 }}>{b.emoji || "🏅"}</div>
+                    <p style={{ fontSize: 9, color: T.textMd, marginTop: 4, fontWeight: 700 }}>{b.label || b.badgeName || b}</p>
                   </div>
-                  {sel.fish && sel.flags.map((f,i) => (
-                    <div key={i} style={{ display:"flex", gap:7, fontSize:11, color:C.inkMd, marginBottom:5 }}>
-                      <AlertCircle size={12} style={{ color:C.red, flexShrink:0, marginTop:1 }}/>{f}
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PAGE: SETTINGS ───────────────────────────────────────────────────────────
+function SettingsPage({ user, onUserUpdate }) {
+  const [tab, setTab] = useState("password");
+  const [pw, setPw] = useState({ current: "", newPw: "", confirm: "" });
+  const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
+  const [pwStatus, setPwStatus] = useState(null);
+  const [twoFa, setTwoFa] = useState(user?.twoFaEnabled ?? true);
+
+  const tabs = [
+    { id: "password", label: "Password", icon: Key },
+    { id: "security", label: "Security", icon: Shield },
+    { id: "danger", label: "Danger Zone", icon: AlertTriangle },
+  ];
+
+  const pwStr = (p) => {
+    let s = 0;
+    if (p.length >= 8) s++;
+    if (/[A-Z]/.test(p)) s++;
+    if (/[0-9]/.test(p)) s++;
+    if (/[^A-Za-z0-9]/.test(p)) s++;
+    return s;
+  };
+  const str = pwStr(pw.newPw);
+  const strLbl = ["Too short", "Weak", "Fair", "Strong", "Very Strong"];
+  const strClr = [T.textDim, T.red, T.amber, "#65A30D", T.green];
+
+  const handlePwChange = async () => {
+    if (!pw.current || !pw.newPw || !pw.confirm) { setPwStatus({ type: "error", msg: "All fields are required." }); return; }
+    if (pw.newPw !== pw.confirm) { setPwStatus({ type: "error", msg: "Passwords do not match." }); return; }
+    if (str < 2) { setPwStatus({ type: "error", msg: "Password is too weak." }); return; }
+    setPwStatus({ type: "loading" });
+    try {
+      const res = await API.put("/api/auth/password", { currentPassword: pw.current, newPassword: pw.newPw });
+      if (res.error) throw new Error(res.message || "Failed");
+      setPwStatus({ type: "success", msg: "Password updated successfully." });
+      setPw({ current: "", newPw: "", confirm: "" });
+    } catch (err) {
+      setPwStatus({ type: "error", msg: err.message || "Failed to update password." });
+    }
+  };
+
+  const Toggle = ({ checked, onChange, color = T.brand }) => (
+    <div onClick={() => onChange(!checked)} style={{ width: 40, height: 20, borderRadius: 99, background: checked ? color : "#D1D5DB", cursor: "pointer", transition: "background .2s", position: "relative", flexShrink: 0 }}>
+      <div style={{ width: 14, height: 14, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: checked ? 23 : 3, transition: "left .2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
+    </div>
+  );
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 16 }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "12px 8px", height: "fit-content", boxShadow: T.sh }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 9, border: "none", background: tab === t.id ? (t.id === "danger" ? T.redDim : `${T.brand}10`) : "transparent", color: tab === t.id ? (t.id === "danger" ? T.red : T.brand) : T.textMd, cursor: "pointer", fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: tab === t.id ? 700 : 500, marginBottom: 2, textAlign: "left" }}>
+            <t.icon size={13} />{t.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 24, boxShadow: T.sh }}>
+        {tab === "password" && (
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: T.text, margin: "0 0 20px", fontFamily: "'Syne',sans-serif" }}>Change Password</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 420 }}>
+              {[{ label: "Current Password", key: "current" }, { label: "New Password", key: "newPw" }, { label: "Confirm New Password", key: "confirm" }].map(f => (
+                <div key={f.key}>
+                  <label style={{ fontSize: 9, fontWeight: 700, color: T.textDim, letterSpacing: "0.08em", display: "block", marginBottom: 5, fontFamily: "'JetBrains Mono',monospace" }}>{f.label.toUpperCase()}</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px" }}>
+                    <Key size={13} style={{ color: T.textDim, flexShrink: 0 }} />
+                    <input value={pw[f.key]} onChange={e => setPw(p => ({ ...p, [f.key]: e.target.value }))} type={showPw[f.key] ? "text" : "password"} style={{ border: "none", background: "transparent", outline: "none", fontSize: 13, color: T.text, width: "100%", fontFamily: "'Nunito',sans-serif" }} />
+                    <button onClick={() => setShowPw(s => ({ ...s, [f.key]: !s[f.key] }))} style={{ border: "none", background: "none", cursor: "pointer", color: T.textDim, padding: 0, display: "flex" }}>
+                      {showPw[f.key] ? <EyeOff size={13} /> : <Eye size={13} />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {pw.newPw && (
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: T.textMd, marginBottom: 5 }}>
+                    <span>Strength</span><span style={{ fontWeight: 700, color: strClr[str] }}>{strLbl[str]}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {[1, 2, 3, 4].map(i => <div key={i} style={{ flex: 1, height: 3, borderRadius: 99, background: i <= str ? strClr[str] : "#E5E7EB", transition: "background .3s" }} />)}
+                  </div>
+                </div>
+              )}
+              {pwStatus && (
+                <div style={{ padding: "10px 13px", borderRadius: 10, background: pwStatus.type === "success" ? T.greenDim : pwStatus.type === "error" ? T.redDim : `${T.brand}08`, display: "flex", alignItems: "center", gap: 8 }}>
+                  {pwStatus.type === "loading" ? <Loader2 size={13} style={{ color: T.brand }} className="spin" /> : pwStatus.type === "success" ? <CheckCircle2 size={13} style={{ color: T.green }} /> : <AlertCircle size={13} style={{ color: T.red }} />}
+                  <span style={{ fontSize: 11, fontWeight: 600, color: pwStatus.type === "success" ? T.green : pwStatus.type === "error" ? T.red : T.brand }}>
+                    {pwStatus.type === "loading" ? "Updating…" : pwStatus.msg}
+                  </span>
+                </div>
+              )}
+              <button onClick={handlePwChange} style={{ padding: "11px 20px", borderRadius: 11, border: "none", background: `linear-gradient(135deg,${T.brand},${T.violet})`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif" }}>Update Password</button>
+            </div>
+          </div>
+        )}
+        {tab === "security" && (
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: T.text, margin: "0 0 20px", fontFamily: "'Syne',sans-serif" }}>Security Settings</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 480 }}>
+              <div style={{ padding: "14px 16px", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: twoFa ? T.greenDim : T.redDim, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {twoFa ? <Lock size={15} style={{ color: T.green }} /> : <Unlock size={15} style={{ color: T.red }} />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Two-Factor Authentication</div>
+                  <div style={{ fontSize: 10, color: T.textMd }}>Adds extra layer of security to your account</div>
+                </div>
+                <Toggle checked={twoFa} color={T.green} onChange={v => { setTwoFa(v); onUserUpdate?.({ twoFaEnabled: v }); }} />
+              </div>
+              <div style={{ padding: "14px 16px", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: T.textDim, marginBottom: 8, fontFamily: "'JetBrains Mono',monospace" }}>SESSION INFO</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {[
+                    { l: "Last Login", v: user?.lastLoginDate ? new Date(user.lastLoginDate).toLocaleString("en-IN") : "Today" },
+                    { l: "Streak", v: `${user?.loginStreak || 0} days` },
+                    { l: "Level", v: `Level ${computeLevel(user?.score || 0).level}` },
+                    { l: "Account", v: user?.createdAt ? fmtDate(user.createdAt) : "Recent" },
+                  ].map((s, i) => (
+                    <div key={i} style={{ background: T.surface, borderRadius: 8, padding: "8px 10px", border: `1px solid ${T.border}` }}>
+                      <div style={{ fontSize: 8, color: T.textDim, marginBottom: 3, fontFamily: "'JetBrains Mono',monospace" }}>{s.l}</div>
+                      <div style={{ fontSize: 11, color: T.text, fontWeight: 700 }}>{s.v}</div>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        ) : (
-          <div className="card" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <EmptyState icon={Mail} title="Select an email" desc="Click on any email to analyse it." color={C.brand}/>
+        )}
+        {tab === "danger" && (
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: T.red, margin: "0 0 20px", fontFamily: "'Syne',sans-serif" }}>Danger Zone</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 480 }}>
+              {[
+                { title: "Export My Data", desc: "Download your account data as JSON", color: T.brand, btn: "Export", action: () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(user, null, 2)], { type: "application/json" })); a.download = "cybershield-data.json"; a.click(); } },
+                { title: "Delete Account", desc: "Permanently delete your account and all data", color: T.red, btn: "Delete", action: () => { if (window.prompt("Type DELETE to confirm:") === "DELETE") { localStorage.clear(); window.location.href = "/"; } } },
+              ].map((item, i) => (
+                <div key={i} style={{ padding: "14px 16px", background: `${item.color}04`, border: `1px solid ${item.color}18`, borderRadius: 12, display: "flex", alignItems: "center", gap: 13 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{item.title}</div>
+                    <div style={{ fontSize: 10, color: T.textMd }}>{item.desc}</div>
+                  </div>
+                  <button onClick={item.action} style={{ padding: "7px 14px", borderRadius: 9, border: `1px solid ${item.color}20`, background: `${item.color}08`, color: item.color, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif" }}>{item.btn}</button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -726,704 +1806,379 @@ function PhishingPage() {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// REPORTS PAGE
-// ══════════════════════════════════════════════════════════════════
-function ReportsPage({ user, setPage }) {
-  const hasData = (user?.quizzesDone ?? 0) > 0;
-
-  if (!hasData) return (
-    <div className="page-enter">
-      <SectionHead title="Reports & Analytics" sub="Your performance insights will appear here as you progress"/>
-      <div className="card" style={{ padding:60 }}>
-        <EmptyState icon={BarChart2} title="No data yet" desc="Complete quizzes, courses and simulations to unlock your analytics." color={C.brand}
-          action={<button className="btn btn-primary" style={{ marginTop:8 }} onClick={() => setPage("quiz")}><Rocket size={13}/> Start with a Quiz</button>}/>
-      </div>
-    </div>
-  );
-
-  const monthly = [
-    {m:"Aug",s:65},{m:"Sep",s:72},{m:"Oct",s:78},{m:"Nov",s:68},{m:"Dec",s:83},{m:"Jan",s:user?.avgScore??91},
-  ];
-  return (
-    <div className="page-enter">
-      <SectionHead title="Reports & Analytics" sub="Your performance insights and security metrics"/>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
-        <div className="card" style={{ padding:20 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
-            <BarChart2 size={15} style={{ color:C.brand }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Quiz Performance</span>
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={monthly}>
-              <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
-              <XAxis dataKey="m" tick={{ fontSize:10, fill:C.inkMd }} axisLine={false} tickLine={false}/>
-              <YAxis tick={{ fontSize:10, fill:C.inkMd }} axisLine={false} tickLine={false} domain={[0,100]}/>
-              <Tooltip content={<TT/>}/>
-              <ReBar dataKey="s" name="Score" fill={C.brand} radius={[6,6,0,0]}/>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="card" style={{ padding:20 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
-            <Target size={15} style={{ color:C.teal }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Domain Mastery</span>
-          </div>
-          {[
-            {label:"Phishing",  pct:user?.phishingScore??0, color:C.brand },
-            {label:"Malware",   pct:user?.malwareScore ??0, color:C.violet},
-            {label:"Network",   pct:user?.networkScore ??0, color:C.teal  },
-            {label:"Privacy",   pct:user?.privacyScore ??0, color:C.green },
-          ].map((d,i) => (
-            <div key={i} style={{ marginBottom:14 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, marginBottom:5 }}>
-                <span style={{ color:C.inkMd }}>{d.label}</span>
-                <span className="mono" style={{ fontWeight:600, color:d.color }}>{d.pct}%</span>
-              </div>
-              <Prog pct={d.pct} color={d.color} h={6}/>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// LEADERBOARD
-// ══════════════════════════════════════════════════════════════════
+// ─── PAGE: LEADERBOARD (REAL DATA) ────────────────────────────────────────────
 function LeaderboardPage({ user }) {
-  const { data: lbData, loading, reload } = useLeaderboard();
-  const myId   = user?._id || user?.id;
-  const myName = dName(user);
+  const [loading, setLoading] = useState(true);
+  const [board, setBoard] = useState([]);
+  const [tab, setTab] = useState("score");
+  const [empty, setEmpty] = useState(false);
 
-  const fullData = (() => {
-    if (!lbData.length) return [];
-    const hasMe = lbData.some(u => (u._id || u.id) === myId || dName(u) === myName);
-    const base   = lbData.slice(0, 10);
-    if (!hasMe && user) {
-      const entry = {
-        _id: myId, name: myName, department: user?.department || user?.dept || "InfoSec",
-        score: user?.score ?? 0, level: user?.level ?? 1, streak: user?.streak ?? 0, isMe: true,
-      };
-      return [...base, entry].sort((a,b) => (b.score||0) - (a.score||0)).map((u,i) => ({ ...u, rank: i+1 }));
+  const fetchBoard = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await API.get(`/api/leaderboard?sort=${tab}`);
+      const rows = Array.isArray(data) ? data : data.leaderboard || [];
+      if (rows.length === 0) { setEmpty(true); setBoard([]); }
+      else {
+        const myId = user?._id || user?.id;
+        const marked = rows.map(e => ({ ...e, isSelf: e.userId === myId || e._id === myId }));
+        setBoard(marked);
+        setEmpty(false);
+      }
+    } catch {
+      setEmpty(true); setBoard([]);
+    } finally {
+      setLoading(false);
     }
-    return base.map((u,i) => ({ ...u, rank:i+1, isMe:(u._id||u.id)===myId || dName(u)===myName }));
-  })();
+  }, [tab, user]);
 
-  const top3 = fullData.slice(0, 3);
+  useEffect(() => { fetchBoard(); }, [fetchBoard]);
+
+  const myRank = board.findIndex(e => e.isSelf) + 1;
+  const rankIcon = (rank) => {
+    if (rank === 1) return <Crown size={15} style={{ color: "#D97706" }} />;
+    if (rank === 2) return <Medal size={15} style={{ color: "#6B7280" }} />;
+    if (rank === 3) return <Medal size={15} style={{ color: "#92400E" }} />;
+    return <span style={{ fontSize: 11, fontWeight: 700, color: T.textDim, fontFamily: "'JetBrains Mono',monospace" }}>#{rank}</span>;
+  };
+  const sortVal = e => {
+    if (tab === "xp") return `${(e.xp || 0).toLocaleString()} XP`;
+    if (tab === "quiz") return `${e.quizzesDone || 0} done`;
+    if (tab === "streak") return `🔥 ${e.loginStreak || 0}d`;
+    return (e.score || 0).toLocaleString();
+  };
 
   return (
-    <div className="page-enter">
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
-        <SectionHead title="Leaderboard" sub="Top cybersecurity defenders — real scores, updated live"/>
-        <button className="btn btn-ghost" onClick={reload} style={{ fontSize:12, gap:6 }}>
-          <RefreshCw size={13} className={loading?"spin":""}/> Refresh
-        </button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ background: T.card, border: `1px solid ${T.brand}18`, borderRadius: 20, padding: "18px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Trophy size={20} style={{ color: "#fff" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: 17, fontWeight: 800, color: T.text, margin: "0 0 2px", fontFamily: "'Syne',sans-serif" }}>Global Leaderboard</h2>
+            <p style={{ fontSize: 11, color: T.textMd, margin: 0 }}>Live rankings based on real activity</p>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {myRank > 0 && (
+            <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, padding: "11px 16px", textAlign: "center", boxShadow: T.sh }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: T.brand, fontFamily: "'Syne',sans-serif" }}>#{myRank}</div>
+              <div style={{ fontSize: 9, color: T.textMd, fontWeight: 600 }}>Your Rank</div>
+            </div>
+          )}
+          <button onClick={fetchBoard} style={{ width: 34, height: 34, borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <RefreshCw size={13} style={{ color: T.textMd }} />
+          </button>
+        </div>
       </div>
-      {loading ? (
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height:60 }}/>)}
-        </div>
-      ) : fullData.length === 0 ? (
-        <div className="card" style={{ padding:60 }}>
-          <EmptyState icon={Trophy} title="No data yet" desc="Leaderboard will populate as users complete activities." color={C.amber}
-            action={<button className="btn btn-ghost" onClick={reload} style={{ marginTop:4 }}><RefreshCw size={13}/> Try Again</button>}/>
-        </div>
-      ) : (
-        <>
-          <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"center", gap:20, marginBottom:28 }}>
-            {[top3[1], top3[0], top3[2]].filter(Boolean).map((u,i) => {
-              const h = [130,170,110][i];
-              const medals = ["Silver","Gold","Bronze"];
-              const cols   = [C.inkLt, C.amber, "#B45309"];
+      <div style={{ display: "flex", gap: 7 }}>
+        {[{ id: "score", l: "Score" }, { id: "xp", l: "XP" }, { id: "quiz", l: "Quizzes" }, { id: "streak", l: "Streak" }].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "6px 15px", borderRadius: 8, border: `1px solid ${tab === t.id ? T.brand : T.border}`, background: tab === t.id ? `${T.brand}10` : T.card, color: tab === t.id ? T.brand : T.textMd, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", transition: "all .15s" }}>
+            {t.l}
+          </button>
+        ))}
+      </div>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden", boxShadow: T.sh }}>
+        {loading ? (
+          <div style={{ padding: "48px", textAlign: "center", color: T.textDim, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+            <Loader2 size={16} className="spin" /> Loading leaderboard…
+          </div>
+        ) : empty ? (
+          <div style={{ padding: "40px" }}>
+            <EmptyState icon={Trophy} title="Leaderboard is empty" desc="Be the first to complete activities and claim the top spot!" color={T.brand} />
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "56px 1fr 130px 80px 80px 80px", padding: "9px 18px", background: T.bg, borderBottom: `1px solid ${T.border}`, fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>
+              <span>RANK</span><span>USER</span>
+              <span>{tab === "score" ? "SCORE" : tab === "xp" ? "XP" : tab === "quiz" ? "QUIZZES" : "STREAK"}</span>
+              <span>QUIZZES</span><span>XP</span><span>STREAK</span>
+            </div>
+            {board.map((entry, i) => {
+              const isMe = !!entry.isSelf;
+              const rank = i + 1;
+              const top3 = rank <= 3;
+              const bLeft = isMe ? T.brand : rank === 1 ? "#D97706" : rank === 2 ? "#6B7280" : rank === 3 ? "#92400E" : "transparent";
               return (
-                <div key={u.rank||i} style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-                  {i===1 && <Tag label="RANK 1" color={C.amber} bg={C.amberLt}/>}
-                  <div style={{ marginTop:8, marginBottom:8 }}>
-                    <Avatar name={dName(u)} size={50} fontSize={16}/>
+                <div key={entry.userId || entry._id || i} style={{ display: "grid", gridTemplateColumns: "56px 1fr 130px 80px 80px 80px", padding: "12px 18px", borderBottom: i < board.length - 1 ? `1px solid ${T.border}` : "none", background: isMe ? `${T.brand}06` : top3 ? `${T.brand}02` : "transparent", transition: "background .12s", borderLeft: `3px solid ${bLeft}` }}
+                  onMouseEnter={e => { if (!isMe) e.currentTarget.style.background = T.surfaceHov; }}
+                  onMouseLeave={e => { if (!isMe) e.currentTarget.style.background = top3 ? `${T.brand}02` : "transparent"; }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>{rankIcon(rank)}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, overflow: "hidden", background: isMe ? `linear-gradient(135deg,${T.brand},${T.violet})` : "#E5E7EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: isMe ? "#fff" : T.textMd }}>
+                      {entry.avatar ? <img src={entry.avatar} alt="" style={{ width: 34, height: 34, objectFit: "cover" }} /> : (entry.name || entry.fullName || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: isMe ? 800 : 600, color: isMe ? T.brand : T.text, display: "flex", alignItems: "center", gap: 5, fontFamily: "'Syne',sans-serif" }}>
+                        {entry.name || entry.fullName || "Anonymous"}
+                        {isMe && <span style={{ fontSize: 8, background: T.brand, color: "#fff", borderRadius: 99, padding: "1px 6px", fontWeight: 700 }}>YOU</span>}
+                        {rank === 1 && !isMe && <span style={{ fontSize: 8, background: T.amberDim, color: T.amber, borderRadius: 99, padding: "1px 6px", fontWeight: 700, border: `1px solid ${T.amber}20` }}>👑 TOP</span>}
+                      </div>
+                      <div style={{ fontSize: 9, color: T.textDim, fontFamily: "'JetBrains Mono',monospace" }}>{entry.role || "Member"} · Lv.{computeLevel(entry.score || 0).level}</div>
+                    </div>
                   </div>
-                  <p style={{ fontSize:12, fontWeight:700, color:C.ink, marginBottom:2 }}>{dName(u).split(" ")[0]}</p>
-                  <p className="mono" style={{ fontSize:10, color:C.inkMd, marginBottom:8 }}>{(u.score||0).toLocaleString()} pts</p>
-                  <div style={{ background:cols[i]+"18", border:`2px solid ${cols[i]}30`, borderRadius:"10px 10px 0 0", width:76, height:h, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:cols[i] }}>{medals[i]}</div>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: isMe ? T.brand : top3 ? T.text : T.textMd, fontFamily: "'Syne',sans-serif" }}>{sortVal(entry)}</span>
+                  </div>
+                  <span style={{ fontSize: 11, color: T.textMd, alignSelf: "center" }}>{entry.quizzesDone || 0}</span>
+                  <span style={{ fontSize: 11, color: T.textMd, alignSelf: "center" }}>{(entry.xp || entry.score || 0).toLocaleString()}</span>
+                  <span style={{ fontSize: 11, alignSelf: "center", color: isMe && (entry.loginStreak || 0) > 0 ? T.amber : T.textMd, fontWeight: isMe ? 700 : 400 }}>🔥 {entry.loginStreak || 0}d</span>
                 </div>
               );
             })}
-          </div>
-          <div className="card" style={{ overflow:"hidden" }}>
-            <table style={{ width:"100%", borderCollapse:"collapse" }}>
-              <thead>
-                <tr style={{ background:C.bgPage }}>
-                  {["#","User","Score","Level","Streak"].map(h => (
-                    <th key={h} style={{ textAlign:"left", fontSize:9, fontWeight:700, color:C.inkLt, padding:"10px 16px", letterSpacing:"0.08em", textTransform:"uppercase", fontFamily:"Fira Code" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {fullData.map(u => (
-                  <tr key={u._id||u.id||u.name} className={u.isMe?"":"stripe-row"} style={{ borderTop:`1px solid ${C.border}30`, background:u.isMe?C.brandMd:"" }}>
-                    <td style={{ padding:"12px 16px" }}>
-                      <div style={{ width:26, height:26, borderRadius:7, background:u.rank<=3?C.amberLt:C.bgPage, border:`1px solid ${u.rank<=3?C.amber+"40":C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:u.rank<=3?C.amber:C.inkMd, fontFamily:"Fira Code" }}>{u.rank}</div>
-                    </td>
-                    <td style={{ padding:"12px 16px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-                        <Avatar name={dName(u)} size={32} fontSize={11}/>
-                        <div>
-                          <p style={{ fontSize:12, fontWeight:600, color:C.ink, margin:0 }}>
-                            {dName(u)}{u.isMe && <span style={{ fontSize:9, color:C.brand, marginLeft:5, fontWeight:700 }}>(You)</span>}
-                          </p>
-                          <p style={{ fontSize:10, color:C.inkMd, margin:"1px 0 0" }}>{u.dept || u.department || "InfoSec"}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding:"12px 16px" }}>
-                      <span style={{ fontSize:14, fontWeight:800, color:u.isMe?C.brand:C.ink }}>{(u.score||0).toLocaleString()}</span>
-                    </td>
-                    <td style={{ padding:"12px 16px" }}>
-                      <span className="mono" style={{ fontSize:10, fontWeight:600, color:C.violet }}>Lv.{u.level||1}</span>
-                    </td>
-                    <td style={{ padding:"12px 16px" }}>
-                      <span className="mono" style={{ fontSize:10, color:(u.streak||0)>=14?C.red:C.inkMd }}>{(u.streak||0)>=3?"":""}{u.streak||0}d</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// PROFILE PAGE
-// FIX: avatarUrl and setAvatarUrl now come from parent (App) as props
-// so the photo persists across page navigation
-// ══════════════════════════════════════════════════════════════════
-function ProfilePage({ user, avatarUrl, setAvatarUrl }) {
-  const [editing, setEditing]     = useState(false);
-  const [saving, setSaving]       = useState(false);
-  // coverUrl stays local — it's only used on this page
-  const [coverUrl, setCoverUrl]   = useState(user?.coverImage || null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [uploadingCover, setUploadingCover]   = useState(false);
-  const [form, setForm] = useState({
-    name:  dName(user),
-    email: user?.email || "",
-    phone: user?.phone || "",
-    city:  user?.city  || "",
-    role:  user?.role  || "",
-  });
-
-  const save = async () => {
-    setSaving(true);
-    try { await apiFetch("/api/me", { method:"PUT", body:JSON.stringify(form) }); setEditing(false); }
-    catch(e) { alert("Could not save: "+e.message); }
-    finally  { setSaving(false); }
-  };
-
-  const uploadImage = async (file, type) => {
-    const isAvatar = type === "avatar";
-    if (isAvatar) setUploadingAvatar(true); else setUploadingCover(true);
-    try {
-      // Immediately show preview using FileReader
-      const reader = new FileReader();
-      reader.onload = e => {
-        if (isAvatar) {
-          // FIX: update parent state so header + all pages see it
-          setAvatarUrl(e.target.result);
-          // Also persist to localStorage so refresh works
-          try {
-            const stored = JSON.parse(localStorage.getItem("user") || "{}");
-            localStorage.setItem("user", JSON.stringify({ ...stored, avatar: e.target.result }));
-          } catch {}
-        } else {
-          setCoverUrl(e.target.result);
-        }
-      };
-      reader.readAsDataURL(file);
-
-      // Then try server upload
-      const fd = new FormData();
-      fd.append("image", file);
-      fd.append("type", type);
-      const token = getToken();
-      const res = await fetch(`${API_URL}/api/upload-profile-image`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: fd,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const url = data.url || data.imageUrl || data.avatar;
-        if (url) {
-          if (isAvatar) {
-            // FIX: update parent state with final server URL
-            setAvatarUrl(url);
-            try {
-              const stored = JSON.parse(localStorage.getItem("user") || "{}");
-              localStorage.setItem("user", JSON.stringify({ ...stored, avatar: url }));
-            } catch {}
-          } else {
-            setCoverUrl(url);
-          }
-        }
-      }
-    } catch {}
-    finally { if (isAvatar) setUploadingAvatar(false); else setUploadingCover(false); }
-  };
-
-  const pickFile = (type) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/png,image/jpeg,image/webp";
-    input.onchange = e => { if (e.target.files[0]) uploadImage(e.target.files[0], type); };
-    input.click();
-  };
-
-  const name     = dName(user);
-  const hasStats = (user?.quizzesDone ?? 0) > 0;
-
-  return (
-    <div className="page-enter" style={{ maxWidth:820 }}>
-      <SectionHead title="My Profile" sub="Your account information and achievements"/>
-
-      <div className="card" style={{ marginBottom:20, overflow:"visible", position:"relative" }}>
-        <div style={{ height:110, borderRadius:"16px 16px 0 0", position:"relative", overflow:"hidden", background: coverUrl ? "transparent" : C.gradBrand }}>
-          {coverUrl
-            ? <img src={coverUrl} alt="cover" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-            : <div className="dotgrid" style={{ position:"absolute", inset:0, opacity:.15 }}/>
-          }
-          <button onClick={() => pickFile("cover")} disabled={uploadingCover}
-            style={{ position:"absolute", bottom:10, right:12, display:"flex", alignItems:"center", gap:6, padding:"5px 11px", borderRadius:8, fontSize:11, fontWeight:600, cursor:"pointer", background:"rgba(255,255,255,0.85)", backdropFilter:"blur(6px)", border:"1px solid rgba(255,255,255,0.6)", color:C.inkMd, boxShadow:C.shadow }}>
-            {uploadingCover ? <><Loader2 size={11} className="spin"/> Uploading...</> : <><ImagePlus size={11}/> Change Cover</>}
-          </button>
-        </div>
-
-        <div style={{ position:"absolute", left:24, top:110, transform:"translateY(-50%)", zIndex:10 }}>
-          <div style={{ position:"relative", display:"inline-block" }}>
-            <div style={{ width:80, height:80, borderRadius:"50%", border:`4px solid ${C.card}`, boxShadow:C.shadowMd, overflow:"hidden", background:C.card, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              {avatarUrl
-                ? <img src={avatarUrl} alt="avatar" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                : <Avatar name={name} size={80} fontSize={26}/>
-              }
-            </div>
-            <button onClick={() => pickFile("avatar")} disabled={uploadingAvatar}
-              style={{ position:"absolute", bottom:2, right:2, width:26, height:26, borderRadius:"50%", background:C.brand, border:`2px solid ${C.card}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(37,99,235,0.4)" }}>
-              {uploadingAvatar ? <Loader2 size={12} style={{ color:"#fff" }} className="spin"/> : <Camera size={11} style={{ color:"#fff" }}/>}
-            </button>
-          </div>
-        </div>
-
-        <div style={{ padding:"50px 24px 24px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", marginBottom:10 }}>
-            <button onClick={() => editing ? save() : setEditing(true)} disabled={saving}
-              style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, fontSize:12, fontWeight:600, border:`1px solid ${editing?C.teal+"40":C.border}`, background:editing?C.tealLt:C.bgPage, color:editing?C.teal:C.inkMd, cursor:"pointer" }}>
-              {saving?<><Loader2 size={12} className="spin"/> Saving...</>:editing?<><Save size={12}/> Save</>:<><Edit size={12}/> Edit Profile</>}
-            </button>
-          </div>
-          <h2 style={{ fontSize:18, fontWeight:800, color:C.ink, margin:"0 0 3px" }}>{name}</h2>
-          <p style={{ fontSize:12, color:C.inkMd, margin:"0 0 10px" }}>{user?.role || "Security Analyst"}</p>
-          <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
-            <Tag label={`Lv.${user?.level??1}`}  color={C.violet} bg={C.violetLt}/>
-            <Tag label={`${user?.xp??0} XP`}     color={C.amber}  bg={C.amberLt}/>
-            {(user?.streak??0)>0 && <Tag label={`${user.streak}d streak`} color={C.red} bg={C.redLt}/>}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
-        <div className="card" style={{ padding:22 }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <User size={14} style={{ color:C.brand }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Personal Info</span>
-            </div>
-            {editing && <button onClick={() => setEditing(false)} style={{ background:"none", border:"none", cursor:"pointer", color:C.inkLt }}><X size={14}/></button>}
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            {[["Full Name","name"],["Email","email"],["Phone","phone"],["City","city"],["Role","role"]].map(([label,field]) => (
-              <div key={field}>
-                <label className="mono" style={{ fontSize:9, color:C.inkLt, display:"block", marginBottom:4, letterSpacing:"0.07em", textTransform:"uppercase" }}>{label}</label>
-                {editing ? (
-                  <input value={form[field]||""} onChange={e => setForm(p => ({ ...p, [field]:e.target.value }))}
-                    style={{ width:"100%", padding:"8px 11px", borderRadius:9, border:`1.5px solid ${C.border}`, fontSize:12, background:C.bgPage, color:C.ink, boxSizing:"border-box" }}
-                    onFocus={e => e.target.style.borderColor = C.brand+"60"}
-                    onBlur={e => e.target.style.borderColor = C.border}/>
-                ) : (
-                  <p style={{ fontSize:13, fontWeight:500, color:form[field]?C.inkMd:C.inkLt, margin:0, fontStyle:form[field]?"normal":"italic" }}>
-                    {form[field] || "Not set"}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-          <div className="card" style={{ padding:20 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-              <Activity size={14} style={{ color:C.amber }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Stats</span>
-            </div>
-            {hasStats ? (
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                {[["Score",user?.score??0,C.brand],["Quizzes",user?.quizzesDone??0,C.violet],["Avg Score",user?.avgScore?user.avgScore+"%":"—",C.teal],["Streak",`${user?.streak??0}d`,C.amber]].map(([l,v,c]) => (
-                  <div key={l} style={{ background:c+"10", border:`1px solid ${c}18`, borderRadius:10, padding:12, textAlign:"center" }}>
-                    <div style={{ fontSize:20, fontWeight:800, color:c }}>{v}</div>
-                    <div style={{ fontSize:10, color:C.inkMd, marginTop:3 }}>{l}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState icon={TrendingUp} title="No stats yet" desc="Complete activities to see your stats." color={C.amber}/>
-            )}
-          </div>
-
-          <div className="card" style={{ padding:20, flex:1 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-              <Award size={14} style={{ color:C.teal }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Badges</span>
-            </div>
-            {hasStats && (user?.badges||[]).length > 0 ? (
-              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {(user.badges||[]).map((b,i) => (
-                  <div key={i} style={{ textAlign:"center", padding:"10px 12px", background:C.amberLt, border:`1px solid ${C.amber}20`, borderRadius:10 }}>
-                    <div style={{ fontSize:20 }}>{b.emoji||""}</div>
-                    <p style={{ fontSize:9, color:C.inkMd, marginTop:4 }}>{b.label||b}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState icon={Award} title="No badges yet" desc="Complete challenges to earn badges." color={C.teal}/>
-            )}
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════
-// SETTINGS
-// ══════════════════════════════════════════════════════════════════
-function SettingsPage({ user }) {
-  const [showPass, setShowPass] = useState(false);
-  const [saving, setSaving]     = useState(false);
-  const [delModal, setDelModal] = useState(false);
-  const [notifs, setNotifs]     = useState({ email:true, push:true, threats:true });
-  const [form, setForm] = useState({ name:dName(user), email:user?.email||"", phone:user?.phone||"" });
+// ─── STUB PAGE ────────────────────────────────────────────────────────────────
+const StubPage = ({ emoji, title, desc, btnLabel, btnColor, onAction }) => (
+  <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 24, padding: "52px 40px", textAlign: "center", boxShadow: T.sh }}>
+    <div style={{ fontSize: 52, marginBottom: 16 }}>{emoji}</div>
+    <h2 style={{ fontSize: 24, fontWeight: 800, color: T.text, fontFamily: "'Syne',sans-serif", margin: "0 0 10px" }}>{title}</h2>
+    <p style={{ fontSize: 13, color: T.textMd, margin: "0 0 28px", maxWidth: 440, marginInline: "auto", lineHeight: 1.7 }}>{desc}</p>
+    <button onClick={onAction} style={{ padding: "12px 32px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${btnColor},${btnColor}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif" }}>{btnLabel}</button>
+  </div>
+);
 
-  const Toggle = ({ on, onChange, color=C.brand }) => (
-    <button onClick={() => onChange(!on)} style={{ position:"relative", width:42, height:22, borderRadius:99, border:"none", cursor:"pointer", padding:0, background:on?color:C.borderMd, transition:"background .2s", flexShrink:0 }}>
-      <span style={{ position:"absolute", top:3, left:on?22:3, width:16, height:16, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,.2)", transition:"left .2s" }}/>
-    </button>
-  );
-
-  return (
-    <div className="page-enter" style={{ maxWidth:640 }}>
-      <SectionHead title="Settings" sub="Manage your account and preferences"/>
-
-      <div className="card" style={{ padding:22, marginBottom:14 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:18 }}><User size={14} style={{ color:C.brand }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Account</span></div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
-          {[["Full Name","name"],["Email","email"],["Phone","phone"]].map(([l,f]) => (
-            <div key={f}>
-              <label className="mono" style={{ fontSize:9, color:C.inkLt, display:"block", marginBottom:4, letterSpacing:"0.07em", textTransform:"uppercase" }}>{l}</label>
-              <input value={form[f]||""} onChange={e => setForm(p => ({ ...p, [f]:e.target.value }))}
-                style={{ width:"100%", padding:"8px 11px", borderRadius:9, border:`1.5px solid ${C.border}`, fontSize:12, background:C.bgPage, color:C.ink, boxSizing:"border-box" }}
-                onFocus={e => e.target.style.borderColor = C.brand+"60"}
-                onBlur={e => e.target.style.borderColor = C.border}/>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginBottom:16 }}>
-          <label className="mono" style={{ fontSize:9, color:C.inkLt, display:"block", marginBottom:4, letterSpacing:"0.07em", textTransform:"uppercase" }}>New Password</label>
-          <div style={{ position:"relative" }}>
-            <input type={showPass?"text":"password"} placeholder="..." style={{ width:"100%", padding:"8px 38px 8px 11px", borderRadius:9, border:`1.5px solid ${C.border}`, fontSize:12, background:C.bgPage, color:C.ink, boxSizing:"border-box" }}/>
-            <button onClick={() => setShowPass(!showPass)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.inkLt }}>
-              {showPass?<EyeOff size={13}/>:<Eye size={13}/>}
-            </button>
-          </div>
-        </div>
-        <button className="btn btn-primary" disabled={saving}
-          onClick={async () => { setSaving(true); try { await apiFetch("/api/me",{method:"PUT",body:JSON.stringify(form)}); } catch(e){alert(e.message);} finally{setSaving(false);} }}>
-          {saving?<><Loader2 size={12} className="spin"/> Saving...</>:<><Save size={12}/> Save Changes</>}
-        </button>
-      </div>
-
-      <div className="card" style={{ padding:22, marginBottom:14 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:18 }}><Bell size={14} style={{ color:C.amber }}/><span style={{ fontSize:13, fontWeight:700, color:C.ink }}>Notifications</span></div>
-        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-          {[{k:"email",l:"Email Alerts",d:"Security alerts via email"},{k:"push",l:"Push Notifications",d:"Browser & mobile"},{k:"threats",l:"Threat Alerts",d:"Critical threat intel"}].map(it => (
-            <div key={it.k} style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div><p style={{ fontSize:12, fontWeight:500, color:C.ink, margin:0 }}>{it.l}</p><p style={{ fontSize:11, color:C.inkMd, margin:"1px 0 0" }}>{it.d}</p></div>
-              <Toggle on={notifs[it.k]} onChange={v => setNotifs(n => ({ ...n, [it.k]:v }))}/>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="card" style={{ padding:22, border:`1px solid ${C.red}25` }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}><AlertTriangle size={14} style={{ color:C.red }}/><span style={{ fontSize:13, fontWeight:700, color:C.red }}>Danger Zone</span></div>
-        <p style={{ fontSize:12, color:C.inkMd, marginBottom:14 }}>Deleting your account is permanent and cannot be undone.</p>
-        <button onClick={() => setDelModal(true)} style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 16px", borderRadius:9, fontSize:12, fontWeight:600, border:`1px solid ${C.red}25`, cursor:"pointer", background:C.redLt, color:C.red }}>
-          <Trash2 size={12}/> Delete Account
-        </button>
-      </div>
-
-      {delModal && (
-        <div style={{ position:"fixed", inset:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(15,23,42,0.4)", backdropFilter:"blur(4px)" }}>
-          <div className="card" style={{ padding:28, maxWidth:340, width:"100%" }}>
-            <AlertTriangle size={28} style={{ color:C.red, marginBottom:14 }}/>
-            <h3 style={{ fontSize:16, fontWeight:800, color:C.ink, margin:"0 0 8px" }}>Delete Account?</h3>
-            <p style={{ fontSize:12, color:C.inkMd, margin:"0 0 22px" }}>All data, XP, and certificates will be permanently deleted.</p>
-            <div style={{ display:"flex", gap:10 }}>
-              <button onClick={() => setDelModal(false)} className="btn btn-ghost" style={{ flex:1, justifyContent:"center" }}>Cancel</button>
-              <button style={{ flex:1, padding:11, borderRadius:10, fontSize:12, fontWeight:700, border:"none", cursor:"pointer", background:C.red, color:"#fff" }}>Yes, Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// NOTIFICATIONS DRAWER
-// ══════════════════════════════════════════════════════════════════
-function NotifsDrawer({ open, onClose, notifs, setNotifs }) {
-  return (
-    <>
-      {open && <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:40, background:"rgba(15,23,42,0.25)", backdropFilter:"blur(2px)" }}/>}
-      <div style={{ position:"fixed", top:0, right:0, height:"100%", zIndex:50, width:350, background:C.card, boxShadow:C.shadowLg, border:`1px solid ${C.border}`, transform:open?"translateX(0)":"translateX(100%)", transition:"transform .28s cubic-bezier(.4,0,.2,1)", display:"flex", flexDirection:"column" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 20px", borderBottom:`1px solid ${C.border}` }}>
-          <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-            <span style={{ fontSize:14, fontWeight:700, color:C.ink }}>Notifications</span>
-            {notifs.filter(n=>n.unread).length>0 && <Tag label={`${notifs.filter(n=>n.unread).length}`} color={C.red} bg={C.redLt}/>}
-          </div>
-          <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:C.inkMd }}><X size={17}/></button>
-        </div>
-        <div style={{ padding:"8px 20px", borderBottom:`1px solid ${C.border}`, display:"flex", gap:12 }}>
-          <button onClick={() => setNotifs(l => l.map(x=>({...x,unread:false})))} style={{ fontSize:11, fontWeight:600, color:C.brand, background:"none", border:"none", cursor:"pointer" }}>Mark all read</button>
-          <button onClick={() => setNotifs([])} style={{ fontSize:11, fontWeight:600, color:C.red, background:"none", border:"none", cursor:"pointer" }}>Clear all</button>
-        </div>
-        <div style={{ flex:1, overflowY:"auto" }}>
-          {notifs.length === 0 ? (
-            <EmptyState icon={Bell} title="No notifications" desc="You're all caught up!" color={C.inkLt}/>
-          ) : notifs.map(n => (
-            <div key={n.id} style={{ display:"flex", alignItems:"flex-start", gap:11, padding:"13px 20px", borderBottom:`1px solid ${C.border}20`, background:n.unread?n.color+"06":"transparent" }}>
-              <div style={{ width:30, height:30, borderRadius:8, background:n.color+"14", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                <n.icon size={13} style={{ color:n.color }}/>
-              </div>
-              <div style={{ flex:1 }}>
-                <p style={{ fontSize:12, fontWeight:n.unread?600:400, color:n.unread?C.ink:C.inkMd, margin:"0 0 2px", lineHeight:1.4 }}>{n.msg}</p>
-                <p className="mono" style={{ fontSize:9, color:C.inkLt }}>{n.time}</p>
-              </div>
-              {n.unread && <div style={{ width:7, height:7, borderRadius:"50%", background:n.color, flexShrink:0, marginTop:5 }}/>}
-              <button className="notif-dismiss" onClick={() => setNotifs(prev => prev.filter(x => x.id !== n.id))} title="Dismiss">
-                <X size={11}/>
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// LOADER
-// ══════════════════════════════════════════════════════════════════
-function Loader() {
-  return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, flexDirection:"column", gap:16 }}>
-      <div style={{ width:52, height:52, borderRadius:14, background:C.gradBrand, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 24px rgba(37,99,235,0.3)" }}>
-        <Shield size={26} style={{ color:"#fff" }}/>
-      </div>
-      <div style={{ display:"flex", gap:5 }}>
-        {[0,1,2].map(i => <div key={i} style={{ width:6, height:6, borderRadius:"50%", background:C.brand, opacity:.35, animation:`pulse 1.2s ease ${i*.2}s infinite` }}/>)}
-      </div>
-      <p className="mono" style={{ fontSize:11, color:C.inkMd, letterSpacing:"0.08em" }}>Loading your dashboard...</p>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════
-// ROOT APP
-// FIX SUMMARY:
-//   1. avatarUrl state moved here (App level) — was inside ProfilePage
-//   2. avatarUrl initialized from localStorage so refresh works
-//   3. avatarUrl + setAvatarUrl passed down to ProfilePage as props
-//   4. Header avatar now renders the actual photo when available
-// ══════════════════════════════════════════════════════════════════
-export default function App() {
-  const { user, loading } = useUser();
+// ─── ROOT DASHBOARD ───────────────────────────────────────────────────────────
+export default function Dashboard() {
   const navigate = useNavigate();
+  const { user: dashUser } = useDashboardUser();
 
-  const [page, setPage]           = useState("dashboard");
-  const [sideOpen, setSideOpen]   = useState(true);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
-  const [notifs, setNotifs]       = useState(INITIAL_NOTIFS);
+  const [page, setPage] = useState("overview");
+  const [collapsed, setCollapsed] = useState(false);
+  const [showNotif, setShowNotif] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [notifRead, setNotifRead] = useState(false);
+  const [online, setOnline] = useState(navigator.onLine);
 
-  // ── FIX 1: avatarUrl lifted to App level ──────────────────────
-  // Initialize from localStorage so it survives page refresh too
-  const [avatarUrl, setAvatarUrl] = useState(() => {
+  // Dashboard real-time data
+  const [dashData, setDashData] = useState(null);
+  const [dashLoading, setDashLoading] = useState(true);
+  const [liveActivities, setLiveActivities] = useState([]);
+  const [liveThreats, setLiveThreats] = useState([]);
+
+  const [user, setUser] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("user") || "null")?.avatar || null;
+      const raw = JSON.parse(localStorage.getItem("user") || "null");
+      if (!raw) return null;
+      const resolved = { ...raw, _id: raw._id || raw.id };
+      if (!resolved.fullName) {
+        if (raw.name) resolved.fullName = raw.name;
+        else if (raw.username) resolved.fullName = raw.username;
+        else if (raw.firstName || raw.lastName) resolved.fullName = `${raw.firstName || ""} ${raw.lastName || ""}`.trim();
+      }
+      return resolved;
     } catch { return null; }
   });
 
-  // Also sync when user object loads from API (in case server has a URL)
+  // Online/Offline detection
   useEffect(() => {
-    if (user?.avatar && !avatarUrl) {
-      setAvatarUrl(user.avatar);
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
+  }, []);
+
+  // Merge dashUser from hook
+  useEffect(() => {
+    if (dashUser) {
+      setUser(prev => {
+        const merged = { ...prev, ...dashUser, _id: dashUser._id || dashUser.id || prev?._id };
+        if (!merged.fullName) {
+          if (dashUser.name) merged.fullName = dashUser.name;
+          else if (dashUser.username) merged.fullName = dashUser.username;
+        }
+        return merged;
+      });
     }
-  }, [user]);
-  // ──────────────────────────────────────────────────────────────
+  }, [dashUser]);
 
-  const unread = notifs.filter(n => n.unread).length;
-  const name   = dName(user);
-  const fname  = name.split(" ")[0];
+  // Fetch user + dashboard data
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  const PAGES = {
-    dashboard:   <DashboardPage   user={user} setPage={setPage} navigate={navigate} notifs={notifs} setNotifs={setNotifs}/>,
-    threats:     <ThreatsPage/>,
-    phishing:    <PhishingPage/>,
-    reports:     <ReportsPage     user={user} setPage={setPage}/>,
-    leaderboard: <LeaderboardPage user={user}/>,
-    // ── FIX 2: pass avatarUrl + setAvatarUrl to ProfilePage ──
-    profile:     <ProfilePage     user={user} avatarUrl={avatarUrl} setAvatarUrl={setAvatarUrl}/>,
-    settings:    <SettingsPage    user={user}/>,
+    // Fetch user profile
+    API.get("/api/auth/me")
+      .then(data => {
+        if (data?.user) {
+          const raw = data.user;
+          const fresh = { ...raw, _id: raw._id || raw.id };
+          if (!fresh.fullName) {
+            if (raw.name) fresh.fullName = raw.name;
+            else if (raw.username) fresh.fullName = raw.username;
+          }
+          const { streak, updated, lastDate } = computeStreak(fresh);
+          if (updated) {
+            fresh.loginStreak = streak;
+            fresh.lastLoginDate = lastDate;
+            API.put("/api/auth/profile", { loginStreak: streak, lastLoginDate: lastDate }).catch(() => {});
+          }
+          setUser(fresh);
+          localStorage.setItem("user", JSON.stringify(fresh));
+        }
+      })
+      .catch(() => {
+        try {
+          const raw = localStorage.getItem("user");
+          if (raw) {
+            const cached = JSON.parse(raw);
+            const { streak, updated, lastDate } = computeStreak(cached);
+            if (updated) {
+              const u2 = { ...cached, loginStreak: streak, lastLoginDate: lastDate };
+              setUser(u2);
+              localStorage.setItem("user", JSON.stringify(u2));
+            }
+          }
+        } catch {}
+      });
+
+    // Fetch dashboard data
+    const fetchDashboard = () => {
+      API.get("/api/dashboard")
+        .then(data => {
+          setDashData(data);
+          setDashLoading(false);
+        })
+        .catch(() => setDashLoading(false));
+    };
+    fetchDashboard();
+
+    // Fetch live activities
+    const fetchActivities = () => {
+      API.get("/api/activity?limit=10")
+        .then(data => setLiveActivities(Array.isArray(data) ? data : data.activities || []))
+        .catch(() => {});
+    };
+    fetchActivities();
+
+    // Fetch live threats summary for ticker
+    API.get("/api/threats?limit=5")
+      .then(data => setLiveThreats(Array.isArray(data) ? data : data.threats || []))
+      .catch(() => {});
+
+    // Real-time polling — every 30 seconds
+    const pollDash = setInterval(fetchDashboard, 30000);
+    const pollActs = setInterval(fetchActivities, 15000);
+    return () => { clearInterval(pollDash); clearInterval(pollActs); };
+  }, []);
+
+  const onUserUpdate = useCallback((updates) => {
+    setUser(prev => {
+      const merged = { ...prev, ...updates };
+      if (updates.score !== undefined) {
+        const { level, xp } = computeLevel(updates.score);
+        merged.level = level;
+        merged.xp = xp;
+      }
+      localStorage.setItem("user", JSON.stringify(merged));
+      return merged;
+    });
+
+    const token = localStorage.getItem("token");
+    if (token) {
+      setTimeout(() => {
+        API.get("/api/auth/me")
+          .then(data => {
+            if (data?.user) {
+              const raw = data.user;
+              const fresh = { ...raw, _id: raw._id || raw.id };
+              setUser(prev => {
+                const merged = {
+                  ...fresh,
+                  fullName: prev?.fullName || fresh.fullName,
+                  score: Math.max(fresh.score || 0, prev?.score || 0),
+                  xp: Math.max(fresh.xp || 0, prev?.xp || 0),
+                  level: Math.max(fresh.level || 1, prev?.level || 1),
+                  quizzesDone: Math.max(fresh.quizzesDone || 0, prev?.quizzesDone || 0),
+                  loginStreak: Math.max(fresh.loginStreak || 0, prev?.loginStreak || 0),
+                  phishingSimCorrect: Math.max(fresh.phishingSimCorrect || 0, prev?.phishingSimCorrect || 0),
+                  phishingSimTotal: Math.max(fresh.phishingSimTotal || 0, prev?.phishingSimTotal || 0),
+                  quizHistory: (prev?.quizHistory?.length || 0) > (fresh.quizHistory?.length || 0) ? prev.quizHistory : fresh.quizHistory,
+                  badges: (prev?.badges?.length || 0) > (fresh.badges?.length || 0) ? prev.badges : fresh.badges,
+                  avatar: prev?.avatar || fresh.avatar,
+                };
+                localStorage.setItem("user", JSON.stringify(merged));
+                return merged;
+              });
+            }
+          })
+          .catch(() => {});
+      }, 800);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setShowSearch(s => !s); }
+      if (e.key === "Escape") { setShowNotif(false); setShowSearch(false); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!showNotif) return;
+    const handler = e => { if (!e.target.closest("[data-notif]")) setShowNotif(false); };
+    setTimeout(() => document.addEventListener("click", handler), 0);
+    return () => document.removeEventListener("click", handler);
+  }, [showNotif]);
+
+  const notifList = generateNotifications(user);
+  const notifCount = notifRead ? 0 : notifList.filter(n => !n.read).length;
+  const sideW = collapsed ? 64 : 236;
+
+  const renderPage = () => {
+    switch (page) {
+      case "overview": return <OverviewPage user={user} setPage={setPage} navigate={navigate} dashData={dashData} dashLoading={dashLoading} liveActivities={liveActivities} />;
+      case "threats": return <ThreatsPage />;
+      case "phishing": return <PhishingPage user={user} onUserUpdate={onUserUpdate} />;
+      case "reports": return <ReportsPage user={user} navigate={navigate} setPage={setPage} />;
+      case "profile": return <ProfilePage user={user} onUserUpdate={onUserUpdate} />;
+      case "settings": return <SettingsPage user={user} onUserUpdate={onUserUpdate} />;
+      case "leaderboard": return <LeaderboardPage user={user} />;
+      case "aichat": return <AIChatPage />;
+      case "courses": return <StubPage emoji="📚" title="Learning Courses" desc="Your courses live on a dedicated page. Progress and certificates sync back to your profile automatically." btnLabel="Browse Courses" btnColor={T.teal} onAction={() => navigate("/courses")} />;
+      case "quiz": return <StubPage emoji="🧠" title="Quiz Center" desc="Quizzes are linked to individual courses. Pick a course to unlock its quiz and earn XP." btnLabel="Go to Courses" btnColor={T.brand} onAction={() => navigate("/courses")} />;
+      case "game": return <StubPage emoji="🛡️" title="CyberDefense Game" desc="Your game module runs on its own page. Defend systems from attacks and earn massive XP." btnLabel="Launch Game" btnColor={T.violet} onAction={() => navigate("/game")} />;
+      default: return <OverviewPage user={user} setPage={setPage} navigate={navigate} dashData={dashData} dashLoading={dashLoading} liveActivities={liveActivities} />;
+    }
   };
-
-  const handleNav = (item) => {
-    if (item.route) { navigate(item.route); return; }
-    setPage(item.id);
-  };
-
-  if (loading) return <><G/><Loader/></>;
 
   return (
-    <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:C.bg }}>
-      <G/>
+    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Nunito',sans-serif", color: T.text }}>
+      <G />
+      <Sidebar page={page} setPage={setPage} user={user} navigate={navigate} collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div style={{ flex: 1, marginLeft: sideW, display: "flex", flexDirection: "column", transition: "margin-left .25s cubic-bezier(.16,1,.3,1)" }}>
+        <TopBar page={page} user={user} notifCount={notifCount} online={online}
+          onNotifClick={() => setShowNotif(s => !s)}
+          onProfileClick={() => setPage("profile")}
+          onSearchClick={() => setShowSearch(true)} />
 
-      {/* ── SIDEBAR ── */}
-      <aside style={{ display:"flex", flexDirection:"column", height:"100%", flexShrink:0, width:sideOpen?224:58, transition:"width .28s cubic-bezier(.4,0,.2,1)", background:C.sidebar, borderRight:`1px solid ${C.border}`, boxShadow:"2px 0 8px rgba(15,23,42,0.04)" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, padding:"15px 14px", borderBottom:`1px solid ${C.border}`, height:60 }}>
-          <div style={{ width:32, height:32, borderRadius:9, background:C.gradBrand, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 12px rgba(37,99,235,0.28)" }}>
-            <Shield size={16} style={{ color:"#fff" }}/>
+        {showNotif && (
+          <div data-notif>
+            <NotificationPanel user={user} onClose={() => setShowNotif(false)} onMarkRead={() => { setNotifRead(true); setShowNotif(false); }} />
           </div>
-          {sideOpen && <span style={{ fontWeight:800, fontSize:15, color:C.ink, letterSpacing:"-0.02em", whiteSpace:"nowrap" }}>CyberShield</span>}
-        </div>
+        )}
+        {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} setPage={setPage} navigate={navigate} />}
 
-        <nav style={{ flex:1, overflowY:"auto", padding:"10px 7px" }}>
-          {[NAV.slice(0,6), NAV.slice(6)].map((group, gi) => (
-            <div key={gi}>
-              {gi > 0 && <div style={{ height:1, background:C.border, margin:"6px 4px" }}/>}
-              {group.map(item => {
-                const active = !item.route && page === item.id;
-                return (
-                  <button key={item.id} onClick={() => handleNav(item)} title={!sideOpen ? item.label : ""} className={`nav-btn ${active ? "active" : ""}`} style={{ justifyContent:sideOpen?"flex-start":"center", marginBottom:2 }}>
-                    {active && (
-                      <div style={{ position:"absolute", left:0, top:"50%", transform:"translateY(-50%)", width:3, height:20, background:C.brand, borderRadius:"0 3px 3px 0" }}/>
-                    )}
-                    <item.icon size={16} style={{ flexShrink:0 }}/>
-                    {sideOpen && <span style={{ whiteSpace:"nowrap" }}>{item.label}</span>}
-                    {item.badge && sideOpen && (
-                      <span className="mono" style={{ marginLeft:"auto", background:C.tealLt, color:C.teal, fontSize:8, fontWeight:700, padding:"1px 5px", borderRadius:4 }}>{item.badge}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </nav>
-
-        <div style={{ padding:"8px 7px", borderTop:`1px solid ${C.border}` }}>
-          <button onClick={() => setSideOpen(!sideOpen)} className="nav-btn" style={{ justifyContent:sideOpen?"flex-start":"center" }}>
-            {sideOpen ? <><ChevronLeft size={14}/><span>Collapse</span></> : <ChevronRight size={14}/>}
-          </button>
-        </div>
-      </aside>
-
-      {/* ── MAIN ── */}
-      <div style={{ display:"flex", flexDirection:"column", flex:1, overflow:"hidden" }}>
-        <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 20px", height:60, flexShrink:0, background:C.card, borderBottom:`1px solid ${C.border}`, boxShadow:"0 1px 6px rgba(15,23,42,0.05)" }}>
-          <div style={{ position:"relative", width:260 }}>
-            <Search size={13} style={{ position:"absolute", left:11, top:"50%", transform:"translateY(-50%)", color:C.inkLt }}/>
-            <input placeholder="Search threats, courses..." style={{ width:"100%", paddingLeft:32, paddingRight:12, paddingTop:8, paddingBottom:8, borderRadius:9, border:`1px solid ${C.border}`, fontSize:12, background:C.bgPage, color:C.ink, boxSizing:"border-box" }}/>
+        {/* Threat Ticker Bar */}
+        {liveThreats.length > 0 && (
+          <div style={{ padding: "6px 24px", borderBottom: `1px solid ${T.border}`, background: T.surface }}>
+            <ThreatTicker threats={liveThreats} />
           </div>
+        )}
 
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"4px 10px", borderRadius:8, background:C.greenLt, border:`1px solid ${C.green}20` }}>
-              <div style={{ width:5, height:5, borderRadius:"50%", background:C.green, animation:"pulse 2s infinite" }}/>
-              <span className="mono" style={{ fontSize:9, fontWeight:700, color:C.green, letterSpacing:"0.08em" }}>SECURE</span>
-            </div>
-
-            <button onClick={() => setNotifOpen(!notifOpen)}
-              style={{ position:"relative", padding:7, borderRadius:9, border:`1px solid ${C.border}`, cursor:"pointer", background:C.bgPage, transition:"all .15s" }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = C.borderMd}
-              onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-              <Bell size={15} style={{ color:C.inkMd }}/>
-              {unread > 0 && (
-                <span style={{ position:"absolute", top:2, right:2, width:16, height:16, borderRadius:"50%", background:C.red, color:"#fff", fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Fira Code" }}>{unread}</span>
-              )}
-            </button>
-
-            <div style={{ position:"relative" }}>
-              <button onClick={() => setMenuOpen(!menuOpen)}
-                style={{ display:"flex", alignItems:"center", gap:8, padding:"5px 9px", borderRadius:9, border:`1px solid ${C.border}`, cursor:"pointer", background:C.bgPage, transition:"all .15s" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = C.borderMd}
-                onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                {/* ── FIX 3: Header shows actual avatar photo ── */}
-                {avatarUrl
-                  ? <img src={avatarUrl} alt="avatar" style={{ width:28, height:28, borderRadius:"50%", objectFit:"cover", flexShrink:0 }}/>
-                  : <Avatar name={name} size={28} fontSize={10}/>
-                }
-                <span style={{ fontSize:12, fontWeight:600, color:C.inkMd }}>{fname}</span>
-                <ChevronDown size={11} style={{ color:C.inkLt }}/>
-              </button>
-
-              {menuOpen && (
-                <div style={{ position:"absolute", right:0, top:"calc(100% + 8px)", width:195, background:C.card, borderRadius:13, boxShadow:C.shadowLg, border:`1px solid ${C.border}`, zIndex:50, overflow:"hidden", animation:"fadeIn .15s ease" }}>
-                  <div style={{ padding:"11px 14px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:9 }}>
-                    {/* ── FIX 4: Dropdown also shows avatar photo ── */}
-                    {avatarUrl
-                      ? <img src={avatarUrl} alt="avatar" style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", flexShrink:0 }}/>
-                      : <Avatar name={name} size={32} fontSize={11}/>
-                    }
-                    <div>
-                      <p style={{ fontSize:12, fontWeight:700, color:C.ink, margin:0 }}>{name}</p>
-                      <p className="mono" style={{ fontSize:10, color:C.inkMd, margin:"1px 0 0" }}>{user?.email||""}</p>
-                    </div>
-                  </div>
-                  {[{l:"Profile",I:User,p:"profile"},{l:"Settings",I:Settings,p:"settings"}].map(it => (
-                    <button key={it.l} onClick={() => { setPage(it.p); setMenuOpen(false); }}
-                      style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 14px", fontSize:12, color:C.inkMd, border:"none", cursor:"pointer", background:"transparent", textAlign:"left", fontFamily:"Plus Jakarta Sans", transition:"background .12s" }}
-                      onMouseEnter={e => e.currentTarget.style.background = C.bgPage}
-                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <it.I size={12}/>{it.l}
-                    </button>
-                  ))}
-                  <div style={{ borderTop:`1px solid ${C.border}` }}>
-                    <button onClick={handleLogout}
-                      style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 14px", fontSize:12, color:C.red, border:"none", cursor:"pointer", background:"transparent", textAlign:"left", fontFamily:"Plus Jakarta Sans" }}
-                      onMouseEnter={e => e.currentTarget.style.background = C.redLt}
-                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <LogOut size={12}/> Logout
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        <main style={{ flex:1, overflowY:"auto", padding:22, background:C.bg }}>
-          <div key={page} className="page-enter">{PAGES[page]}</div>
+        <main style={{ flex: 1, padding: "20px 24px", overflowY: "auto" }}>
+          {renderPage()}
         </main>
       </div>
-
-      <NotifsDrawer open={notifOpen} onClose={() => setNotifOpen(false)} notifs={notifs} setNotifs={setNotifs}/>
-      {menuOpen && <div onClick={() => setMenuOpen(false)} style={{ position:"fixed", inset:0, zIndex:40 }}/>}
     </div>
   );
 }

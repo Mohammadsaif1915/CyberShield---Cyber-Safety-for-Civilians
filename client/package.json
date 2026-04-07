@@ -1,5 +1,5 @@
 {
-  "name": "cybershield",
+  "name": "cybershield-client",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -8,12 +8,20 @@
     "build": "vite build",
     "preview": "vite preview"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mohammadsaif1915/CyberShield---Cyber-Safety-for-Civilians.git"
+  },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
     "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "lucide-react": "^0.303.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^6.30.3",
     "recharts": "^3.8.0"
   },

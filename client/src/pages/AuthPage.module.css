@@ -1,0 +1,124 @@
+/* AuthPage.module.css */
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f1620 0%, #0f4c81 50%, #0ea5e9 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: var(--radius-xl);
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  z-index: 2;
+  animation: fadeUp .5s var(--ease) both;
+}
+
+.head {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.shield {
+  font-size: 42px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--clr-text);
+  letter-spacing: -.03em;
+  margin-bottom: 6px;
+}
+
+.sub {
+  font-size: 14px;
+  color: var(--clr-text2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--clr-text2);
+  letter-spacing: .01em;
+}
+
+.inputErr { border-color: var(--clr-danger) !important; }
+.inputErr:focus { box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important; }
+
+.errMsg {
+  font-size: 12px;
+  color: var(--clr-danger);
+  font-weight: 500;
+}
+
+.submitBtn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+.switchText {
+  text-align: center;
+  font-size: 13px;
+  color: var(--clr-text3);
+  margin-top: 20px;
+}
+
+.switchLink {
+  color: var(--clr-accent);
+  font-weight: 600;
+}
+.switchLink:hover { text-decoration: underline; }
+
+/* Floating background icons */
+.bgDecor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.floatIcon {
+  position: absolute;
+  font-size: 28px;
+  opacity: 0.06;
+  animation: floatAnim 8s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 1.1s);
+  left:  calc(10% + var(--i) * 12%);
+  top:   calc(10% + var(--i) * 10%);
+}
+
+@keyframes floatAnim {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-20px) rotate(10deg); }
+}
+
+@media (max-width: 480px) {
+  .card { padding: 32px 24px; }
+}

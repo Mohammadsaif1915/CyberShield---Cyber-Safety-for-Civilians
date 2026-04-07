@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Results.css';
+
+const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL)
+  || 'http://localhost:5000';
 
 const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
   const [expandedSection, setExpandedSection] = useState(null);
+  const [saveStatus, setSaveStatus] = useState('saving');
+  const hasSaved = useRef(false);
 
   const calculateResults = () => {
     let totalCorrect = 0;
@@ -16,7 +21,18 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
 
       section.questions.forEach(q => {
         totalQuestions++;
-        if (sectionAnswers[q.id] === q.correctAnswer) {
+
+        const userAnswer = sectionAnswers[q.id];
+
+        // ✅ FIX: Check if we stored shuffled correctAnswer
+        // If yes, compare against shuffled correctAnswer
+        // If no (old format), compare against original correctAnswer
+        const shuffledCorrect = sectionAnswers[`${q.id}_correct`];
+        const correctAnswer = shuffledCorrect !== undefined
+          ? shuffledCorrect      // use shuffled correctAnswer
+          : q.correctAnswer;     // fallback to original
+
+        if (userAnswer !== undefined && userAnswer === correctAnswer) {
           sectionCorrect++;
           totalCorrect++;
         }
@@ -54,11 +70,11 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
   };
 
   const getGrade = (percentage) => {
-    if (percentage >= 90) return { grade: 'A+', color: '#00ff88', message: 'Outstanding!' };
-    if (percentage >= 80) return { grade: 'A', color: '#00ddff', message: 'Excellent!' };
-    if (percentage >= 70) return { grade: 'B', color: '#0099ff', message: 'Well Done!' };
-    if (percentage >= 60) return { grade: 'C', color: '#ffd700', message: 'Good Effort!' };
-    return { grade: 'D', color: '#ff6b6b', message: 'Keep Practicing!' };
+    if (percentage >= 90) return { grade: 'A+', color: '#00ff88', message: 'Outstanding!'    };
+    if (percentage >= 80) return { grade: 'A',  color: '#00ddff', message: 'Excellent!'      };
+    if (percentage >= 70) return { grade: 'B',  color: '#0099ff', message: 'Well Done!'      };
+    if (percentage >= 60) return { grade: 'C',  color: '#ffd700', message: 'Good Effort!'    };
+    return                       { grade: 'D',  color: '#ff6b6b', message: 'Keep Practicing!' };
   };
 
   const getSectionColor = (percentage) => {
@@ -70,11 +86,93 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
 
   const gradeInfo = getGrade(results.percentage);
 
+  // ── Save to MongoDB ─────────────────────────────────────────
+  useEffect(() => {
+    if (hasSaved.current) return;
+    hasSaved.current = true;
+
+    const saveResult = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('No token — skipping save');
+        setSaveStatus('error');
+        return;
+      }
+
+      const payload = {
+        moduleId:       module.id,
+        moduleTitle:    module.title,
+        totalCorrect:   results.totalCorrect,
+        totalQuestions: results.totalQuestions,
+        percentage:     results.percentage,
+        grade:          gradeInfo.grade,
+        timeSpent,
+        sectionResults: results.sectionResults.map(s => ({
+          sectionId:  s.sectionId,
+          title:      s.title,
+          correct:    s.correct,
+          incorrect:  s.incorrect,
+          total:      s.total,
+          percentage: s.percentage,
+        })),
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/quiz/result`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const text = await res.text();
+        if (!res.ok) {
+          console.error('Save failed:', res.status, text);
+          setSaveStatus('error');
+          return;
+        }
+
+        const data = JSON.parse(text);
+        if (data.success) {
+          console.log('✅ Result saved! ID:', data.result?._id);
+          setSaveStatus('saved');
+        } else {
+          setSaveStatus('error');
+        }
+      } catch (err) {
+        console.error('Network error:', err.message);
+        setSaveStatus('error');
+      }
+    };
+
+    saveResult();
+  }, []);
+
   return (
     <div className="results-container">
       <div className="results-header">
         <h1 className="results-title">Module Complete! 🎉</h1>
         <p className="results-subtitle">{module.title}</p>
+
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          marginTop: 10, padding: '5px 14px', borderRadius: 99,
+          fontSize: 12, fontWeight: 600,
+          background: saveStatus === 'saved' ? 'rgba(0,255,136,0.12)'
+                    : saveStatus === 'error' ? 'rgba(255,107,107,0.12)'
+                    : 'rgba(255,255,255,0.08)',
+          border: `1px solid ${saveStatus === 'saved' ? 'rgba(0,255,136,0.3)'
+                              : saveStatus === 'error' ? 'rgba(255,107,107,0.3)'
+                              : 'rgba(255,255,255,0.15)'}`,
+          color: saveStatus === 'saved' ? '#00ff88'
+               : saveStatus === 'error' ? '#ff6b6b' : '#888',
+        }}>
+          {saveStatus === 'saving' && '⏳ Saving...'}
+          {saveStatus === 'saved'  && '✅ Result saved!'}
+          {saveStatus === 'error'  && '⚠️ Not saved'}
+        </div>
       </div>
 
       {/* ── Overall Scoreboard ── */}
@@ -110,18 +208,17 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
         </div>
       </div>
 
-      {/* ── Per-Section Results (every 10 questions) ── */}
+      {/* ── Per-Section Results ── */}
       <div className="section-breakdown">
         <h3 className="breakdown-title">📊 Results by Section (10 Questions Each)</h3>
         <div className="sections-results">
           {results.sectionResults.map(section => {
             const sectionColor = getSectionColor(section.percentage);
             const sectionGrade = getGrade(section.percentage);
-            const isExpanded = expandedSection === section.sectionId;
+            const isExpanded   = expandedSection === section.sectionId;
 
             return (
               <div key={section.sectionId} className="section-result-card glass-card">
-                {/* Section header row */}
                 <div
                   className="section-result-header"
                   onClick={() => setExpandedSection(isExpanded ? null : section.sectionId)}
@@ -133,7 +230,9 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
                     </div>
                     <div>
                       <h4>Section {section.sectionId}: {section.title}</h4>
-                      <span className="section-qs-label">Questions {(section.sectionId - 1) * 10 + 1}–{section.sectionId * 10}</span>
+                      <span className="section-qs-label">
+                        Questions {(section.sectionId - 1) * 10 + 1}–{section.sectionId * 10}
+                      </span>
                     </div>
                   </div>
                   <div className="section-score-group">
@@ -147,7 +246,6 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
                   </div>
                 </div>
 
-                {/* Progress bar */}
                 <div className="section-result-bar">
                   <div
                     className="section-result-fill"
@@ -158,21 +256,26 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
                   />
                 </div>
 
-                {/* Mini score stats */}
                 <div className="section-mini-stats">
                   <span className="mini-stat correct">✅ {section.correct} Correct</span>
                   <span className="mini-stat incorrect">❌ {section.incorrect} Incorrect</span>
                   <span className="mini-stat total">📝 {section.total} Total</span>
                 </div>
 
-                {/* Expanded Q&A review */}
                 {isExpanded && (
                   <div className="section-qa-review">
                     <div className="qa-divider" />
                     {section.questions.map((q, idx) => {
-                      const userAnswer = section.answers[q.id];
-                      const isCorrect = userAnswer === q.correctAnswer;
+                      const userAnswer   = section.answers[q.id];
+                      const shuffledCorr = section.answers[`${q.id}_correct`];
+                      const correctAns   = shuffledCorr !== undefined ? shuffledCorr : q.correctAnswer;
+                      const isCorrect    = userAnswer !== undefined && userAnswer === correctAns;
                       const isUnanswered = userAnswer === undefined;
+
+                      // For display: show option text
+                      // options array is original (from quizData)
+                      // but answer index was based on shuffled options
+                      // We can't recover shuffled options here, so just show index or skip
                       return (
                         <div
                           key={q.id}
@@ -185,13 +288,8 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
                             <p className="qa-question">
                               <strong>Q{(section.sectionId - 1) * 10 + idx + 1}.</strong> {q.question}
                             </p>
-                            {!isCorrect && (
+                            {!isCorrect && !isUnanswered && (
                               <div className="qa-answers">
-                                {!isUnanswered && (
-                                  <span className="qa-your-answer">
-                                    Your answer: {q.options[userAnswer]}
-                                  </span>
-                                )}
                                 <span className="qa-correct-answer">
                                   ✓ Correct: {q.options[q.correctAnswer]}
                                 </span>

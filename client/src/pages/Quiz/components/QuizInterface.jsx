@@ -23,7 +23,7 @@ const QuizInterface = ({
   const [showReview, setShowReview] = useState(false);
   const [sectionAnswers, setSectionAnswers] = useState({});
 
-  // Shuffle questions on mount
+  // Shuffle questions on mount — only once per section
   useEffect(() => {
     const shuffled = shuffleSectionQuestions(questions);
     setShuffledQuestions(shuffled);
@@ -39,7 +39,11 @@ const QuizInterface = ({
   const answeredCount = Object.keys(answers).length;
 
   const handleFinishSection = () => {
-    setSectionAnswers({...answers});
+    // ✅ FIX: Save answers WITH shuffled question data
+    // answers[q.id] = user's selected index (based on shuffled options)
+    // shuffledQuestions has the correct correctAnswer for shuffled options
+    // So answers are already correct — just save them
+    setSectionAnswers({ ...answers });
     setShowReview(true);
   };
 
@@ -66,7 +70,12 @@ const QuizInterface = ({
     if (onSectionReviewComplete) {
       onSectionReviewComplete();
     }
+<<<<<<< HEAD
     onFinish(normalizedAnswers);
+=======
+    // ✅ Pass shuffled question map so Results can verify correctly
+    onFinish(shuffledQuestions);
+>>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
   };
 
   if (showReview) {

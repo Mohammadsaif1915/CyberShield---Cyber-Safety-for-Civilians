@@ -476,7 +476,7 @@ export default function Login() {
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard'); // ✅ FIXED: was './pages/Dashboard'
+      navigate('/dashboard'); // ✅ FIXED: was '/dashboard'
     } catch {
       setErrors(p => ({ ...p, submit: 'Could not connect to server.' }));
     } finally {
