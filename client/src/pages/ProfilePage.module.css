@@ -1,12 +1,4 @@
-/* ✅ KEY FIX: solid background + position relative + z-index blocks
-   Dashboard's position:fixed sidebar from bleeding through */
-.page {
-  padding: 40px 0 80px;
-  background: var(--clr-bg, #f8fafc);
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-}
+.page { padding: 40px 0 80px; }
 
 .statsGrid {
   display: grid; grid-template-columns: repeat(4,1fr);
@@ -33,6 +25,7 @@
 }
 .emptyBox span { font-size: 40px; }
 
+/* ── Certificate Grid ── */
 .certGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(580px, 1fr));
@@ -44,63 +37,143 @@
   box-shadow: 0 8px 32px rgba(0,0,0,0.14);
   border: 1px solid var(--clr-border);
 }
+
+/* ══ CERTIFICATE ══ */
 .certificate {
-  display: flex; width: 100%; min-height: 280px;
-  background: #ffffff; font-family: Arial, sans-serif;
-  position: relative; overflow: hidden;
+  display: flex;
+  width: 100%;
+  min-height: 280px;
+  background: #ffffff;
+  font-family: Arial, sans-serif;
+  position: relative;
+  overflow: hidden;
 }
+
 .topStrip {
   position: absolute; top: 0; left: 0; right: 0; height: 5px;
   background: linear-gradient(90deg, #7a5500, #f0c040, #ffd700, #f0c040, #7a5500);
   z-index: 10;
 }
+
+/* LEFT */
 .certLeft {
-  flex: 1; padding: 26px 22px 18px 22px;
+  flex: 1;
+  padding: 26px 22px 18px 22px;
   display: flex; flex-direction: column;
-  gap: 6px; position: relative; z-index: 2; background: #ffffff;
+  gap: 6px; position: relative; z-index: 2;
+  background: #ffffff;
 }
+
 .brandRow { display: flex; align-items: center; gap: 7px; margin-bottom: 2px; }
 .brandName { font-size: 15px; font-weight: 800; color: #0f4c81; }
 .brandPipe { color: #b8960c; font-weight: 300; }
 .brandSub  { font-size: 13px; font-weight: 700; color: #b8960c; }
-.certOf { font-size: 10px; letter-spacing: .22em; color: #666; margin: 4px 0 0; text-transform: uppercase; }
-.certCompletion { font-size: 30px; font-weight: 900; color: #1a1a2e; margin: 0; letter-spacing: -.01em; line-height: 1.05; }
-.goldLine { width: 46px; height: 3px; background: linear-gradient(90deg, #b8960c, #f0c040); border-radius: 2px; margin: 2px 0; }
-.recipientName { font-size: 20px; font-weight: 700; color: #1a1a2e; margin: 2px 0 0; font-family: Georgia, serif; }
-.nameLine { width: 100%; max-width: 260px; height: 0; border-bottom: 1px dashed #bbb; margin-bottom: 4px; }
-.certBodyText { font-size: 12px; color: #555; margin: 0; line-height: 1.5; }
+
+.certOf {
+  font-size: 10px; letter-spacing: .22em; color: #666;
+  margin: 4px 0 0; text-transform: uppercase;
+}
+.certCompletion {
+  font-size: 30px; font-weight: 900; color: #1a1a2e;
+  margin: 0; letter-spacing: -.01em; line-height: 1.05;
+}
+
+.goldLine {
+  width: 46px; height: 3px;
+  background: linear-gradient(90deg, #b8960c, #f0c040);
+  border-radius: 2px; margin: 2px 0;
+}
+
+.recipientName {
+  font-size: 20px; font-weight: 700; color: #1a1a2e;
+  margin: 2px 0 0; font-family: Georgia, serif;
+}
+.nameLine {
+  width: 100%; max-width: 260px; height: 0;
+  border-bottom: 1px dashed #bbb; margin-bottom: 4px;
+}
+
+.certBodyText {
+  font-size: 12px; color: #555; margin: 0; line-height: 1.5;
+}
 .certBodyText strong { color: #0f4c81; }
-.certFooterRow { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; }
+
+.certFooterRow {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 10px;
+  margin-top: auto; padding-top: 10px;
+  border-top: 1px solid #eee;
+}
 .certDate { font-size: 11px; font-weight: 600; color: #1a1a2e; margin: 0 0 2px; }
 .certCode { font-size: 9.5px; color: #999; margin: 0; }
 .certCode strong { color: #0f4c81; }
+
 .sigBlock { text-align: left; flex-shrink: 0; }
 .sigSvg   { width: 150px; height: 55px; display: block; }
 .sigName  { font-size: 11px; font-weight: 700; color: #1a1a2e; margin: 0; }
 .sigTitle { font-size: 9.5px; color: #888; margin: 0; }
+
+/* RIGHT dark panel */
 .certRight {
   width: 130px; flex-shrink: 0;
   background: linear-gradient(180deg, #08142a 0%, #0f2d5c 50%, #1a5cb8 100%);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 14px; padding: 22px 8px; position: relative;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 22px 8px;
+  position: relative;
 }
-.rightTopGold  { position: absolute; top: 0; left: 0; right: 0; height: 9px; background: linear-gradient(90deg, #7a5500, #f0c040, #7a5500); }
-.rightTopGold2 { position: absolute; top: 11px; left: 6px; right: 6px; height: 2px; background: rgba(240,192,64,0.3); }
-.rightBotGold  { position: absolute; bottom: 0; left: 0; right: 0; height: 8px; background: linear-gradient(90deg, #7a5500, #f0c040, #7a5500); }
-.rightBotGold2 { position: absolute; bottom: 10px; left: 6px; right: 6px; height: 2px; background: rgba(240,192,64,0.3); }
+
+.rightTopGold {
+  position: absolute; top: 0; left: 0; right: 0; height: 9px;
+  background: linear-gradient(90deg, #7a5500, #f0c040, #7a5500);
+}
+.rightTopGold2 {
+  position: absolute; top: 11px; left: 6px; right: 6px; height: 2px;
+  background: rgba(240,192,64,0.3);
+}
+.rightBotGold {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 8px;
+  background: linear-gradient(90deg, #7a5500, #f0c040, #7a5500);
+}
+.rightBotGold2 {
+  position: absolute; bottom: 10px; left: 6px; right: 6px; height: 2px;
+  background: rgba(240,192,64,0.3);
+}
+
 .csShield { filter: drop-shadow(0 3px 10px rgba(240,192,64,0.5)); }
 .verifiedWrap { display: flex; align-items: center; justify-content: center; }
-.cTL, .cBL { position: absolute; width: 26px; height: 26px; border-color: #c9a227; border-style: solid; opacity: 0.6; z-index: 3; }
+
+/* Corner ornaments */
+.cTL, .cBL {
+  position: absolute; width: 26px; height: 26px;
+  border-color: #c9a227; border-style: solid;
+  opacity: 0.6; z-index: 3;
+}
 .cTL { top: 12px; left: 8px; border-width: 2px 0 0 2px; }
 .cBL { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
-.certActions { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--clr-surface); border-top: 1px solid var(--clr-border); }
+
+/* Actions */
+.certActions {
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--clr-surface); border-top: 1px solid var(--clr-border);
+}
 .certActTitle { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
 .certActId    { font-size: 11px; color: var(--clr-text3); font-family: monospace; }
 
+/* Progress */
 .progressList { display: flex; flex-direction: column; gap: 12px; }
-.progressItem { background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: box-shadow var(--trans), transform var(--trans); }
+.progressItem {
+  background: var(--clr-surface); border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg); padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px; cursor: pointer;
+  transition: box-shadow var(--trans), transform var(--trans);
+}
 .progressItem:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
-.progressIcon { width: 48px; height: 48px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.progressIcon {
+  width: 48px; height: 48px; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;
+}
 .progressInfo  { flex: 1; min-width: 0; }
 .progressTop   { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
 .progressTitle { font-weight: 700; font-size: 15px; }

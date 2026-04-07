@@ -79,9 +79,9 @@ function App() {
       <Route path="/threats"                 element={<Layout><ThreatsPage /></Layout>} />
 
       <Route path="/quiz"                    element={<QuizPage />} />
-      <Route path="/courses"                 element={<CoursesPage />} />
-      <Route path="/courses/:id"             element={<CourseDetailPage />} />
-      <Route path="/courses/:id/quiz"        element={<QuizPages />} />
+      <Route path="/courses"                 element={<Layout><CoursesPage /></Layout>} />
+      <Route path="/courses/:id"             element={<Layout><CourseDetailPage /></Layout>} />
+      <Route path="/courses/:id/quiz"        element={<Layout><QuizPages /></Layout>} />
       <Route path="/courses/:id/certificate" element={<Layout><CertificatePage /></Layout>} />
       <Route path="/profile"                 element={<Layout><ProfilePage /></Layout>} />
 
