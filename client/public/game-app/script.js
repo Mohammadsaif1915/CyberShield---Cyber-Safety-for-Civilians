@@ -38,7 +38,7 @@ let scanlineOn = true;
 let lightTheme = false;
 
 /* ========== LEVEL DATA ========== */
-const TOTAL_LEVELS   = 1000;
+const TOTAL_LEVELS   = 50;
 const LEVELS_VISIBLE = 50;
 let levels = {};
 let currentLevelSelected = null;
