@@ -13,6 +13,7 @@ const __dirname  = dirname(__filename);
 dotenv.config({ path: join(__dirname, '../.env') });
 
 import Course from '../models/Course.js';
+import Threat from '../models/Threat.js';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // VIDEO LINKS — 25 courses × 5 videos = 125 links
@@ -958,20 +959,151 @@ const courses = [
   },
 ];
 
+// ── Threat Intelligence Mock Data ─────────────────────────────────────────────
+const threats = [
+  {
+    name: "LockBit 3.0 Ransomware",
+    type: "Ransomware",
+    severity: "Critical",
+    date: "Jan 13",
+    description: "Most prolific RaaS operation targeting Indian enterprises. Self-propagation via SMB protocol exploitation, exfiltrates data before encryption. Average ransom demand: ₹85 lakh. Uses triple extortion: encrypt, exfiltrate, DDoS.",
+    indicators_of_compromise: [
+      "C2: 185.220.101.x",
+      "Hash: a1b2c3d4e5...",
+      "Domain: lockbit3[.]xyz",
+    ],
+    mitre_attacks: [
+      "T1486 - Data Encrypted for Impact",
+      "T1021.002 - SMB/Windows Admin Shares",
+      "T1567.002 - Exfiltration to Cloud Storage",
+    ],
+    cve: "CVE-2021-34527",
+    affected_systems: "Windows Server 2012-2022",
+    patch_status: "Available",
+  },
+  {
+    name: "APT-29 (Cozy Bear)",
+    type: "APT",
+    severity: "Critical",
+    date: "Jan 14",
+    description: "Russian state-sponsored threat actor linked to SVR. Known for stealthy, long-term espionage campaigns. Uses SUNBURST malware for supply chain attacks. Recent activity targeting Indian government contractors and defense suppliers.",
+    indicators_of_compromise: [
+      "IP: 45.142.212.x",
+      "Mutex: Global\\{GUID}",
+      "Reg key: HKLM\\System\\...",
+    ],
+    mitre_attacks: [
+      "T1195.002 - Compromise Software Supply Chain",
+      "T1059.001 - PowerShell",
+      "T1078 - Valid Accounts",
+    ],
+    cve: "CVE-2020-10148",
+    affected_systems: "SolarWinds Orion, Gov networks",
+    patch_status: "Critical - Patch Now",
+  },
+  {
+    name: "Log4Shell (CVE-2021-44228)",
+    type: "Vulnerability",
+    severity: "High",
+    date: "Jan 12",
+    description: "Remote Code Execution via JNDI injection in Apache Log4j2 versions 2.0-2.14.1. Still actively exploited in unpatched Indian enterprise Java applications. Trivial to exploit, requires no authentication. CVSS score: 10.0.",
+    indicators_of_compromise: [
+      "Payload: ${jndi:ldap://...}",
+      "Port: 1389 (LDAP)",
+      "User-Agent: PoC string",
+    ],
+    mitre_attacks: [
+      "T1190 - Exploit Public-Facing Application",
+      "T1059 - Command and Scripting Interpreter",
+    ],
+    cve: "CVE-2021-44228",
+    affected_systems: "Log4j2 < 2.17.1",
+    patch_status: "Upgrade to 2.17.1+",
+  },
+  {
+    name: "BEC — CFO Impersonation",
+    type: "Phishing",
+    severity: "Medium",
+    date: "Jan 09",
+    description: "Business Email Compromise targeting Indian fintech CFOs. AI-generated voice messages used as follow-up. Average financial loss: ₹28 lakh. Attackers compromise exec email via credential stuffing, then request wire transfers to overseas accounts.",
+    indicators_of_compromise: [
+      "Sender domain lookalike",
+      "IBAN: XX94...",
+      "Urgency keywords in subject",
+    ],
+    mitre_attacks: [
+      "T1566.002 - Spearphishing Link",
+      "T1534 - Internal Spearphishing",
+    ],
+    cve: "N/A",
+    affected_systems: "Finance & Fintech orgs",
+    patch_status: "Enable email authentication (DMARC/SPF)",
+  },
+  {
+    name: "SSH Brute-Force Campaign",
+    type: "Network",
+    severity: "Low",
+    date: "Jan 07",
+    description: "Coordinated SSH brute-force from 312 Tor exit nodes hitting Indian cloud infrastructure. 45,000+ attempts/day detected. Targeting default credentials on Ubuntu/CentOS boxes. Block via fail2ban + IP reputation feeds.",
+    indicators_of_compromise: [
+      "Source: Tor exit nodes",
+      "Port: 22/TCP",
+      "Tool: Hydra/Medusa signature",
+    ],
+    mitre_attacks: [
+      "T1110.001 - Password Guessing",
+      "T1021.004 - SSH",
+    ],
+    cve: "N/A",
+    affected_systems: "Linux cloud servers",
+    patch_status: "Disable password auth, use SSH keys",
+  },
+  {
+    name: "Mirai Botnet Variant",
+    type: "DDoS",
+    severity: "Medium",
+    date: "Jan 05",
+    description: "New Mirai variant targeting IoT devices in India — routers, CCTV cameras. Recruited devices used for DDoS attacks peaking at 400 Gbps. Exploits default credentials and Telnet vulnerabilities on embedded Linux devices.",
+    indicators_of_compromise: [
+      "Port: 23, 2323 (Telnet)",
+      "Traffic: SYN flood pattern",
+      "C2: 194.165.x.x",
+    ],
+    mitre_attacks: [
+      "T1498 - Network Denial of Service",
+      "T1584.005 - Botnet",
+    ],
+    cve: "CVE-2022-26258",
+    affected_systems: "IoT / Home routers",
+    patch_status: "Change default credentials, disable Telnet",
+  },
+];
+
 // ── Seed function ─────────────────────────────────────────────────────────────
 async function seed() {
   try {
     await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cyberlearn');
     console.log('✅ Connected to MongoDB');
 
+    // Clear existing data
     await Course.deleteMany({});
-    console.log('🗑️  Old courses cleared');
+    await Threat.deleteMany({});
+    console.log('🗑️  Old data cleared');
 
-    const inserted = await Promise.all(courses.map(c => new Course(c).save()));
-    console.log(`🌱 Seeded ${inserted.length} courses successfully!`);
+    // Seed courses
+    const insertedCourses = await Promise.all(courses.map(c => new Course(c).save()));
+    console.log(`🌱 Seeded ${insertedCourses.length} courses successfully!`);
 
-    inserted.forEach(c =>
+    insertedCourses.forEach(c =>
       console.log(`  ✔ ${c.title} (${c.level}) — ${c.videos.length} videos, ${c.quiz.length} quiz questions`)
+    );
+
+    // Seed threats
+    const insertedThreats = await Promise.all(threats.map(t => new Threat(t).save()));
+    console.log(`🌱 Seeded ${insertedThreats.length} threats successfully!`);
+
+    insertedThreats.forEach(t =>
+      console.log(`  ✔ ${t.name} (${t.type} - ${t.severity})`)
     );
   } catch (err) {
     console.error('❌ Seed failed:', err.message);

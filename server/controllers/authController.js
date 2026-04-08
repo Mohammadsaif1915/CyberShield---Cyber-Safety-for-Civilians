@@ -48,5 +48,44 @@ export const login = async (req, res) => {
 }
 
 export const getMe = async (req, res) => {
-  res.json({ success: true, user: req.user })
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    
+    // Calculate streak on backend (date-based, not hour-based)
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const lastLogin = user.lastLoginDate ? new Date(user.lastLoginDate) : null;
+    const lastLoginDate = lastLogin ? new Date(lastLogin.getFullYear(), lastLogin.getMonth(), lastLogin.getDate()) : null;
+    
+    // Calculate days difference
+    const daysDiff = lastLoginDate ? Math.floor((today - lastLoginDate) / (1000 * 60 * 60 * 24)) : 999;
+    
+    if (daysDiff === 1) {
+      // Increment streak (logged in next day)
+      user.loginStreak = (user.loginStreak || 0) + 1;
+      user.lastLoginDate = now;
+      await user.save();
+    } else if (daysDiff > 1) {
+      // Reset streak (missed a day)
+      user.loginStreak = 1;
+      user.lastLoginDate = now;
+      await user.save();
+    }
+    // If daysDiff === 0, don't change anything (already logged in today)
+    
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { loginStreak, lastLoginDate, ...otherUpdates } = req.body;
+    const user = await User.findByIdAndUpdate(req.user._id, otherUpdates, { new: true, runValidators: false });
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 }

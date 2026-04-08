@@ -476,7 +476,13 @@ export default function Login() {
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard'); // ✅ FIXED: was '/dashboard'
+      
+      // Redirect based on user role
+      if (data.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch {
       setErrors(p => ({ ...p, submit: 'Could not connect to server.' }));
     } finally {
@@ -498,7 +504,13 @@ export default function Login() {
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard'); // ✅ FIXED: was './pages/Dashboard'
+      
+      // Redirect based on user role
+      if (data.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch {
       setErrors(p => ({ ...p, submit: 'Google login failed. Try again.' }));
     }

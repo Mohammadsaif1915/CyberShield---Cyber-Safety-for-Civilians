@@ -2,6 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardUser } from './hooks/useDashboardUser';
 import { saveGameScore } from '../utils/saveGameScore';
+import SecurityScorePage from './SecurityScorePage';
+import FraudDetectionPage from './FraudDetectionPage';
+import IncidentReportPage from './IncidentReportPage';
+import AchievementsPage from './AchievementsPage';
+import CommunityPage from './CommunityPage';
 import {
   Shield, Brain, Mail, BarChart2, Bell, Search,
   Zap, X, Award, Activity, CheckCircle,
@@ -24,24 +29,6 @@ import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line,
 } from "recharts";
 
-<<<<<<< HEAD
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
-const API_URL = ((typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "http://localhost:5000").replace(/\/api\/?$/, '');
-const getToken = () => localStorage.getItem("token");
-
-const apiFetch = async (path, opts = {}) => {
-  const token = getToken();
-  const res = await fetch(`${API_URL}${path}`, {
-    ...opts,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...opts.headers,
-    },
-  });
-  if (!res.ok) throw new Error(`API ${path} failed: ${res.status}`);
-  return res.json();
-=======
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const T = {
   bg:         "#F0F2F8",
@@ -69,7 +56,6 @@ const T = {
   textDim:    "#9CA3AF",
   sh:         "0 1px 4px rgba(0,0,0,0.07)",
   shMd:       "0 4px 20px rgba(0,0,0,0.10)",
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
 };
 
 // ─── API BASE ─────────────────────────────────────────────────────────────────
@@ -100,14 +86,13 @@ const getFullName = (u) => {
 const firstName = (u) => getFullName(u).split(" ")[0] || "User";
 
 const computeStreak = (user) => {
-  if (!user) return { streak: 1, updated: true, lastDate: new Date().toISOString() };
-  const now = Date.now();
-  const last = user.lastLoginDate ? new Date(user.lastLoginDate).getTime() : 0;
-  const diffHours = last ? (now - last) / (1000 * 60 * 60) : 999;
-  const currentStreak = user.loginStreak || 0;
-  if (diffHours < 12) return { streak: currentStreak, updated: false, lastDate: user.lastLoginDate };
-  if (diffHours <= 48) return { streak: currentStreak + 1, updated: true, lastDate: new Date().toISOString() };
-  return { streak: 1, updated: true, lastDate: new Date().toISOString() };
+  // Streak calculation is now handled on backend (getMe endpoint)
+  // Just return the values from server
+  return {
+    streak: user?.loginStreak || 1,
+    updated: false,
+    lastDate: user?.lastLoginDate || new Date().toISOString()
+  };
 };
 
 const computeLevel = (score) => {
@@ -389,6 +374,11 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
     { id: "phishing", icon: Mail, label: "Phishing Sim" },
     { id: "quiz", icon: Brain, label: "Quiz", external: "/quiz" },
     { id: "game", icon: Gamepad2, label: "CyberGame", external: "/game" },
+    { id: "security-score", icon: TrendingUp, label: "Security Score", badge: "NEW" },
+    { id: "fraud-detection", icon: Target, label: "Fraud Tools", badge: "NEW" },
+    { id: "incident-report", icon: AlertTriangle, label: "Report Threat", badge: "NEW" },
+    { id: "achievements", icon: Medal, label: "Achievements", badge: "NEW" },
+    { id: "community", icon: MessageSquare, label: "Community", badge: "NEW" },
     { id: "reports", icon: BarChart2, label: "Reports" },
     { id: "leaderboard", icon: Trophy, label: "Leaderboard" },
   ];
@@ -798,8 +788,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
   const hour = new Date().getHours();
   const greeting = hour < 5 ? "Working late" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const fname = firstName(user);
-  
-  // ✅ REAL DATA FROM USER PROFILE
+
   const score = user?.score || 0;
   const streak = user?.loginStreak || 0;
   const quizDone = user?.quizzesDone || 0;
@@ -821,8 +810,6 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
     { subject: "Cloud", A: user?.cloudScore || 0 },
   ];
 
-  const stats = dashData?.stats || {};
-  const history = dashData?.recentActivity || user?.quizHistory || [];
   const insights = dashData?.insights || [];
 
   const tips = [
@@ -924,7 +911,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
         </div>
       </div>
 
-      {/* Stats from real API */}
+      {/* Stats */}
       <div className="fu fu2" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
         {[
           { label: "Total Score", value: score, icon: Star, color: T.brand, sub: score > 0 ? `${Math.floor(score)} XP` : "Start earning!", animated: true },
@@ -954,7 +941,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
         })}
       </div>
 
-      {/* Charts from real API */}
+      {/* Charts */}
       <div className="fu fu3" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14 }}>
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, boxShadow: T.sh }}>
           <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: "0 0 3px", fontFamily: "'Syne',sans-serif" }}>Weekly Progress</h3>
@@ -988,7 +975,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
         </div>
       </div>
 
-      {/* Insights from API */}
+      {/* AI Insights */}
       {insights.length > 0 && (
         <div className="fu fu3" style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, boxShadow: T.sh }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
@@ -1040,7 +1027,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
   );
 }
 
-// ─── PAGE: THREATS (REAL DATA) ────────────────────────────────────────────────
+// ─── PAGE: THREATS ────────────────────────────────────────────────────────────
 function ThreatsPage() {
   const [threats, setThreats] = useState([]);
   const [trend, setTrend] = useState([]);
@@ -1067,7 +1054,7 @@ function ThreatsPage() {
 
   useEffect(() => {
     fetchThreats();
-    const t = setInterval(fetchThreats, 30000); // refresh every 30s
+    const t = setInterval(fetchThreats, 30000);
     return () => clearInterval(t);
   }, [fetchThreats]);
 
@@ -1235,7 +1222,7 @@ function ThreatsPage() {
   );
 }
 
-// ─── PAGE: PHISHING SIM (REAL DATA) ───────────────────────────────────────────
+// ─── PAGE: PHISHING SIM ───────────────────────────────────────────────────────
 function PhishingPage({ user, onUserUpdate }) {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1806,7 +1793,7 @@ function SettingsPage({ user, onUserUpdate }) {
   );
 }
 
-// ─── PAGE: LEADERBOARD (REAL DATA) ────────────────────────────────────────────
+// ─── PAGE: LEADERBOARD ────────────────────────────────────────────────────────
 function LeaderboardPage({ user }) {
   const [loading, setLoading] = useState(true);
   const [board, setBoard] = useState([]);
@@ -1956,7 +1943,6 @@ export default function Dashboard() {
   const [notifRead, setNotifRead] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
 
-  // Dashboard real-time data
   const [dashData, setDashData] = useState(null);
   const [dashLoading, setDashLoading] = useState(true);
   const [liveActivities, setLiveActivities] = useState([]);
@@ -1976,7 +1962,6 @@ export default function Dashboard() {
     } catch { return null; }
   });
 
-  // Online/Offline detection
   useEffect(() => {
     const on = () => setOnline(true);
     const off = () => setOnline(false);
@@ -1985,7 +1970,6 @@ export default function Dashboard() {
     return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
   }, []);
 
-  // Merge dashUser from hook
   useEffect(() => {
     if (dashUser) {
       setUser(prev => {
@@ -1999,12 +1983,10 @@ export default function Dashboard() {
     }
   }, [dashUser]);
 
-  // Fetch user + dashboard data
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    // Fetch user profile
     API.get("/api/auth/me")
       .then(data => {
         if (data?.user) {
@@ -2014,12 +1996,7 @@ export default function Dashboard() {
             if (raw.name) fresh.fullName = raw.name;
             else if (raw.username) fresh.fullName = raw.username;
           }
-          const { streak, updated, lastDate } = computeStreak(fresh);
-          if (updated) {
-            fresh.loginStreak = streak;
-            fresh.lastLoginDate = lastDate;
-            API.put("/api/auth/profile", { loginStreak: streak, lastLoginDate: lastDate }).catch(() => {});
-          }
+          // Server handles streak calculation, just use returned values
           setUser(fresh);
           localStorage.setItem("user", JSON.stringify(fresh));
         }
@@ -2029,28 +2006,18 @@ export default function Dashboard() {
           const raw = localStorage.getItem("user");
           if (raw) {
             const cached = JSON.parse(raw);
-            const { streak, updated, lastDate } = computeStreak(cached);
-            if (updated) {
-              const u2 = { ...cached, loginStreak: streak, lastLoginDate: lastDate };
-              setUser(u2);
-              localStorage.setItem("user", JSON.stringify(u2));
-            }
+            setUser(cached);
           }
         } catch {}
       });
 
-    // Fetch dashboard data
     const fetchDashboard = () => {
       API.get("/api/dashboard")
-        .then(data => {
-          setDashData(data);
-          setDashLoading(false);
-        })
+        .then(data => { setDashData(data); setDashLoading(false); })
         .catch(() => setDashLoading(false));
     };
     fetchDashboard();
 
-    // Fetch live activities
     const fetchActivities = () => {
       API.get("/api/activity?limit=10")
         .then(data => setLiveActivities(Array.isArray(data) ? data : data.activities || []))
@@ -2058,12 +2025,10 @@ export default function Dashboard() {
     };
     fetchActivities();
 
-    // Fetch live threats summary for ticker
     API.get("/api/threats?limit=5")
       .then(data => setLiveThreats(Array.isArray(data) ? data : data.threats || []))
       .catch(() => {});
 
-    // Real-time polling — every 30 seconds
     const pollDash = setInterval(fetchDashboard, 30000);
     const pollActs = setInterval(fetchActivities, 15000);
     return () => { clearInterval(pollDash); clearInterval(pollActs); };
@@ -2140,6 +2105,11 @@ export default function Dashboard() {
       case "threats": return <ThreatsPage />;
       case "phishing": return <PhishingPage user={user} onUserUpdate={onUserUpdate} />;
       case "reports": return <ReportsPage user={user} navigate={navigate} setPage={setPage} />;
+      case "security-score": return <SecurityScorePage user={user} />;
+      case "fraud-detection": return <FraudDetectionPage />;
+      case "incident-report": return <IncidentReportPage />;
+      case "achievements": return <AchievementsPage user={user} />;
+      case "community": return <CommunityPage user={user} />;
       case "profile": return <ProfilePage user={user} onUserUpdate={onUserUpdate} />;
       case "settings": return <SettingsPage user={user} onUserUpdate={onUserUpdate} />;
       case "leaderboard": return <LeaderboardPage user={user} />;
@@ -2168,7 +2138,6 @@ export default function Dashboard() {
         )}
         {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} setPage={setPage} navigate={navigate} />}
 
-        {/* Threat Ticker Bar */}
         {liveThreats.length > 0 && (
           <div style={{ padding: "6px 24px", borderBottom: `1px solid ${T.border}`, background: T.surface }}>
             <ThreatTicker threats={liveThreats} />

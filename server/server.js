@@ -9,25 +9,23 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
-<<<<<<< HEAD
+import User from './models/User.js';
 import Contact from './models/Contact.js';
 import Subscriber from './models/Subscriber.js';
-import quizRoutes from './routes/quiz.js';
-import gameRoutes from './routes/game.js';
-=======
-import User            from './models/User.js';
-import Contact         from './models/Contact.js';
-import Subscriber      from './models/Subscriber.js';
-import QuizResult      from './models/QuizResult.js';
-import courseRoutes      from './routes/courseRoutes.js';
-import progressRoutes    from './routes/progressRoutes.js';
+import QuizResult from './models/QuizResult.js';
+import authRoutes from './routes/authRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import progressRoutes from './routes/progressRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import quizSyncRoute   from './routes/quizSyncRoute.js';
- // ✅ ADDED
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
+import quizRoutes from './routes/quiz.js';
+import gameRoutes from './routes/game.js';
+import quizSyncRoute from './routes/quizSyncRoute.js';
+import threatRoutes from './routes/threatRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import featuresRoutes from './routes/featuresRoutes.js';
 
 dotenv.config();
 
@@ -162,7 +160,7 @@ const welcomeEmailHTML = (email) => `
               </td></tr>
             </table>
             <div style="text-align:center;margin-bottom:28px;">
-              <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}"
+              <a href="${process.env.CLIENT_URL || 'http://localhost:3011'}"
                 style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#0ea5e9);color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;box-shadow:0 4px 14px rgba(37,99,235,0.4);">
                 Explore CyberShield →
               </a>
@@ -336,7 +334,7 @@ app.post('/api/forgot-password', async (req, res) => {
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
-    const resetURL = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+    const resetURL = `${process.env.CLIENT_URL || 'http://localhost:3011'}/reset-password/${resetToken}`;
     await transporter.sendMail({
       from: `"CyberShield 🛡️" <${process.env.GMAIL_USER}>`,
       to: user.email,
@@ -634,11 +632,20 @@ app.use('/api', dashboardRoutes);
 // ══════════════════════════════════════════════════════════════
 // ── COURSE / PROGRESS / CERTIFICATE / LEADERBOARD ROUTES ──────
 // ══════════════════════════════════════════════════════════════
+app.use('/api/auth',         authRoutes);
 app.use('/api/courses',      courseRoutes);
 app.use('/api/progress',     progressRoutes);
 app.use('/api/certificate',  certificateRoutes);
 app.use('/api/leaderboard',  leaderboardRoutes); // ✅ ADDED
 
+// ══════════════════════════════════════════════════════════════
+// ── ADMIN ROUTES ──────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+app.use('/api/admin',        adminRoutes);
+// ═══════════════════════════════════════════════════════════════
+// ── FEATURES ROUTES ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+app.use('/api/features',     featuresRoutes);
 // ── Global Error Handler ──────────────────────────────────────
 app.use((err, _req, res, _next) => {
   console.error('❌', err.message);
@@ -654,6 +661,11 @@ app.use('/api/quiz', quizRoutes);
 // ── GAME PROGRESS ROUTES ──────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 app.use('/api/game', gameRoutes);
+
+// ══════════════════════════════════════════════════════════════
+// ── THREAT INTELLIGENCE ROUTES ────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+app.use('/api/threats', threatRoutes);
 
 // ── Start server ─────────────────────────────────────────────
 app.listen(PORT, () => {

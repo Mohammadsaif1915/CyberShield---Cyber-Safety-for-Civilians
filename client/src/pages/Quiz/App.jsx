@@ -7,21 +7,8 @@ import QuizInterface from './components/QuizInterface';
 import Results from './components/Results';
 import quizAPI from './utils/api';
 
-<<<<<<< HEAD
-const App = () => {
-  const [currentView, setCurrentView] = useState('modules');
-  const [selectedModule, setSelectedModule] = useState(null);
-  const [selectedSection, setSelectedSection] = useState(null);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [moduleAnswers, setModuleAnswers] = useState({});
-  const [timeSpent, setTimeSpent] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [completedSectionsFromDB, setCompletedSectionsFromDB] = useState([]);
-=======
 // ── localStorage helpers ──────────────────────────────────────
 const STORAGE_KEY = 'cybershield_quiz_state';
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
 
 const saveState = (state) => {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
@@ -50,6 +37,8 @@ function App() {
   const [answers,         setAnswers]         = useState({});
   const [moduleAnswers,   setModuleAnswers]   = useState(saved?.moduleAnswers   || {});
   const [timeSpent,       setTimeSpent]       = useState(saved?.timeSpent       || 0);
+  const [loading,         setLoading]         = useState(false);
+  const [completedSectionsFromDB, setCompletedSectionsFromDB] = useState([]);
 
   // ── Timer ───────────────────────────────────────────────────
   useEffect(() => {
@@ -60,47 +49,6 @@ function App() {
     return () => clearInterval(interval);
   }, [currentView]);
 
-<<<<<<< HEAD
-  // Load completed sections when module is selected
-  useEffect(() => {
-    if (selectedModule && currentView === 'sections') {
-      loadModuleProgress();
-    }
-  }, [selectedModule, currentView]);
-
-  const loadModuleProgress = async () => {
-    try {
-      setLoading(true);
-      const response = await quizAPI.getModuleProgress(selectedModule);
-      
-      if (response.success && response.data) {
-        const completedSections = response.data
-          .filter(section => section.completed)
-          .map(section => section.sectionId);
-        
-        setCompletedSectionsFromDB(completedSections);
-        
-        // Load answers for completed sections
-        const loadedAnswers = {};
-        response.data.forEach(section => {
-          if (section.answers) {
-            const sectionKey = `module${selectedModule}_section${section.sectionId}`;
-            const answersObj = {};
-            section.answers.forEach((value, key) => {
-              answersObj[key] = value;
-            });
-            loadedAnswers[sectionKey] = answersObj;
-          }
-        });
-        setModuleAnswers(loadedAnswers);
-      }
-    } catch (error) {
-      console.error('Error loading module progress:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-=======
   // ── Auto-save to localStorage ────────────────────────────────
   useEffect(() => {
     if (selectedModule) {
@@ -109,7 +57,6 @@ function App() {
   }, [currentView, selectedModule, selectedSection, moduleAnswers, timeSpent]);
 
   // ── Handlers ────────────────────────────────────────────────
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
 
   const handleModuleSelect = (moduleId) => {
     const existing = loadState();
@@ -124,12 +71,8 @@ function App() {
     setSelectedModule(moduleId);
     setCurrentView('sections');
     setAnswers({});
-<<<<<<< HEAD
-    setTimeSpent(0);
-=======
     setModuleAnswers(existingAnswers);
     setTimeSpent(existingTime);
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
   };
 
   const handleSectionSelect = (sectionId) => {
@@ -152,121 +95,14 @@ function App() {
     if (currentQuestion > 0) setCurrentQuestion(prev => prev - 1);
   };
 
-<<<<<<< HEAD
-  const calculateSectionScore = (questions, answers) => {
-    let correct = 0;
-    questions.forEach(q => {
-      if (answers[q.id] === q.correctAnswer) {
-        correct++;
-      }
-    });
-    return correct;
-  };
-
-  const handleFinishSection = async (finalAnswers = answers) => {
-    try {
-      setLoading(true);
-      
-      // Calculate score
-      const questions = getCurrentQuestions();
-      const score = calculateSectionScore(questions, finalAnswers);
-      
-      // Save section progress to backend
-      await quizAPI.saveSectionProgress(
-        selectedModule,
-        selectedSection,
-        finalAnswers,
-        score,
-        timeSpent,
-        true
-      );
-=======
-  // ✅ FIX: shuffledQuestions passed from QuizInterface
-  // answers[q.id] = selected option index (based on shuffled options)
-  // We save a correctedAnswers map: questionId -> 1 if correct, 0 if wrong
-  // Results.jsx needs to know which answers are correct
-  const handleFinishSection = (shuffledQuestions = []) => {
+  const handleFinishSection = () => {
     const sectionKey = `module${selectedModule}_section${selectedSection}`;
-
-    // Build corrected answers: store user's answer against shuffled correctAnswer
-    // so Results.jsx can correctly compute score
-    let sectionData = { ...answers };
-
-    // If shuffledQuestions provided, remap answers to store correctness info
-    if (shuffledQuestions.length > 0) {
-      sectionData = {};
-      shuffledQuestions.forEach(q => {
-        // Store the user's answer (index in shuffled options)
-        // AND store the shuffled correctAnswer so Results can verify
-        sectionData[q.id] = answers[q.id];
-        // Also store what the correct answer WAS (in shuffled context)
-        sectionData[`${q.id}_correct`] = q.correctAnswer;
-      });
-    }
-
+    
     const updatedModuleAnswers = {
       ...moduleAnswers,
-      [sectionKey]: sectionData
+      [sectionKey]: { ...answers }
     };
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
 
-      // Save to local state
-      const sectionKey = `module${selectedModule}_section${selectedSection}`;
-      const updatedModuleAnswers = {
-        ...moduleAnswers,
-        [sectionKey]: { ...finalAnswers }
-      };
-
-<<<<<<< HEAD
-      setModuleAnswers(updatedModuleAnswers);
-
-      // Check if all sections completed
-      const completedSections = Object.keys(updatedModuleAnswers).filter(key => 
-        key.startsWith(`module${selectedModule}`)
-      ).length;
-
-      const module = quizData.modules.find(m => m.id === selectedModule);
-      const totalSections = module?.sections?.length ?? 4;
-
-      if (completedSections >= totalSections) {
-        // Calculate total score for module
-        let totalScore = 0;
-        let totalQuestions = 0;
-
-        module.sections.forEach(section => {
-          const sectionKey = `module${selectedModule}_section${section.id}`;
-          const sectionAnswers = updatedModuleAnswers[sectionKey] || {};
-          
-          section.questions.forEach(q => {
-            totalQuestions++;
-            if (sectionAnswers[q.id] === q.correctAnswer) {
-              totalScore++;
-            }
-          });
-        });
-
-        // Save module completion
-        await quizAPI.saveModuleProgress(
-          selectedModule,
-          module.sections.map(section => section.id),
-          totalScore,
-          timeSpent,
-          true
-        );
-
-        setCurrentView('results');
-      } else {
-        setCurrentView('sections');
-      }
-      
-      setAnswers({});
-    } catch (error) {
-      console.error('Error saving section progress:', error);
-      alert('Failed to save progress. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-=======
     const module = quizData.modules.find(m => m.id === selectedModule);
     const totalSections = module ? module.sections.length : 4;
 
@@ -274,7 +110,7 @@ function App() {
       key.startsWith(`module${selectedModule}`)
     ).length;
 
-    // Save immediately
+    // Save immediately to localStorage
     saveState({
       currentView: completedCount >= totalSections ? 'results' : 'sections',
       selectedModule,
@@ -283,6 +119,8 @@ function App() {
       timeSpent,
     });
 
+    setModuleAnswers(updatedModuleAnswers);
+
     if (completedCount >= totalSections) {
       setCurrentView('results');
     } else {
@@ -290,7 +128,6 @@ function App() {
     }
 
     setAnswers({});
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
   };
 
   const handleBackToSections = () => {
@@ -306,9 +143,7 @@ function App() {
     setSelectedSection(null);
     setAnswers({});
     setModuleAnswers({});
-<<<<<<< HEAD
     setCompletedSectionsFromDB([]);
-=======
     setTimeSpent(0);
     // NOTE: localStorage NOT cleared — user can resume this module
   };
@@ -325,7 +160,6 @@ function App() {
     setAnswers({});
     setModuleAnswers({});
     setTimeSpent(0);
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
   };
 
   const getCurrentQuestions = () => {

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import CyberSafetyLanding from "./pages/Landing/CyberSafetyLanding";
 import Dashboard          from "./pages/Dashboard";
 import GamePage           from "./pages/GamePage";
+import AdminPage          from "./pages/AdminPage";
 
 import Register            from "./components/Register";
 import Login               from "./components/Login";
@@ -53,6 +54,7 @@ function App() {
       <Route path="/"                        element={<CyberSafetyLanding />} />
       <Route path="/dashboard"               element={<Dashboard />} />
       <Route path="/game"                    element={<GamePage />} />
+      <Route path="/admin"                   element={<AdminPage />} />
 
       {/* ── Auth ── */}
       <Route path="/register"                element={<Register />} />

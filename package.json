@@ -20,13 +20,10 @@
     "url": "https://github.com/Mohammadsaif1915/CyberShield---Cyber-Safety-for-Civilians/issues"
   },
   "homepage": "https://github.com/Mohammadsaif1915/CyberShield---Cyber-Safety-for-Civilians#readme",
-<<<<<<< HEAD
   "dependencies": {
-    "concurrently": "^9.2.1",
     "phaser": "^3.90.0"
-=======
+  },
   "devDependencies": {
     "concurrently": "^9.2.1"
->>>>>>> c9b68a524706d525c8e056cd6ee0951e919c45f6
   }
 }
