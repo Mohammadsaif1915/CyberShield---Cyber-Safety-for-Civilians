@@ -48,18 +48,9 @@ let musicOn    = true;
 let scanlineOn = true;
 let lightTheme = false;
 
-/* ========== LEVEL CONFIG ========== */
-const TOTAL_LEVELS = 5;
-const LEVELS_VISIBLE = 5;
-
-const LEVEL_META = {
-  1: { title: "PASSWORD SECURITY",     icon: "🔐", type: "FIREWALL",   diff: "EASY",   xp: 100, playable: true,  path: "levels/1/index.html" },
-  2: { title: "SOCIAL MEDIA SCAMS",    icon: "🎣", type: "PHISHING",   diff: "EASY",   xp: 200, playable: true,  path: "levels/2/index.html" },
-  3: { title: "RANSOMWARE OFFICE ATTACK", icon: "💀", type: "RANSOMWARE", diff: "HARD",   xp: 300, playable: true,  path: "levels/3/index.html" },
-  4: { title: "DARK WEB IDENTITY",     icon: "🎭", type: "IDENTITY",   diff: "HARD",   xp: 400, playable: true,  path: "levels/4/index.html" },
-  5: { title: "CYBER CITY DEFENSE",    icon: "🏙️", type: "CITY",       diff: "ELITE",  xp: 500, playable: true,  path: "levels/5/index.html" },
-};
-
+/* ========== LEVEL DATA ========== */
+const TOTAL_LEVELS   = 50;
+const LEVELS_VISIBLE = 50;
 let levels = {};
 let currentLevelSelected = null;
 

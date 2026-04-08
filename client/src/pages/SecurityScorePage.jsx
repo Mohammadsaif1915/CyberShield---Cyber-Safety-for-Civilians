@@ -24,7 +24,7 @@ function ProgressRing({ score, size = 200, strokeWidth = 8 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
-  
+
   const getColor = () => {
     if (score >= 80) return T.green;
     if (score >= 60) return T.teal;
@@ -34,7 +34,12 @@ function ProgressRing({ score, size = 200, strokeWidth = 8 }) {
 
   return (
     <div style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: size, height: size }}>
-      <svg id="progress-ring" style={{ transform: "rotate(-90deg)" }} width={size} height={size} style={{ position: "absolute" }}>
+      {/* FIX 1: Merged both style props into one on the <svg> element */}
+      <svg
+        width={size}
+        height={size}
+        style={{ transform: "rotate(-90deg)", position: "absolute" }}
+      >
         <circle cx={size / 2} cy={size / 2} r={radius} stroke={T.border} strokeWidth={strokeWidth} fill="none" />
         <circle cx={size / 2} cy={size / 2} r={radius} stroke={getColor()} strokeWidth={strokeWidth} fill="none" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.6s ease" }} />
       </svg>
@@ -143,7 +148,9 @@ export default function SecurityScorePage({ user }) {
                 {securityData.suggestions.map((sugg, i) => (
                   <div key={i} style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, padding: "16px", display: "flex", gap: 12 }}>
                     <div style={{ width: 4, background: sugg.priority === "high" ? T.red : sugg.priority === "medium" ? T.amber : T.teal, borderRadius: 2 }} />
-                    <div>, <p style={{ fontSize: 13, fontWeight: 600, color: T.text, marginBottom: 4 }}>{sugg.title}</p>
+                    {/* FIX 2: Removed stray >, before this div */}
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: T.text, marginBottom: 4 }}>{sugg.title}</p>
                       <p style={{ fontSize: 12, color: T.textMd, lineHeight: 1.5 }}>{sugg.description}</p>
                     </div>
                   </div>
