@@ -85,6 +85,16 @@
   font-weight: 500;
   color: var(--clr-text2);
 }
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .inner { gap: 16px; }
+  .logoText { font-size: 17px; }
+  .navLink { padding: 5px 10px; font-size: 13px; }
   .userName { display: none; }
+}
+
+@media (max-width: 480px) {
+  .inner { gap: 10px; }
+  .logoText { font-size: 15px; }
+  .navLink { padding: 4px 8px; font-size: 12px; }
+  .header { height: 56px; }
 }

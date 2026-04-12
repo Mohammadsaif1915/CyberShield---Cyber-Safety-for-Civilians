@@ -39,7 +39,7 @@
 /* ── Certificate Grid ── */
 .certGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(680px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(680px, 100%), 1fr));
   gap: 32px;
 }
 .certCard {
@@ -292,4 +292,17 @@
   .certRight { width: 120px; }
   .certCompletion { font-size: 26px; }
   .recipientName  { font-size: 20px; }
+  .certificate { flex-direction: column; }
+  .certLeft { padding: 22px 18px 16px; }
+  .progressItem { flex-direction: column; gap: 10px; align-items: flex-start; }
+}
+
+@media (max-width: 480px) {
+  .statsGrid { grid-template-columns: 1fr; }
+  .statNum { font-size: 24px; }
+  .sectionTitle { font-size: 18px; }
+  .certRight { display: none; }
+  .certCompletion { font-size: 20px; }
+  .recipientName { font-size: 16px; }
+  .certCardActions { flex-direction: column; gap: 10px; align-items: flex-start; }
 }

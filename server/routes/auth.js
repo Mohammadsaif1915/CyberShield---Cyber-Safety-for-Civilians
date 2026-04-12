@@ -3,15 +3,14 @@
 // Login aur Register — cookie set karta hai
 // ═══════════════════════════════════════════════════════════
 
-const express  = require("express");
-const router   = express.Router();
-const bcrypt   = require("bcryptjs");
-const jwt      = require("jsonwebtoken");
-const User     = require("../models/User");
+import express  from "express";
+import bcrypt   from "bcryptjs";
+import jwt      from "jsonwebtoken";
+import User     from "../models/User.js";
+
+const router = express.Router();
 
 // ─── REGISTER ───────────────────────────────────────────────
-// Tera Register.jsx already POST /api/register call karta hai
-// Bas ensure karo ki JWT cookie set ho jaaye
 router.post("/register", async (req, res) => {
   try {
     const { fullName, email, password, city, role } = req.body;
@@ -27,7 +26,7 @@ router.post("/register", async (req, res) => {
 
     // MongoDB mein save karo
     const user = await User.create({
-      name:  fullName,
+      name: fullName,
       email,
       password: hashed,
       city,
@@ -43,17 +42,17 @@ router.post("/register", async (req, res) => {
 
     // ⭐ Cookie mein token daalo (localStorage nahi!)
     res.cookie("token", token, {
-      httpOnly: true,                                      // JS se access nahi hoga
-      secure:   process.env.NODE_ENV === "production",    // HTTPS pe hi jaayega
+      httpOnly: true,                                   // JS se access nahi hoga
+      secure:   process.env.NODE_ENV === "production",  // HTTPS pe hi jaayega
       sameSite: "strict",
-      maxAge:   7 * 24 * 60 * 60 * 1000,                 // 7 din
+      maxAge:   7 * 24 * 60 * 60 * 1000,               // 7 din
     });
 
     res.status(201).json({
       message: "Registration successful",
       user: {
-        id:   user._id,
-        name: user.name,
+        id:    user._id,
+        name:  user.name,
         email: user.email,
       },
     });
@@ -99,8 +98,8 @@ router.post("/login", async (req, res) => {
     res.json({
       message: "Login successful",
       user: {
-        id:   user._id,
-        name: user.name,
+        id:    user._id,
+        name:  user.name,
         email: user.email,
       },
     });
@@ -111,4 +110,4 @@ router.post("/login", async (req, res) => {
 });
 
 
-module.exports = router;
+export default router;

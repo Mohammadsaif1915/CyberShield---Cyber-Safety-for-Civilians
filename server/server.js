@@ -24,6 +24,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import quizSyncRoute   from './routes/quizSyncRoute.js';
 import quizRoutes from './routes/quiz.js';
 import gameRoutes from './routes/game.js';
+import aiRoutes from './routes/ai.js';
 import featuresRoutes from './routes/featuresRoutes.js';
 import threatRoutes from './routes/threatRoutes.js';
 
@@ -661,6 +662,11 @@ app.use('/api/quiz', quizRoutes);
 // ── GAME PROGRESS ROUTES ──────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 app.use('/api/game', gameRoutes);
+
+// ══════════════════════════════════════════════════════════════
+// ── AI ROUTES ─────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+app.use('/api/ai', aiRoutes);
 
 // ══════════════════════════════════════════════════════════════
 // ── THREAT INTELLIGENCE ROUTES ────────────────────────────────

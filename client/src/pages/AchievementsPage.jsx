@@ -135,8 +135,13 @@ export default function AchievementsPage({ user }) {
       try {
         const res = await API.get("/api/features/achievements");
         if (res?.success) {
-          setAchievements(res.data || []);
-          setUnlockedIds((res.data.filter(a => a.unlockedAt) || []).map(a => a._id));
+          let validData = [];
+          if (Array.isArray(res.achievements)) validData = res.achievements;
+          else if (Array.isArray(res.data)) validData = res.data;
+          else if (Array.isArray(res)) validData = res;
+          
+          setAchievements(validData);
+          setUnlockedIds(validData.filter(a => !!a.unlockedAt).map(a => a._id));
         } else {
           throw new Error(res?.message || "Failed to fetch achievements");
         }

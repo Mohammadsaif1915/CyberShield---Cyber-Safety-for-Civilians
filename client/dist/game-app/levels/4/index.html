@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Cyber Shield Level 4: Dark Web Identity Theft - A 2D top-down action stealth game" />
+  <title>Cyber Shield – Level 4: Dark Web Identity Theft</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="scanline"></div>
+
+  <!-- Username Input Overlay (shows on top of canvas start screen) -->
+  <div id="username-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:50;background:rgba(0,0,12,0.95);font-family:'Share Tech Mono',monospace;">
+    <div style="text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;color:#00f5ff;font-family:Orbitron;text-shadow:0 0 24px #00f5ff;">⬡ CYBER SHIELD</div>
+      <div style="color:#bf00ff;font-size:14px;letter-spacing:3px;margin-bottom:6px;font-family:Orbitron;">LEVEL 4</div>
+      <div style="color:#888;font-size:12px;margin-bottom:28px;">— DARK WEB IDENTITY THEFT —</div>
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px;">
+        <label style="color:#00f5ff;font-size:11px;letter-spacing:2px;margin-bottom:8px;" for="username-input">AGENT CODENAME</label>
+        <input id="username-input" type="text" placeholder="Enter your username..." maxlength="30" autocomplete="off" spellcheck="false"
+          style="background:#0a1428;border:1.5px solid #bf00ff;border-radius:8px;color:#fff;font-family:'Courier New',monospace;font-size:14px;padding:10px 18px;text-align:center;width:240px;outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='#00f5ff'" onblur="this.style.borderColor='#bf00ff'">
+        <span id="username-error" style="color:#ff4466;font-size:11px;margin-top:6px;display:none;">Username must be at least 2 characters</span>
+      </div>
+      <button id="start-btn" style="padding:14px 40px;border:1.5px solid #00f5ff;background:transparent;color:#00f5ff;font-family:Orbitron;font-size:14px;letter-spacing:2px;border-radius:8px;cursor:pointer;transition:all 0.2s;" 
+        onmouseover="this.style.background='#00f5ff22';this.style.boxShadow='0 0 20px #00f5ff44'" onmouseout="this.style.background='transparent';this.style.boxShadow='none'">▶ BEGIN MISSION</button>
+      <div style="color:#445;font-size:11px;margin-top:16px;letter-spacing:1px;">WASD Move | SHIFT Stealth | SPACE Dash | E Interact | H Help</div>
+    </div>
+  </div>
+
+  <!-- Save/Leaderboard overlay (shown on victory/gameover) -->
+  <div id="save-overlay" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;display:none;text-align:center;font-family:'Share Tech Mono',monospace;">
+    <div id="save-status" style="font-size:12px;letter-spacing:1px;color:#666;margin-bottom:10px;"></div>
+    <div id="leaderboard-box" style="background:#0a0a1e;border:1px solid #00f5ff33;border-radius:10px;padding:12px 20px;width:320px;text-align:left;display:none;">
+      <h3 style="color:#00f5ff;font-size:11px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;font-family:Orbitron;">🏆 Top Agents — Level 4</h3>
+      <div id="leaderboard-rows"><p style="color:#555;font-size:12px;">Loading...</p></div>
+    </div>
+    <button id="back-to-map-btn" onclick="window.location.href='/game-app/index.html?completed=4&score='+score" style="display:none;margin-top:14px;padding:12px 32px;border:1px solid #00ff88;background:#00ff8811;color:#00ff88;font-family:'Share Tech Mono',monospace;font-size:13px;border-radius:8px;cursor:pointer;letter-spacing:1px;">◀ BACK TO LEVEL MAP</button>
+    <button id="back-to-map-fail" onclick="window.location.href='/game-app/index.html'" style="display:none;margin-top:14px;padding:12px 32px;border:1px solid #ff6644;background:#ff664411;color:#ff6644;font-family:'Share Tech Mono',monospace;font-size:13px;border-radius:8px;cursor:pointer;letter-spacing:1px;">◀ BACK TO LEVEL MAP</button>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

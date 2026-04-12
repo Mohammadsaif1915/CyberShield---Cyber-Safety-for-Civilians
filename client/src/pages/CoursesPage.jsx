@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
@@ -60,6 +61,14 @@ export default function CoursesPage() {
       {/* Hero */}
       <section className={styles.hero}>
         <div className="container">
+          <button 
+            onClick={() => navigate('/dashboard')}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: "pointer", marginBottom: 20, transition: "background 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
+            onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+          >
+            <ArrowLeft size={14} /> Back to Dashboard
+          </button>
           <h1 className={styles.heroTitle}>
             Master <span>Cybersecurity</span><br />One Course at a Time
           </h1>

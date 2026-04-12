@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import styles from './Navbar.module.css'
+import LogoIcon from './LogoIcon'
 
 export default function Navbar() {
   const location = useLocation()
@@ -7,9 +8,9 @@ export default function Navbar() {
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
-        <Link to="/courses" className={styles.logo}>
-          <span className={styles.logoIcon}>🛡️</span>
-          <span className={styles.logoText}>Cyber<span>Learn</span></span>
+        <Link to="/" className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+          <LogoIcon size={32} />
+          <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#111827', fontFamily: "'Syne', sans-serif" }}>CyberShield</span>
         </Link>
 
         <nav className={styles.nav}>

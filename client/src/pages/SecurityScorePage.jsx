@@ -116,7 +116,7 @@ export default function SecurityScorePage({ user }) {
       ) : (
         <>
           {/* Main Score Ring + Quick Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
+          <div className="dg2" style={{ gap: 24, marginBottom: 32 }}>
             {/* Left: Score Ring */}
             <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 16, padding: "32px", textAlign: "center", boxShadow: T.sh }}>
               <ProgressRing score={securityData?.overallScore || 0} size={180} />

@@ -181,6 +181,22 @@
   border-top: 1px solid var(--clr-border);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .hero { padding: 36px 0 32px; margin-bottom: 24px; }
+  .heroTitle { margin-bottom: 8px; }
+  .filters { gap: 6px; }
+  .filterBtn { padding: 5px 12px; font-size: 12px; }
+  .countBadge { font-size: 12px; }
+  .cardBody { padding: 14px 16px; }
+  .cardFooter { padding: 10px 16px 14px; }
+}
+
+@media (max-width: 480px) {
   .grid { grid-template-columns: 1fr; }
+  .hero { padding: 28px 0 24px; }
+  .heroSub { font-size: 14px; }
+  .searchWrap { max-width: 100%; }
+  .filters { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .filterBtn { white-space: nowrap; flex-shrink: 0; }
 }

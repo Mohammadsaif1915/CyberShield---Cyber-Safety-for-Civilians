@@ -290,8 +290,27 @@
   .layout { grid-template-columns: 1fr; }
   .sidebar { position: static; max-height: 400px; }
 }
-@media (max-width: 600px) {
+
+@media (max-width: 768px) {
+  .topBar { top: 0; }
+  .topInner { gap: 10px; }
   .topTitle { font-size: 14px; }
+  .topPct { font-size: 12px; min-width: 55px; }
+  .videoInfo { padding: 14px 16px 6px; }
+  .videoTitle { font-size: 15px; }
+  .quizBanner { flex-direction: column; text-align: center; gap: 12px; padding: 18px; }
+  .quizBanner h4 { font-size: 15px; }
+  .videoItem { padding: 10px 14px; gap: 10px; }
+  .sidebarHead { padding: 14px 16px; }
+  .restrictionNote { margin: 0 14px 14px; }
+}
+
+@media (max-width: 480px) {
+  .topIcon { font-size: 22px; }
+  .topTitle { font-size: 13px; }
+  .topProgress { display: none; }
+  .sidebar { max-height: 300px; }
+  .videoItemTitle { font-size: 12px; }
 }
 .playingTag {
   background: #dcfce7;

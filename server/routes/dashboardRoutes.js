@@ -320,4 +320,62 @@ router.get('/leaderboard', auth, async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════
+// GET /api/dashboard — get dashboard mock info
+// ═══════════════════════════════════════════════════════════════
+router.get('/dashboard', auth, async (req, res) => {
+  try {
+    return res.json({
+      success: true,
+      stats: {
+        activeThreats: 14,
+        resolvedIssues: 128,
+        systemHealth: 98
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// GET /api/activity — get recent mock activities
+// ═══════════════════════════════════════════════════════════════
+router.get('/activity', auth, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const activities = [
+       { id: 1, action: "Logged in from new device", time: "2 hours ago", type: "auth" },
+       { id: 2, action: "Completed Phishing Simulator", time: "5 hours ago", type: "course" },
+       { id: 3, action: "Unlocked Security Badge", time: "1 day ago", type: "achievement" }
+    ].slice(0, limit);
+
+    return res.json({
+      success: true,
+      activities
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// GET /api/phishing/emails — get default phishing sim emails
+// ═══════════════════════════════════════════════════════════════
+router.get('/phishing/emails', auth, async (req, res) => {
+  try {
+    const emails = [
+      { id: 1, subject: "Action Required: Verify Account", sender: "support@accounts-security.com", isPhishing: true },
+      { id: 2, subject: "Your Weekly Newsletter", sender: "newsletter@company.com", isPhishing: false },
+      { id: 3, subject: "Invoice #10492 Attached", sender: "billing@paypal-update.net", isPhishing: true }
+    ];
+    return res.json({
+      success: true,
+      emails
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 export default router;

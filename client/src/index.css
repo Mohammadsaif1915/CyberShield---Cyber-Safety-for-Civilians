@@ -236,7 +236,27 @@ input::placeholder, textarea::placeholder { color: var(--clr-text3); }
 .divider { height: 1px; background: var(--clr-border); margin: 0; }
 
 /* ── Responsive helpers ── */
+@media (max-width: 1024px) {
+  .container { padding: 0 20px; }
+  .section-title { font-size: 24px; }
+}
+
 @media (max-width: 768px) {
   .container, .container-sm { padding: 0 16px; }
   .section-title { font-size: 22px; }
+  .section-sub { font-size: 14px; }
+  .btn { padding: 10px 18px; font-size: 13px; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; }
+  input, select { font-size: 16px !important; /* prevent zoom on iOS */ }
+  .empty-state { padding: 40px 16px; }
+  .empty-state .icon { font-size: 36px; }
+  .empty-state h3 { font-size: 17px; }
+  .empty-state p { font-size: 13px; }
+}
+
+@media (max-width: 480px) {
+  .container, .container-sm { padding: 0 12px; }
+  .section-title { font-size: 19px; }
+  .section-sub { font-size: 13px; }
+  .empty-state { padding: 28px 12px; gap: 8px; }
 }

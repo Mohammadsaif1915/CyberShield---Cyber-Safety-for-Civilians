@@ -8,7 +8,7 @@ import IncidentReportPage from './IncidentReportPage';
 import AchievementsPage from './AchievementsPage';
 import CommunityPage from './CommunityPage';
 import {
-  Shield, Brain, Mail, BarChart2, Bell, Search,
+  Shield, Brain, Mail, BarChart2, Bell, Search, Menu,
   Zap, X, Award, Activity, CheckCircle,
   Gamepad2, GraduationCap, ShieldAlert, Flame,
   Loader2, RefreshCw, Star, TrendingUp,
@@ -20,42 +20,43 @@ import {
   Rocket, Trophy, Medal, Crown,
   FileDown, Send, EyeOff, Edit3,
   Clock, ArrowUpRight, MessageSquare, Bot,
-  Wifi, WifiOff, Globe, Target, Cpu, Database,
-  TrendingDown, Radio, Crosshair, Layers
+  Wifi, WifiOff, Target,
+  TrendingDown, Radio
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line,
 } from "recharts";
+import LogoIcon from '../components/common/LogoIcon';
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const T = {
-  bg:         "#F0F2F8",
-  surface:    "#FFFFFF",
+  bg: "#F0F2F8",
+  surface: "#FFFFFF",
   surfaceHov: "#F5F7FF",
-  card:       "#FFFFFF",
-  border:     "rgba(99,102,241,0.14)",
-  borderHov:  "rgba(99,102,241,0.32)",
-  brand:      "#4F46E5",
-  brandDark:  "#3730A3",
-  brandGlow:  "rgba(79,70,229,0.18)",
-  teal:       "#0D9488",
-  tealDim:    "rgba(13,148,136,0.10)",
-  violet:     "#7C3AED",
-  amber:      "#D97706",
-  amberDim:   "rgba(217,119,6,0.10)",
-  red:        "#DC2626",
-  redDim:     "rgba(220,38,38,0.08)",
-  green:      "#059669",
-  greenDim:   "rgba(5,150,105,0.10)",
-  pink:       "#DB2777",
-  pinkDim:    "rgba(219,39,119,0.10)",
-  text:       "#111827",
-  textMd:     "#4B5563",
-  textDim:    "#9CA3AF",
-  sh:         "0 1px 4px rgba(0,0,0,0.07)",
-  shMd:       "0 4px 20px rgba(0,0,0,0.10)",
+  card: "#FFFFFF",
+  border: "rgba(99,102,241,0.14)",
+  borderHov: "rgba(99,102,241,0.32)",
+  brand: "#4F46E5",
+  brandDark: "#3730A3",
+  brandGlow: "rgba(79,70,229,0.18)",
+  teal: "#0D9488",
+  tealDim: "rgba(13,148,136,0.10)",
+  violet: "#7C3AED",
+  amber: "#D97706",
+  amberDim: "rgba(217,119,6,0.10)",
+  red: "#DC2626",
+  redDim: "rgba(220,38,38,0.08)",
+  green: "#059669",
+  greenDim: "rgba(5,150,105,0.10)",
+  pink: "#DB2777",
+  pinkDim: "rgba(219,39,119,0.10)",
+  text: "#111827",
+  textMd: "#4B5563",
+  textDim: "#9CA3AF",
+  sh: "0 1px 4px rgba(0,0,0,0.07)",
+  shMd: "0 4px 20px rgba(0,0,0,0.10)",
 };
 
 // ─── API BASE ─────────────────────────────────────────────────────────────────
@@ -139,6 +140,135 @@ const G = () => (
     input:focus{outline:none}
     .ping{animation:ping 1.4s ease-out infinite}
     .radar-sweep{animation:radar 3s linear infinite;transform-origin:center}
+
+    /* ═══ RESPONSIVE GRID CLASSES ═══ */
+    .dg6{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+    .dg4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .dg3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .dg2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .dg21{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+    .dg12{display:grid;grid-template-columns:1fr 300px;gap:14px}
+    .dg1a{display:grid;grid-template-columns:1fr 240px;gap:14px}
+    .dg22{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .dth{display:grid;grid-template-columns:100px 100px 1fr 130px 110px 110px 80px}
+    .dqh{display:grid;grid-template-columns:1fr 100px 100px 100px}
+
+    /* ═══ SIDEBAR RESPONSIVE ═══ */
+    .dsidebar-overlay{display:none}
+    .dmobile-menu-btn{display:none!important}
+    .dsearch-desk{display:flex}
+    .dsearch-mob{display:none}
+    .dhero-circle{display:block}
+    .dtopbar-title{font-size:16px}
+
+    /* ═══ TABLET (max 1024px) ═══ */
+    @media(max-width:1024px){
+      .dg6{grid-template-columns:repeat(3,1fr)}
+      .dg4{grid-template-columns:repeat(2,1fr)}
+      .dg21{grid-template-columns:1fr}
+      .dg12{grid-template-columns:1fr}
+      .dg1a{grid-template-columns:1fr}
+      .dg3{grid-template-columns:repeat(2,1fr)}
+      .dth{grid-template-columns:90px 80px 1fr 100px 90px;}
+      .dth>span:nth-child(6),.dth>span:nth-child(7),.dth>div:nth-child(6),.dth>div:nth-child(7){display:none}
+      .dqh{grid-template-columns:1fr 80px 80px 80px}
+    }
+
+    /* ═══ MOBILE (max 768px) ═══ */
+    @media(max-width:768px){
+      .dg6{grid-template-columns:repeat(3,1fr);gap:8px}
+      .dg4{grid-template-columns:repeat(2,1fr);gap:8px}
+      .dg2{grid-template-columns:1fr}
+      .dg22{grid-template-columns:1fr}
+      .dg3{grid-template-columns:1fr}
+      .dg12{grid-template-columns:1fr}
+      .dg1a{grid-template-columns:1fr}
+      .dmobile-menu-btn{display:flex!important}
+      .dsearch-desk{display:none!important}
+      .dsearch-mob{display:flex!important}
+      .dhero-circle{display:none!important}
+      .dtopbar-title{font-size:13px}
+      .dth{grid-template-columns:70px 70px 1fr}
+      .dth>span:nth-child(n+4),.dth>div:nth-child(n+4){display:none}
+      .dqh{grid-template-columns:1fr 70px 70px}
+      .dqh>span:nth-child(4),.dqh>div:nth-child(4){display:none}
+    }
+
+    /* ═══ SMALL MOBILE (max 480px) ═══ */
+    @media(max-width:480px){
+      .dg6{grid-template-columns:repeat(2,1fr);gap:6px}
+      .dg4{grid-template-columns:1fr;gap:8px}
+      .dth{grid-template-columns:1fr}
+      .dth>span:nth-child(n+2),.dth>div:nth-child(n+2){display:none}
+    }
+
+    /* ═══ SIDEBAR MOBILE OVERLAY ═══ */
+    @media(max-width:768px){
+      .dsidebar{position:fixed!important;left:-280px!important;width:260px!important;z-index:200!important;transition:left .3s cubic-bezier(.16,1,.3,1)!important;box-shadow:none!important}
+      .dsidebar.dsidebar-open{left:0!important;box-shadow:8px 0 30px rgba(0,0,0,0.15)!important}
+      .dsidebar-overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:199;backdrop-filter:blur(2px)}
+      .dmain-content{margin-left:0!important}
+    }
+
+    /* ═══ NOTIFICATION PANEL RESPONSIVE ═══ */
+    @media(max-width:768px){
+      .dnotif-panel{width:calc(100vw - 20px)!important;right:10px!important;left:10px!important;max-width:100%!important}
+    }
+
+    /* ═══ SEARCH OVERLAY RESPONSIVE ═══ */
+    @media(max-width:768px){
+      .dsearch-overlay-card{width:calc(100vw - 24px)!important;max-width:100%!important;margin:0 12px}
+    }
+
+    /* ═══ HERO SECTION RESPONSIVE ═══ */
+    @media(max-width:768px){
+      .dhero-wrap{padding:16px 14px!important}
+      .dhero-inner{flex-direction:column!important}
+      .dhero-title{font-size:22px!important}
+      .dhero-stats{flex-wrap:wrap!important}
+      .dhero-stats>div{min-width:calc(50% - 4px)!important;flex:1 1 calc(50% - 4px)!important}
+    }
+    @media(max-width:480px){
+      .dhero-title{font-size:18px!important}
+    }
+
+    /* ═══ TOPBAR RESPONSIVE ═══ */
+    @media(max-width:768px){
+      .dtopbar{padding:0 12px!important;gap:8px!important}
+      .dtopbar-time{display:none!important}
+    }
+
+    /* ═══ MAIN CONTENT PADDING ═══ */
+    @media(max-width:768px){
+      .dmain-area{padding:12px 10px!important}
+    }
+    @media(max-width:480px){
+      .dmain-area{padding:8px 6px!important}
+    }
+
+    /* ═══ AI CHAT RESPONSIVE ═══ */
+    @media(max-width:768px){
+      .dai-chat-grid{grid-template-columns:1fr!important}
+      .dai-chat-box{height:400px!important}
+      .dai-scanner-grid{grid-template-columns:1fr!important}
+    }
+
+    /* ═══ PROFILE & SETTINGS LAYOUT ═══ */
+    .dprofile-grid{display:grid;grid-template-columns:280px 1fr;gap:16px}
+    .dsettings-grid{display:grid;grid-template-columns:200px 1fr;gap:16px}
+    .dform-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:768px){
+      .dprofile-grid{grid-template-columns:1fr}
+      .dsettings-grid{grid-template-columns:1fr}
+      .dform-grid{grid-template-columns:1fr}
+      .dform-grid>[style*="span 2"]{grid-column:auto!important}
+    }
+
+    /* ═══ PHISHING SIM RESPONSIVE ═══ */
+    @media(max-width:768px){
+      .dphish-grid{grid-template-columns:1fr!important}
+      .dphish-sidebar{order:-1}
+    }
   `}</style>
 );
 
@@ -272,7 +402,7 @@ function NotificationPanel({ user, onClose, onMarkRead }) {
     }
   };
   return (
-    <div style={{ position: "fixed", top: 62, right: 16, width: 360, background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, boxShadow: "0 12px 40px rgba(0,0,0,0.12)", zIndex: 999, overflow: "hidden", animation: "slideIn .2s ease" }}>
+    <div className="dnotif-panel" style={{ position: "fixed", top: 62, right: 16, width: 360, background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, boxShadow: "0 12px 40px rgba(0,0,0,0.12)", zIndex: 999, overflow: "hidden", animation: "slideIn .2s ease" }}>
       <div style={{ padding: "14px 18px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>Notifications</h3>
@@ -332,7 +462,7 @@ function SearchOverlay({ onClose, setPage, navigate }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 80 }} onClick={onClose}>
-      <div style={{ width: 560, background: T.card, borderRadius: 18, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", overflow: "hidden", border: `1px solid ${T.border}`, animation: "fadeUp .2s ease" }} onClick={e => e.stopPropagation()}>
+      <div className="dsearch-overlay-card" style={{ width: 560, background: T.card, borderRadius: 18, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", overflow: "hidden", border: `1px solid ${T.border}`, animation: "fadeUp .2s ease" }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 16px", borderBottom: `1px solid ${T.border}` }}>
           <Search size={14} style={{ color: T.textDim }} />
           <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)} placeholder="Search pages, features…" style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: T.text, fontFamily: "'Nunito',sans-serif", background: "transparent" }} />
@@ -365,20 +495,20 @@ function SearchOverlay({ onClose, setPage, navigate }) {
 }
 
 // ─── SIDEBAR ──────────────────────────────────────────────────────────────────
-function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
+function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed, mobileMenuOpen }) {
   const nav = [
     { id: "overview", icon: Home, label: "Overview" },
-    { id: "threats", icon: ShieldAlert, label: "Threats", badge: "Live" },
+    { id: "threats", icon: ShieldAlert, label: "Threats" },
     { id: "aichat", icon: Bot, label: "AI Assistant", badge: "New" },
     { id: "courses", icon: GraduationCap, label: "Courses", external: "/courses" },
     { id: "phishing", icon: Mail, label: "Phishing Sim" },
     { id: "quiz", icon: Brain, label: "Quiz", external: "/quiz" },
     { id: "game", icon: Gamepad2, label: "CyberGame", external: "/game" },
-    { id: "security-score", icon: TrendingUp, label: "Security Score", badge: "NEW" },
-    { id: "fraud-detection", icon: Target, label: "Fraud Tools", badge: "NEW" },
-    { id: "incident-report", icon: AlertTriangle, label: "Report Threat", badge: "NEW" },
-    { id: "achievements", icon: Medal, label: "Achievements", badge: "NEW" },
-    { id: "community", icon: MessageSquare, label: "Community", badge: "NEW" },
+    { id: "security-score", icon: TrendingUp, label: "Security Score" },
+    { id: "fraud-detection", icon: Target, label: "Fraud Tools" },
+    { id: "incident-report", icon: AlertTriangle, label: "Report Threat" },
+    { id: "achievements", icon: Medal, label: "Achievements" },
+    { id: "community", icon: MessageSquare, label: "Community" },
     { id: "reports", icon: BarChart2, label: "Reports" },
     { id: "leaderboard", icon: Trophy, label: "Leaderboard" },
   ];
@@ -414,12 +544,12 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
   );
 
   return (
-    <div style={{ width: w, flexShrink: 0, background: T.surface, borderRight: `1px solid ${T.border}`, display: "flex", flexDirection: "column", height: "100vh", position: "fixed", left: 0, top: 0, zIndex: 100, transition: "width .25s cubic-bezier(.16,1,.3,1)", overflow: "hidden" }}>
+    <div className={`dsidebar ${mobileMenuOpen ? 'dsidebar-open' : ''}`} style={{ width: w, flexShrink: 0, background: T.surface, borderRight: `1px solid ${T.border}`, display: "flex", flexDirection: "column", height: "100vh", position: "fixed", left: 0, top: 0, zIndex: 100, transition: "width .25s cubic-bezier(.16,1,.3,1)", overflow: "hidden" }}>
       <div style={{ padding: collapsed ? "14px 8px" : "18px 16px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", minHeight: 62, gap: 8 }}>
         {!collapsed && (
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Shield size={16} style={{ color: "#fff" }} />
+            <div style={{ width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <LogoIcon size={34} />
             </div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 800, color: T.text, letterSpacing: "-0.01em", fontFamily: "'Syne',sans-serif" }}>CyberShield</div>
@@ -428,8 +558,8 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
           </div>
         )}
         {collapsed && (
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Shield size={16} style={{ color: "#fff" }} />
+          <div style={{ width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <LogoIcon size={34} />
           </div>
         )}
         <button onClick={() => setCollapsed(c => !c)} style={{ border: "none", background: T.bg, borderRadius: 7, width: 24, height: 24, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: T.textMd }}>
@@ -465,7 +595,7 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed }) {
 }
 
 // ─── TOPBAR ───────────────────────────────────────────────────────────────────
-function TopBar({ page, user, notifCount, onNotifClick, onProfileClick, onSearchClick, online }) {
+function TopBar({ page, user, notifCount, onNotifClick, onProfileClick, onSearchClick, online, onMenuClick }) {
   const labels = {
     overview: "Overview", threats: "Threat Intelligence", courses: "Learning Courses",
     phishing: "Phishing Simulator", quiz: "Quiz Center", game: "CyberDefense Game",
@@ -473,16 +603,22 @@ function TopBar({ page, user, notifCount, onNotifClick, onProfileClick, onSearch
     leaderboard: "Leaderboard", aichat: "AI Security Assistant",
   };
   return (
-    <div style={{ height: 62, background: T.surface, borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", padding: "0 22px", gap: 12, position: "sticky", top: 0, zIndex: 50 }}>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12 }}>
-        <h1 style={{ fontSize: 16, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>{labels[page] || page}</h1>
+    <div className="dtopbar" style={{ height: 62, background: T.surface, borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", padding: "0 22px", gap: 12, position: "sticky", top: 0, zIndex: 50 }}>
+      <button className="dmobile-menu-btn" onClick={onMenuClick} style={{ display: "none", width: 34, height: 34, borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, cursor: "pointer", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Menu size={16} style={{ color: T.textMd }} />
+      </button>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+        <h1 className="dtopbar-title" style={{ fontSize: 16, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{labels[page] || page}</h1>
         <ConnectionStatus online={online} />
       </div>
-      <LiveClock />
-      <button onClick={onSearchClick} style={{ display: "flex", alignItems: "center", gap: 7, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "7px 12px", width: 200, cursor: "pointer", fontFamily: "'Nunito',sans-serif", color: T.textDim, fontSize: 11 }}>
-        <Search size={11} /> Search pages… <kbd style={{ marginLeft: "auto", fontSize: 9, border: `1px solid ${T.border}`, borderRadius: 4, padding: "1px 5px", fontFamily: "monospace", color: T.textDim }}>⌘K</kbd>
+      <div className="dtopbar-time"><LiveClock /></div>
+      <button className="dsearch-desk" onClick={onSearchClick} style={{ display: "flex", alignItems: "center", gap: 7, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "7px 12px", width: 200, cursor: "pointer", fontFamily: "'Nunito',sans-serif", color: T.textDim, fontSize: 11, flexShrink: 0 }}>
+        <Search size={11} /> Search… <kbd style={{ marginLeft: "auto", fontSize: 9, border: `1px solid ${T.border}`, borderRadius: 4, padding: "1px 5px", fontFamily: "monospace", color: T.textDim }}>⌘K</kbd>
       </button>
-      <button onClick={onNotifClick} style={{ position: "relative", width: 34, height: 34, borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <button className="dsearch-mob" onClick={onSearchClick} style={{ display: "none", width: 34, height: 34, borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, cursor: "pointer", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Search size={14} style={{ color: T.textMd }} />
+      </button>
+      <button onClick={onNotifClick} style={{ position: "relative", width: 34, height: 34, borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <Bell size={14} style={{ color: T.textMd }} />
         {notifCount > 0 && <span style={{ position: "absolute", top: -3, right: -3, background: T.red, color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 8, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${T.surface}`, fontFamily: "monospace" }}>{notifCount > 9 ? "9+" : notifCount}</span>}
       </button>
@@ -567,14 +703,10 @@ function LiveActivityFeed({ activities, loading }) {
 // ─── AI CHAT ASSISTANT PAGE ───────────────────────────────────────────────────
 function AIChatPage() {
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "👋 Hi! I'm your CyberShield AI assistant. Ask me anything about cybersecurity — threats, best practices, phishing, malware, or your security posture.", ts: new Date() }
+    { role: "assistant", content: "👋 Hi! I'm your CyberShield AI assistant. Ask me anything about cybersecurity.", ts: new Date() }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [scamUrl, setScamUrl] = useState("");
-  const [scamResult, setScamResult] = useState(null);
-  const [scamLoading, setScamLoading] = useState(false);
-  const [tab, setTab] = useState("chat");
   const chatRef = useRef();
 
   useEffect(() => {
@@ -584,39 +716,34 @@ function AIChatPage() {
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     const userMsg = { role: "user", content: input.trim(), ts: new Date() };
-    setMessages(m => [...m, userMsg]);
+    const latestMessages = [...messages, userMsg];
+    setMessages(latestMessages);
     setInput("");
     setLoading(true);
     try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: JSON.stringify({ message: input.trim() }),
+        // send the full array, except system prompt which backend handles
+        body: JSON.stringify({
+          messages: latestMessages.map(m => ({
+            role: m.role,
+            content: m.content,
+            reasoning_details: m.reasoning_details
+          }))
+        }),
       });
       const data = await res.json();
-      setMessages(m => [...m, { role: "assistant", content: data.reply || data.message || "Sorry, I couldn't process that.", ts: new Date() }]);
+      setMessages(m => [...m, {
+        role: "assistant",
+        content: data.reply || data.message || "Sorry, I couldn't process that.",
+        reasoning_details: data.reasoning_details,
+        ts: new Date()
+      }]);
     } catch {
       setMessages(m => [...m, { role: "assistant", content: "⚠️ Couldn't connect to the AI service. Please try again.", ts: new Date() }]);
     }
     setLoading(false);
-  };
-
-  const analyzeLink = async () => {
-    if (!scamUrl.trim() || scamLoading) return;
-    setScamLoading(true);
-    setScamResult(null);
-    try {
-      const res = await fetch("/api/ai/analyze-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: JSON.stringify({ url: scamUrl.trim() }),
-      });
-      const data = await res.json();
-      setScamResult(data);
-    } catch {
-      setScamResult({ verdict: "error", reason: "Analysis service unavailable.", score: 0 });
-    }
-    setScamLoading(false);
   };
 
   const quickPrompts = [
@@ -627,158 +754,74 @@ function AIChatPage() {
     "How does ransomware work?",
   ];
 
-  const verdictColor = scamResult?.verdict === "safe" ? T.green : scamResult?.verdict === "phishing" ? T.red : T.amber;
-  const verdictIcon = scamResult?.verdict === "safe" ? <CheckCircle size={16} /> : scamResult?.verdict === "phishing" ? <AlertTriangle size={16} /> : <Eye size={16} />;
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", gap: 8 }}>
-        {[{ id: "chat", label: "💬 AI Chat", icon: MessageSquare }, { id: "scanner", label: "🔍 Scam Detector", icon: Target }].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${tab === t.id ? T.brand : T.border}`, background: tab === t.id ? `${T.brand}10` : T.card, color: tab === t.id ? T.brand : T.textMd, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif" }}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "chat" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: 14 }}>
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, overflow: "hidden", boxShadow: T.sh, display: "flex", flexDirection: "column", height: 560 }}>
-            <div style={{ padding: "14px 18px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 11, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Bot size={16} style={{ color: "#fff" }} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 13, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>CyberShield AI</h3>
-                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: T.green, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>
-                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.green, animation: "pulse 2s infinite" }} />Online
-                </div>
+      <div className="dai-chat-grid" style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: 14 }}>
+        <div className="dai-chat-box" style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, overflow: "hidden", boxShadow: T.sh, display: "flex", flexDirection: "column", height: 560 }}>
+          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 11, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Bot size={16} style={{ color: "#fff" }} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 13, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>CyberShield AI</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: T.green, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>
+                <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.green, animation: "pulse 2s infinite" }} />Online
               </div>
             </div>
-            <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
-              {messages.map((msg, i) => (
-                <div key={i} style={{ display: "flex", gap: 8, justifyContent: msg.role === "user" ? "flex-end" : "flex-start", animation: "fadeUp .25s ease" }}>
-                  {msg.role === "assistant" && (
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                      <Bot size={12} style={{ color: "#fff" }} />
-                    </div>
-                  )}
-                  <div style={{ maxWidth: "75%", background: msg.role === "user" ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: msg.role === "user" ? "#fff" : T.text, borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 12, lineHeight: 1.6, fontFamily: "'Nunito',sans-serif" }}>
-                    {msg.content}
-                    <div style={{ fontSize: 9, opacity: 0.6, marginTop: 4, textAlign: "right", fontFamily: "'JetBrains Mono',monospace" }}>
-                      {msg.ts ? fmtTime(msg.ts) : ""}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {loading && (
-                <div style={{ display: "flex", gap: 8 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          </div>
+          <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+            {messages.map((msg, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, justifyContent: msg.role === "user" ? "flex-end" : "flex-start", animation: "fadeUp .25s ease" }}>
+                {msg.role === "assistant" && (
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
                     <Bot size={12} style={{ color: "#fff" }} />
                   </div>
-                  <div style={{ background: T.bg, borderRadius: "18px 18px 18px 4px", padding: "14px 18px", display: "flex", gap: 5, alignItems: "center" }}>
-                    {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: T.textDim, animation: `pulse 1.2s ease ${i * 0.2}s infinite` }} />)}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div style={{ padding: "12px 18px", borderTop: `1px solid ${T.border}`, display: "flex", gap: 8 }}>
-              <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Ask about cybersecurity…" style={{ flex: 1, border: `1px solid ${T.border}`, borderRadius: 12, padding: "10px 14px", fontSize: 12, fontFamily: "'Nunito',sans-serif", color: T.text, background: T.bg, outline: "none" }} />
-              <button onClick={sendMessage} disabled={loading || !input.trim()} style={{ width: 40, height: 40, borderRadius: 12, border: "none", background: input.trim() ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: input.trim() ? "#fff" : T.textDim, cursor: input.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Send size={14} />
-              </button>
-            </div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, boxShadow: T.sh }}>
-              <h4 style={{ fontSize: 11, fontWeight: 700, color: T.text, margin: "0 0 11px", fontFamily: "'Syne',sans-serif" }}>Quick Questions</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {quickPrompts.map((q, i) => (
-                  <button key={i} onClick={() => { setInput(q); }} style={{ padding: "8px 11px", borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.textMd, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito',sans-serif", textAlign: "left", transition: "all .15s" }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = `${T.brand}25`; e.currentTarget.style.color = T.brand; e.currentTarget.style.background = `${T.brand}05`; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.textMd; e.currentTarget.style.background = T.bg; }}>
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{ background: `${T.brand}06`, border: `1px solid ${T.brand}20`, borderRadius: 14, padding: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: T.brand, marginBottom: 6, fontFamily: "'Syne',sans-serif" }}>💡 Pro Tip</div>
-              <p style={{ fontSize: 11, color: T.textMd, margin: 0, lineHeight: 1.6 }}>Ask about your specific security situation — the AI tailors advice to cybersecurity scenarios.</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {tab === "scanner" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: 24, boxShadow: T.sh }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: T.redDim, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Crosshair size={18} style={{ color: T.red }} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 14, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>AI Scam Detector</h3>
-                <p style={{ fontSize: 10, color: T.textMd, margin: 0 }}>Paste any URL for instant analysis</p>
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input value={scamUrl} onChange={e => setScamUrl(e.target.value)} onKeyDown={e => e.key === "Enter" && analyzeLink()} placeholder="https://suspicious-link.com" style={{ border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 16px", fontSize: 13, fontFamily: "'JetBrains Mono',monospace", color: T.text, background: T.bg, outline: "none", width: "100%" }} />
-              <button onClick={analyzeLink} disabled={scamLoading || !scamUrl.trim()} style={{ padding: "12px", borderRadius: 12, border: "none", background: scamUrl.trim() ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: scamUrl.trim() ? "#fff" : T.textDim, fontSize: 13, fontWeight: 700, cursor: scamUrl.trim() ? "pointer" : "not-allowed", fontFamily: "'Nunito',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                {scamLoading ? <><Loader2 size={14} className="spin" /> Analyzing…</> : <><Crosshair size={14} /> Analyze URL</>}
-              </button>
-            </div>
-            {scamResult && (
-              <div style={{ marginTop: 18, padding: 16, background: `${verdictColor}08`, border: `1px solid ${verdictColor}25`, borderRadius: 14, animation: "slideUp .3s ease" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                  <span style={{ color: verdictColor }}>{verdictIcon}</span>
-                  <h4 style={{ fontSize: 14, fontWeight: 800, color: verdictColor, margin: 0, fontFamily: "'Syne',sans-serif", textTransform: "uppercase" }}>
-                    {scamResult.verdict || "Unknown"}
-                  </h4>
-                </div>
-                {scamResult.score !== undefined && (
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: T.textMd, marginBottom: 5 }}>
-                      <span>Risk Score</span><span style={{ fontWeight: 700, color: verdictColor }}>{scamResult.score}/100</span>
-                    </div>
-                    <div style={{ height: 6, background: T.bg, borderRadius: 99 }}>
-                      <div style={{ height: 6, width: `${scamResult.score}%`, background: `linear-gradient(90deg,${T.green},${verdictColor})`, borderRadius: 99 }} />
-                    </div>
-                  </div>
                 )}
-                <p style={{ fontSize: 11, color: T.textMd, margin: 0, lineHeight: 1.6 }}>{scamResult.reason || scamResult.details}</p>
-                {scamResult.flags?.length > 0 && (
-                  <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
-                    {scamResult.flags.map((f, i) => (
-                      <div key={i} style={{ fontSize: 10, color: T.red, display: "flex", alignItems: "center", gap: 5 }}>
-                        <AlertTriangle size={10} />  {f}
-                      </div>
-                    ))}
+                <div style={{ maxWidth: "75%", background: msg.role === "user" ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: msg.role === "user" ? "#fff" : T.text, borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 12, lineHeight: 1.6, fontFamily: "'Nunito',sans-serif" }}>
+                  {msg.content}
+                  <div style={{ fontSize: 9, opacity: 0.6, marginTop: 4, textAlign: "right", fontFamily: "'JetBrains Mono',monospace" }}>
+                    {msg.ts ? fmtTime(msg.ts) : ""}
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: 24, boxShadow: T.sh }}>
-            <h3 style={{ fontSize: 13, fontWeight: 800, color: T.text, margin: "0 0 14px", fontFamily: "'Syne',sans-serif" }}>🛡️ How It Works</h3>
-            {[
-              { icon: Globe, title: "Domain Analysis", desc: "Checks for lookalike domains and typosquatting patterns" },
-              { icon: Layers, title: "Keyword Detection", desc: "Identifies phishing keywords and urgency triggers" },
-              { icon: Database, title: "Pattern Matching", desc: "Cross-references known malicious URL patterns" },
-              { icon: Cpu, title: "AI Scoring", desc: "Machine learning risk score from 0 (safe) to 100 (dangerous)" },
-            ].map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < 3 ? `1px solid ${T.border}` : "none" }}>
-                <div style={{ width: 32, height: 32, borderRadius: 9, background: `${T.brand}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <item.icon size={14} style={{ color: T.brand }} />
-                </div>
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: "0 0 2px" }}>{item.title}</p>
-                  <p style={{ fontSize: 10, color: T.textMd, margin: 0 }}>{item.desc}</p>
                 </div>
               </div>
             ))}
+            {loading && (
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Bot size={12} style={{ color: "#fff" }} />
+                </div>
+                <div style={{ background: T.bg, borderRadius: "18px 18px 18px 4px", padding: "14px 18px", display: "flex", gap: 5, alignItems: "center" }}>
+                  {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: T.textDim, animation: `pulse 1.2s ease ${i * 0.2}s infinite` }} />)}
+                </div>
+              </div>
+            )}
+          </div>
+          <div style={{ padding: "12px 18px", borderTop: `1px solid ${T.border}`, display: "flex", gap: 8 }}>
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Ask about cybersecurity…" style={{ flex: 1, border: `1px solid ${T.border}`, borderRadius: 12, padding: "10px 14px", fontSize: 12, fontFamily: "'Nunito',sans-serif", color: T.text, background: T.bg, outline: "none" }} />
+            <button onClick={sendMessage} disabled={loading || !input.trim()} style={{ width: 40, height: 40, borderRadius: 12, border: "none", background: input.trim() ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: input.trim() ? "#fff" : T.textDim, cursor: input.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Send size={14} />
+            </button>
           </div>
         </div>
-      )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, boxShadow: T.sh }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: T.text, margin: "0 0 11px", fontFamily: "'Syne',sans-serif" }}>Quick Questions</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {quickPrompts.map((q, i) => (
+                <button key={i} onClick={() => { setInput(q); }} style={{ padding: "8px 11px", borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.textMd, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito',sans-serif", textAlign: "left", transition: "all .15s" }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = `${T.brand}25`; e.currentTarget.style.color = T.brand; e.currentTarget.style.background = `${T.brand}05`; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.textMd; e.currentTarget.style.background = T.bg; }}>
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{ background: `${T.brand}06`, border: `1px solid ${T.brand}20`, borderRadius: 14, padding: 14 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T.brand, marginBottom: 6, fontFamily: "'Syne',sans-serif" }}>💡 Pro Tip</div>
+            <p style={{ fontSize: 11, color: T.textMd, margin: 0, lineHeight: 1.6 }}>Ask about your specific security situation — the AI tailors advice to cybersecurity scenarios.</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -835,10 +878,10 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Hero */}
-      <div className="fu" style={{ borderRadius: 22, padding: "26px 30px", position: "relative", overflow: "hidden", background: `linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 50%, #EDE9FE 100%)`, border: `1px solid ${T.brand}20`, boxShadow: T.sh }}>
+      <div className="fu dhero-wrap" style={{ borderRadius: 22, padding: "26px 30px", position: "relative", overflow: "hidden", background: `linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 50%, #EDE9FE 100%)`, border: `1px solid ${T.brand}20`, boxShadow: T.sh }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: `linear-gradient(rgba(79,70,229,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,0.04) 1px,transparent 1px)`, backgroundSize: "40px 40px" }} />
         <div style={{ position: "absolute", top: -60, right: -40, width: 200, height: 200, borderRadius: "50%", background: `radial-gradient(circle,${T.brand}12,transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
+        <div className="dhero-inner" style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(5,150,105,0.10)", borderRadius: 99, padding: "3px 10px", border: "1px solid rgba(5,150,105,0.25)" }}>
@@ -847,7 +890,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
               </div>
               <LiveClock />
             </div>
-            <h1 style={{ fontSize: 32, fontWeight: 800, color: T.text, fontFamily: "'Syne',sans-serif", margin: "0 0 4px", lineHeight: 1.1 }}>{greeting}, {fname} 👋</h1>
+            <h1 className="dhero-title" style={{ fontSize: 32, fontWeight: 800, color: T.text, fontFamily: "'Syne',sans-serif", margin: "0 0 4px", lineHeight: 1.1 }}>{greeting}, {fname} 👋</h1>
             <p style={{ fontSize: 12, color: T.textMd, margin: "0 0 14px" }}>
               {user?.role || "Cybersecurity Learner"}{level > 1 ? ` · Level ${level} Security Analyst` : " · Building foundations 🚀"}
             </p>
@@ -855,7 +898,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
               <Zap size={11} style={{ color: T.amber, flexShrink: 0 }} />
               <span style={{ fontSize: 11, color: T.textMd, fontStyle: "italic" }}>{tip}</span>
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className="dhero-stats" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[
                 { v: score, l: "Score", c: T.brand, animated: true },
                 { v: `Lv.${level}`, l: "Level", c: T.violet },
@@ -882,7 +925,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
               </div>
             </div>
           </div>
-          <div style={{ textAlign: "center", flexShrink: 0 }}>
+          <div className="dhero-circle" style={{ textAlign: "center", flexShrink: 0 }}>
             <svg width={100} height={100} viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(79,70,229,0.12)" strokeWidth="6" />
               <circle cx="50" cy="50" r="42" fill="none" stroke={T.brand} strokeWidth="6" strokeDasharray={`${2 * Math.PI * 42 * xpPct / 100} ${2 * Math.PI * 42}`} strokeLinecap="round" transform="rotate(-90 50 50)" style={{ transition: "stroke-dasharray 1s ease" }} />
@@ -896,7 +939,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
       {/* Quick Actions */}
       <div className="fu fu1">
         <div style={{ fontSize: 9, fontWeight: 700, color: T.textDim, marginBottom: 9, letterSpacing: "0.12em", fontFamily: "'JetBrains Mono',monospace" }}>QUICK ACTIONS</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 10 }}>
+        <div className="dg6">
           {quickActions.map((item, i) => (
             <button key={i} onClick={item.action} style={{ padding: "14px 8px", border: `1px solid ${T.border}`, textAlign: "center", cursor: "pointer", background: T.card, borderRadius: 16, transition: "all .2s", fontFamily: "inherit", boxShadow: T.sh }}
               onMouseEnter={e => { e.currentTarget.style.background = `${item.color}08`; e.currentTarget.style.borderColor = `${item.color}25`; e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 8px 20px ${item.color}15`; }}
@@ -912,7 +955,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
       </div>
 
       {/* Stats */}
-      <div className="fu fu2" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+      <div className="fu fu2 dg4">
         {[
           { label: "Total Score", value: score, icon: Star, color: T.brand, sub: score > 0 ? `${Math.floor(score)} XP` : "Start earning!", animated: true },
           { label: "Avg Quiz Score", value: avgScore > 0 ? `${avgScore}%` : "—", icon: Brain, color: T.violet, sub: quizDone > 0 ? `${quizDone} quiz${quizDone !== 1 ? "zes" : ""} attempted` : "No quizzes yet" },
@@ -942,7 +985,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
       </div>
 
       {/* Charts */}
-      <div className="fu fu3" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14 }}>
+      <div className="fu fu3 dg21">
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, boxShadow: T.sh }}>
           <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: "0 0 3px", fontFamily: "'Syne',sans-serif" }}>Weekly Progress</h3>
           <p style={{ fontSize: 10, color: T.textMd, margin: "0 0 16px" }}>Score progression this week — live data</p>
@@ -985,7 +1028,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
             <h3 style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>AI Insights</h3>
             <span style={{ fontSize: 9, background: `${T.violet}10`, color: T.violet, border: `1px solid ${T.violet}20`, borderRadius: 99, padding: "1px 7px", fontWeight: 700 }}>LIVE</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10 }}>
+          <div className="dg22">
             {insights.slice(0, 4).map((ins, i) => (
               <div key={i} style={{ padding: "12px 14px", background: ins.type === "warning" ? T.amberDim : ins.type === "success" ? T.greenDim : `${T.brand}06`, border: `1px solid ${ins.type === "warning" ? T.amber : ins.type === "success" ? T.green : T.brand}20`, borderRadius: 12 }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: ins.type === "warning" ? T.amber : ins.type === "success" ? T.green : T.brand, margin: "0 0 4px" }}>{ins.title}</p>
@@ -997,7 +1040,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
       )}
 
       {/* Live Activity + Badges */}
-      <div className="fu fu5" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className="fu fu5 dg2">
         <LiveActivityFeed activities={liveActivities} loading={dashLoading} />
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 18, boxShadow: T.sh }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 13 }}>
@@ -1072,7 +1115,7 @@ function ThreatsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, flex: 1 }}>
+        <div className="dg4" style={{ flex: 1 }}>
           {[
             { label: "Total Detected", value: liveCount, color: T.brand, icon: ShieldAlert, live: true },
             { label: "Critical", value: counts.critical, color: T.red, icon: AlertTriangle },
@@ -1133,18 +1176,18 @@ function ThreatsPage() {
         </div>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ display: "flex", gap: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {["all", "critical", "high", "medium"].map(f => (
             <button key={f} onClick={() => setFilter(f)} style={{ padding: "6px 13px", borderRadius: 8, border: `1px solid ${filter === f ? T.brand : T.border}`, background: filter === f ? `${T.brand}10` : T.card, color: filter === f ? T.brand : T.textMd, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", textTransform: "capitalize", transition: "all .15s" }}>
               {f} {f !== "all" && `(${threats.filter(t => t.severity === f).length})`}
             </button>
           ))}
         </div>
-        <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 9, padding: "6px 12px" }}>
+        <div style={{ flex: 1, minWidth: 60 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 9, padding: "6px 12px", flex: "1 1 auto", maxWidth: 280, minWidth: 140 }}>
           <Search size={11} style={{ color: T.textDim }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search threats…" style={{ border: "none", outline: "none", fontSize: 11, fontFamily: "'Nunito',sans-serif", background: "transparent", color: T.text, width: 180 }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search threats…" style={{ border: "none", outline: "none", fontSize: 11, fontFamily: "'Nunito',sans-serif", background: "transparent", color: T.text, width: "100%", minWidth: 0 }} />
           {search && <button onClick={() => setSearch("")} style={{ border: "none", background: "none", cursor: "pointer", color: T.textDim, padding: 0, display: "flex" }}><X size={11} /></button>}
         </div>
         <span style={{ fontSize: 10, color: T.textDim }}>{filtered.length} results</span>
@@ -1161,7 +1204,7 @@ function ThreatsPage() {
           </div>
         ) : (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "100px 100px 1fr 130px 110px 110px 80px", padding: "10px 18px", background: T.bg, borderBottom: `1px solid ${T.border}`, fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>
+            <div className="dth" style={{ padding: "10px 18px", background: T.bg, borderBottom: `1px solid ${T.border}`, fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>
               <span>TYPE</span><span>SEVERITY</span><span>DESCRIPTION</span><span>SOURCE</span><span>TARGET</span><span>STATUS</span><span>TIME</span>
             </div>
             {filtered.map((t, i) => {
@@ -1169,7 +1212,7 @@ function ThreatsPage() {
               const sc = STATUS_C[t.status] || T.textDim;
               const isSel = selected?.id === t.id || selected?._id === t._id;
               return (
-                <div key={t.id || t._id || i} onClick={() => setSelected(isSel ? null : t)} style={{ display: "grid", gridTemplateColumns: "100px 100px 1fr 130px 110px 110px 80px", padding: "11px 18px", borderBottom: i < filtered.length - 1 ? `1px solid ${T.border}` : "none", cursor: "pointer", transition: "background .12s", background: isSel ? `${T.brand}06` : "transparent" }}
+                <div key={t.id || t._id || i} onClick={() => setSelected(isSel ? null : t)} className="dth" style={{ padding: "11px 18px", borderBottom: i < filtered.length - 1 ? `1px solid ${T.border}` : "none", cursor: "pointer", transition: "background .12s", background: isSel ? `${T.brand}06` : "transparent" }}
                   onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = T.surfaceHov; }}
                   onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = "transparent"; }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: T.text, alignSelf: "center" }}>{t.type}</span>
@@ -1197,7 +1240,7 @@ function ThreatsPage() {
               <X size={11} style={{ color: T.textMd }} />
             </button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 12 }}>
+          <div className="dg3" style={{ marginBottom: 12 }}>
             {[
               { l: "IOC / Indicator", v: selected.ioc || selected.indicator || "—" },
               { l: "Source / Actor", v: selected.source },
@@ -1254,7 +1297,7 @@ function PhishingPage({ user, onUserUpdate }) {
 
     try {
       await API.post("/api/activity", { type: "phishing", result: correct ? "pass" : "fail", score: correct ? 1 : 0, emailId: current._id });
-    } catch {}
+    } catch { }
 
     if (onUserUpdate) {
       const prevCorrect = user?.phishingSimCorrect || 0;
@@ -1306,7 +1349,7 @@ function PhishingPage({ user, onUserUpdate }) {
         <span style={{ fontSize: 10, color: T.brand, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>{Math.round(((step + 1) / emails.length) * 100)}%</span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 14 }}>
+      <div className="dg12 dphish-grid">
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden", boxShadow: T.sh, opacity: animating ? 0.6 : 1, transition: "opacity .2s" }}>
           <div style={{ background: T.bg, borderBottom: `1px solid ${T.border}`, padding: "8px 14px", display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57" }} />
@@ -1424,7 +1467,7 @@ function ReportsPage({ user, navigate, setPage }) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <EmptyState icon={BarChart2} title="No report data yet" desc="Your reports populate automatically as you complete quizzes, phishing simulations, courses, and games." color={T.brand} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
+        <div className="dg22">
           {[
             { icon: Brain, label: "Take a Quiz", desc: "Earn scores and XP", color: T.brand, action: () => navigate("/quiz") },
             { icon: Mail, label: "Try Phishing Sim", desc: "Test your detection skills", color: T.amber, action: () => setPage("phishing") },
@@ -1464,7 +1507,7 @@ function ReportsPage({ user, navigate, setPage }) {
           </button>
         ))}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+      <div className="dg4">
         {[
           { l: "Total Score", v: (user?.score || 0).toLocaleString(), c: T.brand, icon: Star },
           { l: "Level", v: `Level ${level}`, c: T.violet, icon: Trophy },
@@ -1485,14 +1528,14 @@ function ReportsPage({ user, navigate, setPage }) {
           <div style={{ padding: "13px 18px", borderBottom: `1px solid ${T.border}` }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>Quiz History</h3>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px", padding: "9px 18px", background: T.bg, borderBottom: `1px solid ${T.border}`, fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>
+          <div className="dqh" style={{ padding: "9px 18px", background: T.bg, borderBottom: `1px solid ${T.border}`, fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>
             <span>MODULE</span><span>SCORE</span><span>GRADE</span><span>DATE</span>
           </div>
           {user.quizHistory.slice(0, 8).map((r, i) => {
             const pct = r.score || r.percentage || 0;
             const col = pct >= 80 ? T.green : pct >= 60 ? T.brand : T.amber;
             return (
-              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px", padding: "10px 18px", borderBottom: i < Math.min(user.quizHistory.length, 8) - 1 ? `1px solid ${T.border}` : "none" }}>
+              <div key={i} className="dqh" style={{ padding: "10px 18px", borderBottom: i < Math.min(user.quizHistory.length, 8) - 1 ? `1px solid ${T.border}` : "none" }}>
                 <span style={{ fontSize: 11, color: T.text, fontWeight: 500 }}>{r.quiz || r.moduleTitle || `Module ${i + 1}`}</span>
                 <span style={{ fontSize: 11, fontWeight: 800, color: col, fontFamily: "'Syne',sans-serif" }}>{pct}%</span>
                 <div><Bdg color={col} bg={`${col}12`}>{pct >= 90 ? "A+" : pct >= 80 ? "A" : pct >= 70 ? "B" : pct >= 60 ? "C" : "D"}</Bdg></div>
@@ -1533,7 +1576,7 @@ function ProfilePage({ user, onUserUpdate }) {
 
   const handleSave = async () => {
     setSaving(true);
-    try { await API.put("/api/auth/profile", form); } catch {}
+    try { await API.put("/api/auth/profile", form); } catch { }
     if (onUserUpdate) onUserUpdate({ ...form, name: form.fullName });
     setSaved(true); setEditMode(false); setSaving(false);
     setTimeout(() => setSaved(false), 3000);
@@ -1559,7 +1602,7 @@ function ProfilePage({ user, onUserUpdate }) {
           <span style={{ fontSize: 12, fontWeight: 600, color: T.green }}>Profile updated successfully!</span>
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 16 }}>
+      <div className="dprofile-grid">
         <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
           <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: T.sh }}>
             <div style={{ position: "relative", width: 88, height: 88, margin: "0 auto 13px", cursor: "pointer" }} onClick={() => fileRef.current?.click()}>
@@ -1604,7 +1647,7 @@ function ProfilePage({ user, onUserUpdate }) {
               {saving ? <Loader2 size={11} className="spin" /> : editMode ? <><Save size={11} /> Save Changes</> : <><Edit3 size={11} /> Edit Profile</>}
             </button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="dform-grid">
             {[
               { label: "Full Name", key: "fullName", icon: User, type: "text" },
               { label: "Email", key: "email", icon: Mail, type: "email" },
@@ -1689,7 +1732,7 @@ function SettingsPage({ user, onUserUpdate }) {
   );
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 16 }}>
+    <div className="dsettings-grid">
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "12px 8px", height: "fit-content", boxShadow: T.sh }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 9, border: "none", background: tab === t.id ? (t.id === "danger" ? T.redDim : `${T.brand}10`) : "transparent", color: tab === t.id ? (t.id === "danger" ? T.red : T.brand) : T.textMd, cursor: "pointer", fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: tab === t.id ? 700 : 500, marginBottom: 2, textAlign: "left" }}>
@@ -1938,6 +1981,7 @@ export default function Dashboard() {
 
   const [page, setPage] = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [notifRead, setNotifRead] = useState(false);
@@ -2008,7 +2052,7 @@ export default function Dashboard() {
             const cached = JSON.parse(raw);
             setUser(cached);
           }
-        } catch {}
+        } catch { }
       });
 
     const fetchDashboard = () => {
@@ -2021,13 +2065,13 @@ export default function Dashboard() {
     const fetchActivities = () => {
       API.get("/api/activity?limit=10")
         .then(data => setLiveActivities(Array.isArray(data) ? data : data.activities || []))
-        .catch(() => {});
+        .catch(() => { });
     };
     fetchActivities();
 
     API.get("/api/threats?limit=5")
       .then(data => setLiveThreats(Array.isArray(data) ? data : data.threats || []))
-      .catch(() => {});
+      .catch(() => { });
 
     const pollDash = setInterval(fetchDashboard, 30000);
     const pollActs = setInterval(fetchActivities, 15000);
@@ -2074,7 +2118,7 @@ export default function Dashboard() {
               });
             }
           })
-          .catch(() => {});
+          .catch(() => { });
       }, 800);
     }
   }, []);
@@ -2124,12 +2168,14 @@ export default function Dashboard() {
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Nunito',sans-serif", color: T.text }}>
       <G />
-      <Sidebar page={page} setPage={setPage} user={user} navigate={navigate} collapsed={collapsed} setCollapsed={setCollapsed} />
-      <div style={{ flex: 1, marginLeft: sideW, display: "flex", flexDirection: "column", transition: "margin-left .25s cubic-bezier(.16,1,.3,1)" }}>
+      {mobileMenuOpen && <div className="dsidebar-overlay" onClick={() => setMobileMenuOpen(false)} />}
+      <Sidebar page={page} setPage={(p) => { setPage(p); setMobileMenuOpen(false); }} user={user} navigate={(path) => { navigate(path); setMobileMenuOpen(false); }} collapsed={collapsed} setCollapsed={setCollapsed} mobileMenuOpen={mobileMenuOpen} />
+      <div className="dmain-content" style={{ flex: 1, marginLeft: sideW, display: "flex", flexDirection: "column", transition: "margin-left .25s cubic-bezier(.16,1,.3,1)" }}>
         <TopBar page={page} user={user} notifCount={notifCount} online={online}
           onNotifClick={() => setShowNotif(s => !s)}
           onProfileClick={() => setPage("profile")}
-          onSearchClick={() => setShowSearch(true)} />
+          onSearchClick={() => setShowSearch(true)}
+          onMenuClick={() => setMobileMenuOpen(m => !m)} />
 
         {showNotif && (
           <div data-notif>
@@ -2144,7 +2190,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <main style={{ flex: 1, padding: "20px 24px", overflowY: "auto" }}>
+        <main className="dmain-area" style={{ flex: 1, padding: "20px 24px", overflowY: "auto" }}>
           {renderPage()}
         </main>
       </div>
