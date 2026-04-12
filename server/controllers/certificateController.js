@@ -112,3 +112,19 @@ export const getMyCertificates = async (req, res) => {
     });
   }
 };
+
+// ✅ POST /api/certificate/:courseId/create-order
+export const createPaymentOrder = async (req, res) => {
+  res.status(501).json({
+    success: false,
+    message: 'Payment order creation is not implemented in this environment yet.'
+  });
+};
+
+// ✅ POST /api/certificate/:courseId/verify-payment
+export const verifyPaymentAndIssue = async (req, res) => {
+  res.status(501).json({
+    success: false,
+    message: 'Payment verification is not implemented in this environment yet.'
+  });
+};

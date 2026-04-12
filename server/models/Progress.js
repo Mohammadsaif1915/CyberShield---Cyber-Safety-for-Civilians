@@ -1,5 +1,5 @@
 // models/Progress.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const watchedVideoSchema = new mongoose.Schema({
   videoId:         { type: mongoose.Schema.Types.ObjectId },
@@ -31,4 +31,4 @@ const progressSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 progressSchema.index({ user: 1, course: 1 }, { unique: true });
-module.exports = mongoose.model('Progress', progressSchema);
+export default mongoose.model('Progress', progressSchema);
