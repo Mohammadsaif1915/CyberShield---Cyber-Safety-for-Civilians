@@ -1,17 +1,12 @@
-const Course   = require('../models/Course')
-const Progress = require('../models/Progress')
-const mongoose = require('mongoose')
+import Course    from '../models/Course.js'
+import Progress  from '../models/Progress.js'
 
-// ✅ FIX: Use real logged-in user ID, fallback to temp only if not logged in
-const getUserId = (req) => {
-  if (req.user && req.user._id) return req.user._id
-  return new mongoose.Types.ObjectId('000000000000000000000001')
-}
+const getUserId = (req) => req.user._id
 
 // GET /api/quiz/:courseId
-exports.getQuiz = async (req, res) => {
+export const getQuiz = async (req, res) => {
   try {
-    const userId   = getUserId(req)   // ✅ FIXED (was getTempUser())
+    const userId   = getUserId(req)
     const progress = await Progress.findOne({ user: userId, course: req.params.courseId })
     if (!progress?.allVideosWatched)
       return res.status(403).json({ success: false, message: 'Complete all videos before taking the quiz' })
@@ -32,9 +27,9 @@ exports.getQuiz = async (req, res) => {
 }
 
 // POST /api/quiz/:courseId/submit
-exports.submitQuiz = async (req, res) => {
+export const submitQuiz = async (req, res) => {
   try {
-    const userId      = getUserId(req)   // ✅ FIXED (was getTempUser())
+    const userId      = getUserId(req)
     const { answers } = req.body
 
     const course = await Course.findById(req.params.courseId)

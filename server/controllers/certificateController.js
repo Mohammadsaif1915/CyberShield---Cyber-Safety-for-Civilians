@@ -1,13 +1,9 @@
-import Certificate from '../models/Certificate.js';
+﻿import Certificate from '../models/Certificate.js';
 import Progress from '../models/Progress.js';
 import Course from '../models/Course.js';
 import mongoose from 'mongoose';
 
-// ✅ Get logged-in user or fallback
-const getUserId = (req) => {
-  if (req.user && req.user._id) return req.user._id;
-  return new mongoose.Types.ObjectId('000000000000000000000001');
-};
+const getUserId = (req) => req.user._id;
 
 // ✅ Generate unique certificate ID
 const generateCertId = () => {
@@ -68,7 +64,6 @@ export const issueCertificate = async (req, res) => {
     }
 
     res.json({ success: true, certificate: cert });
-
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -81,7 +76,6 @@ export const issueCertificate = async (req, res) => {
 export const getCertificate = async (req, res) => {
   try {
     const userId = getUserId(req);
-
     const cert = await Certificate.findOne({
       user: userId,
       course: req.params.courseId
@@ -95,7 +89,6 @@ export const getCertificate = async (req, res) => {
     }
 
     res.json({ success: true, certificate: cert });
-
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -108,12 +101,10 @@ export const getCertificate = async (req, res) => {
 export const getMyCertificates = async (req, res) => {
   try {
     const userId = getUserId(req);
-
     const certs = await Certificate.find({ user: userId })
       .populate('course', 'title icon color');
 
     res.json({ success: true, certificates: certs });
-
   } catch (err) {
     res.status(500).json({
       success: false,

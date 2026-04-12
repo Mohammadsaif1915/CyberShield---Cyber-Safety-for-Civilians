@@ -1,14 +1,8 @@
-import Progress from '../models/Progress.js'
-import Course   from '../models/Course.js'
-import User     from '../models/User.js'
-import mongoose from 'mongoose'
+import Progress  from '../models/Progress.js'
+import Course    from '../models/Course.js'
+import User      from '../models/User.js'
 
-const TEMP_USER_ID = '000000000000000000000001'
-
-const getUserId = (req) => {
-  if (req.user && req.user._id) return req.user._id
-  return new mongoose.Types.ObjectId(TEMP_USER_ID)
-}
+const getUserId = (req) => req.user._id
 
 const getUserEmail = async (req) => {
   if (req.user && req.user.email) return req.user.email
@@ -21,6 +15,7 @@ const getUserEmail = async (req) => {
   return ''
 }
 
+// GET /api/progress/:courseId
 export const getProgress = async (req, res) => {
   try {
     const userId = getUserId(req)
@@ -50,6 +45,7 @@ export const getProgress = async (req, res) => {
   }
 }
 
+// POST /api/progress/:courseId/video
 export const updateVideoProgress = async (req, res) => {
   try {
     const userId = getUserId(req)
@@ -113,6 +109,7 @@ export const updateVideoProgress = async (req, res) => {
   }
 }
 
+// GET /api/progress/all
 export const getAllProgress = async (req, res) => {
   try {
     const userId = getUserId(req)

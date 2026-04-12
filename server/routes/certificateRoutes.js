@@ -1,14 +1,17 @@
-import express from 'express';
+import express     from 'express'
+import { protect } from '../middleware/auth.js'
 import {
-  issueCertificate,
+  createPaymentOrder,
+  verifyPaymentAndIssue,
   getCertificate,
-  getMyCertificates
-} from '../controllers/certificateController.js';
+  getMyCertificates,
+} from '../controllers/certificateController.js'
 
-const router = express.Router();
+const router = express.Router()
 
-router.get('/my',          getMyCertificates);
-router.get('/:courseId',   getCertificate);
-router.post('/:courseId',  issueCertificate);
+router.get('/my',                        protect, getMyCertificates)
+router.get('/:courseId',                 protect, getCertificate)
+router.post('/:courseId/create-order',   protect, createPaymentOrder)
+router.post('/:courseId/verify-payment', protect, verifyPaymentAndIssue)
 
-export default router;
+export default router

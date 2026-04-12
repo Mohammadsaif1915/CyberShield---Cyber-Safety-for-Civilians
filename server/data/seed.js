@@ -1,23 +1,18 @@
 // data/seed.js — Run: node data/seed.js
 // Seeds 25 cybersecurity courses with 5 videos & 15 quiz questions each
 
-import mongoose from 'mongoose';
-import dotenv   from 'dotenv';
-import { createRequire } from 'module';
+import mongoose          from 'mongoose';
+import dotenv            from 'dotenv';
 import { fileURLToPath } from 'url';
-import { dirname, join }  from 'path';
+import { dirname, join } from 'path';
+import Course            from '../models/Course.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
-
 dotenv.config({ path: join(__dirname, '../.env') });
-
-import Course from '../models/Course.js';
-import Threat from '../models/Threat.js';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // VIDEO LINKS — 25 courses × 5 videos = 125 links
-// Replace placeholder URLs with your real MP4 video links
 // ══════════════════════════════════════════════════════════════════════════════
 const COURSE_VIDEO_LINKS = {
   'Phishing Attacks': [
@@ -195,19 +190,17 @@ const COURSE_VIDEO_LINKS = {
     'https://www.w3schools.com/html/mov_bbb.mp4',
     'https://www.w3schools.com/html/mov_bbb.mp4',
   ],
-};
+}
 
-// ── Helper: 5 videos per course with real duration ────────────────────────────
 const makeVideos = (topics, courseTitle) => topics.map((title, i) => ({
   title,
   url: (COURSE_VIDEO_LINKS[courseTitle] && COURSE_VIDEO_LINKS[courseTitle][i])
        || 'https://www.w3schools.com/html/mov_bbb.mp4',
   duration: 300 + i * 60,
-  order: i + 1,
-}));
+  order: i + 1
+}))
 
 const courses = [
-  // 1
   {
     title: 'Phishing Attacks',
     description: 'Learn how phishing attacks work, the different types used by hackers, and proven methods to protect yourself and your organisation.',
@@ -217,7 +210,7 @@ const courses = [
       'Types of Phishing (Spear, Whaling, Vishing)',
       'How Phishing Emails are Crafted',
       'Real-Life Phishing Case Studies',
-      'How to Identify & Prevent Phishing',
+      'How to Identify & Prevent Phishing'
     ], 'Phishing Attacks'),
     quiz: [
       { question: 'What is phishing?', options: ['A fishing sport','A cyber attack using fake emails','A network protocol','A type of malware'], answer: 1 },
@@ -234,10 +227,9 @@ const courses = [
       { question: 'A link that looks like "paypa1.com" uses which trick?', options: ['Typosquatting','SQL injection','Cross-site scripting','Buffer overflow'], answer: 0 },
       { question: 'Phishing kits are sold on:', options: ['LinkedIn','Dark web marketplaces','Government sites','News portals'], answer: 1 },
       { question: 'Email headers can help identify:', options: ['Sender password','Spoofed or forged sender addresses','Encryption keys','Malware code'], answer: 1 },
-      { question: 'Which practice reduces phishing risk most?', options: ['Opening all emails quickly','Clicking all links to verify','Verifying sender before responding','Forwarding suspicious emails'], answer: 2 },
-    ],
+      { question: 'Which practice reduces phishing risk most?', options: ['Opening all emails quickly','Clicking all links to verify','Verifying sender before responding','Forwarding suspicious emails'], answer: 2 }
+    ]
   },
-  // 2
   {
     title: 'Malware Analysis',
     description: 'Understand the different types of malware, how they infect systems, how analysts reverse-engineer them, and how to defend against them.',
@@ -247,7 +239,7 @@ const courses = [
       'Types of Malware Explained',
       'How Malware Spreads',
       'Static vs Dynamic Malware Analysis',
-      'Removing Malware and Prevention',
+      'Removing Malware and Prevention'
     ], 'Malware Analysis'),
     quiz: [
       { question: 'What does malware stand for?', options: ['Malicious software','Managed layer','Multiple layers','Machine language'], answer: 0 },
@@ -264,10 +256,9 @@ const courses = [
       { question: 'A botnet is a network of:', options: ['Servers in a data centre','Infected computers controlled remotely','Routers in a LAN','Legal cloud machines'], answer: 1 },
       { question: 'What does a C2 (Command and Control) server do?', options: ['Stores user data','Controls infected machines in a botnet','Runs firewall rules','Manages DNS records'], answer: 1 },
       { question: 'YARA rules are used for:', options: ['Network routing','Identifying malware based on patterns','Creating passwords','Encrypting files'], answer: 1 },
-      { question: 'Which is NOT a malware type?', options: ['Ransomware','Spyware','Firewall','Adware'], answer: 2 },
-    ],
+      { question: 'Which is NOT a malware type?', options: ['Ransomware','Spyware','Firewall','Adware'], answer: 2 }
+    ]
   },
-  // 3
   {
     title: 'Ransomware',
     description: 'Deep dive into ransomware attacks — how they work, famous ransomware families, negotiation tactics, and how to recover from an attack.',
@@ -277,7 +268,7 @@ const courses = [
       'Famous Ransomware Attacks (WannaCry, Petya)',
       'How Ransomware Encrypts Files',
       'Should You Pay the Ransom?',
-      'Recovery and Prevention Strategies',
+      'Recovery and Prevention Strategies'
     ], 'Ransomware'),
     quiz: [
       { question: 'Ransomware primarily works by:', options: ['Deleting user files','Encrypting files and demanding payment','Stealing passwords','Crashing the operating system'], answer: 1 },
@@ -294,10 +285,9 @@ const courses = [
       { question: 'Paying ransom is discouraged because:', options: ['It is expensive','It funds criminals and does not guarantee file recovery','It is illegal everywhere','It takes too long'], answer: 1 },
       { question: 'Which OS is most targeted by ransomware?', options: ['macOS','Windows','Linux','Android'], answer: 1 },
       { question: 'Endpoint Detection and Response (EDR) helps by:', options: ['Blocking all network traffic','Detecting and responding to malicious activity on devices','Creating backups automatically','Encrypting your files first'], answer: 1 },
-      { question: 'What is a decryptor tool?', options: ['A tool to encrypt faster','A software that decrypts files without paying ransom','A ransom payment portal','A network scanner'], answer: 1 },
-    ],
+      { question: 'What is a decryptor tool?', options: ['A tool to encrypt faster','A software that decrypts files without paying ransom','A ransom payment portal','A network scanner'], answer: 1 }
+    ]
   },
-  // 4
   {
     title: 'Social Engineering',
     description: 'Explore how attackers manipulate human psychology to bypass security, including pretexting, baiting, tailgating, and how to build a security-aware culture.',
@@ -307,7 +297,7 @@ const courses = [
       'Common Social Engineering Tactics',
       'Pretexting and Impersonation',
       'The Psychology Behind Manipulation',
-      'Building a Security-Aware Culture',
+      'Building a Security-Aware Culture'
     ], 'Social Engineering'),
     quiz: [
       { question: 'Social engineering primarily exploits:', options: ['Software vulnerabilities','Human psychology and trust','Network protocols','Hardware weaknesses'], answer: 1 },
@@ -324,10 +314,9 @@ const courses = [
       { question: 'Shoulder surfing is:', options: ['Surfing the dark web','Watching someone enter sensitive info','Hacking via satellite','Email monitoring'], answer: 1 },
       { question: 'Dumpster diving in cybersecurity refers to:', options: ['Attacking waste management systems','Searching physical trash for sensitive information','Deleting log files','Overloading servers'], answer: 1 },
       { question: 'A security policy can reduce social engineering risk by:', options: ['Making software faster','Defining clear procedures for verifying identities','Encrypting all data','Limiting internet access'], answer: 1 },
-      { question: 'Which is an example of a watering hole attack?', options: ['Emailing victims directly','Infecting a website the target is likely to visit','Flooding a network','Cracking a password'], answer: 1 },
-    ],
+      { question: 'Which is an example of a watering hole attack?', options: ['Emailing victims directly','Infecting a website the target is likely to visit','Flooding a network','Cracking a password'], answer: 1 }
+    ]
   },
-  // 5
   {
     title: 'Password Security',
     description: 'Master the art of creating strong passwords, managing them securely, understanding cracking techniques, and implementing multi-factor authentication.',
@@ -337,7 +326,7 @@ const courses = [
       'Common Password Attacks (Brute Force, Dictionary)',
       'Creating Strong Passwords',
       'Password Managers Explained',
-      'Multi-Factor Authentication (MFA)',
+      'Multi-Factor Authentication (MFA)'
     ], 'Password Security'),
     quiz: [
       { question: 'A brute force attack tries:', options: ['Guessing based on personal info','Every possible combination of characters','Common dictionary words','Stolen credential lists'], answer: 1 },
@@ -354,10 +343,9 @@ const courses = [
       { question: 'HIBP (Have I Been Pwned) is used to:', options: ['Create strong passwords','Check if your email was in a data breach','Generate OTPs','Manage 2FA'], answer: 1 },
       { question: 'A rainbow table is a:', options: ['Network topology','Pre-computed table for reversing password hashes','Type of SQL attack','Malware variant'], answer: 1 },
       { question: 'Which MFA type is most secure?', options: ['SMS OTP','Email link','Hardware security key (FIDO2)','Security questions'], answer: 2 },
-      { question: 'Password policies should enforce:', options: ['Short passwords for usability','Minimum length and complexity requirements','Passwords never expire','Same password for all systems'], answer: 1 },
-    ],
+      { question: 'Password policies should enforce:', options: ['Short passwords for usability','Minimum length and complexity requirements','Passwords never expire','Same password for all systems'], answer: 1 }
+    ]
   },
-  // 6
   {
     title: 'Network Security Basics',
     description: 'Build a solid foundation in network security — understanding protocols, ports, threats, and the tools used to protect network infrastructure.',
@@ -367,7 +355,7 @@ const courses = [
       'TCP/IP and Common Ports',
       'Network Scanning with Nmap',
       'Intrusion Detection Systems (IDS)',
-      'Network Hardening Best Practices',
+      'Network Hardening Best Practices'
     ], 'Network Security Basics'),
     quiz: [
       { question: 'What does CIA stand for in cybersecurity?', options: ['Central Intelligence Agency','Confidentiality, Integrity, Availability','Computer Intrusion Analysis','Cryptographic Internet Access'], answer: 1 },
@@ -384,10 +372,9 @@ const courses = [
       { question: 'What does a packet sniffer do?', options: ['Sends spam emails','Captures and analyses network traffic','Blocks network ports','Creates VPN tunnels'], answer: 1 },
       { question: 'HTTPS differs from HTTP because it:', options: ['Loads pages faster','Encrypts data in transit using TLS','Uses a different IP','Requires no password'], answer: 1 },
       { question: 'What is the default SSH port?', options: ['21','22','23','25'], answer: 1 },
-      { question: 'NAT (Network Address Translation) helps security by:', options: ['Blocking all traffic','Hiding internal IP addresses from external networks','Encrypting packets','Increasing speed'], answer: 1 },
-    ],
+      { question: 'NAT (Network Address Translation) helps security by:', options: ['Blocking all traffic','Hiding internal IP addresses from external networks','Encrypting packets','Increasing speed'], answer: 1 }
+    ]
   },
-  // 7
   {
     title: 'Firewall & IDS/IPS',
     description: 'Understand how firewalls, intrusion detection and prevention systems work, how to configure rules, and how to monitor for threats effectively.',
@@ -397,7 +384,7 @@ const courses = [
       'Types of Firewalls (Packet, Stateful, NGFW)',
       'Writing Firewall Rules',
       'IDS vs IPS — Key Differences',
-      'Real-World Firewall Configuration',
+      'Real-World Firewall Configuration'
     ], 'Firewall & IDS/IPS'),
     quiz: [
       { question: 'A firewall primarily works by:', options: ['Encrypting all traffic','Filtering network traffic based on rules','Detecting viruses','Scanning emails'], answer: 1 },
@@ -414,10 +401,9 @@ const courses = [
       { question: 'A deny rule should be placed at:', options: ['Top of rule list','Bottom of rule list','It does not matter','Only in cloud firewalls'], answer: 1 },
       { question: 'Which type of IDS uses behaviour analysis?', options: ['Signature-based','Anomaly-based','Rule-based','Protocol-based'], answer: 1 },
       { question: 'A personal firewall protects:', options: ['The entire network','A single device','Only servers','Only routers'], answer: 1 },
-      { question: 'What does "allow established" mean in firewall rules?', options: ['Allow new connections only','Allow traffic that is part of an already established connection','Block all outgoing traffic','Allow admin access'], answer: 1 },
-    ],
+      { question: 'What does "allow established" mean in firewall rules?', options: ['Allow new connections only','Allow traffic that is part of an already established connection','Block all outgoing traffic','Allow admin access'], answer: 1 }
+    ]
   },
-  // 8
   {
     title: 'Encryption & Cryptography',
     description: 'Learn the mathematics and logic behind encryption, symmetric vs asymmetric keys, hashing, digital signatures, and how encryption protects data.',
@@ -427,7 +413,7 @@ const courses = [
       'Symmetric vs Asymmetric Encryption',
       'Hashing Explained',
       'PKI and Digital Certificates',
-      'End-to-End Encryption in Practice',
+      'End-to-End Encryption in Practice'
     ], 'Encryption & Cryptography'),
     quiz: [
       { question: 'Symmetric encryption uses:', options: ['Two different keys','The same key for encryption and decryption','A public key only','No key'], answer: 1 },
@@ -444,10 +430,9 @@ const courses = [
       { question: 'What is a cipher?', options: ['A password manager','An algorithm for performing encryption','A type of firewall','A network protocol'], answer: 1 },
       { question: 'Steganography hides data:', options: ['Using encryption','Inside other media files like images','In databases','In network packets only'], answer: 1 },
       { question: 'Which is stronger for the same key length?', options: ['RSA','ECC (Elliptic Curve Cryptography)','DES','3DES'], answer: 1 },
-      { question: 'What is a rainbow table attack targeting?', options: ['Network topology','Hashed passwords','Encrypted files','Digital signatures'], answer: 1 },
-    ],
+      { question: 'What is a rainbow table attack targeting?', options: ['Network topology','Hashed passwords','Encrypted files','Digital signatures'], answer: 1 }
+    ]
   },
-  // 9
   {
     title: 'Ethical Hacking',
     description: 'Get started with ethical hacking — understand the penetration testing methodology, tools, legal requirements, and how white-hat hackers think.',
@@ -457,7 +442,7 @@ const courses = [
       'The Penetration Testing Methodology',
       'Reconnaissance & Information Gathering',
       'Exploitation Techniques (Overview)',
-      'Writing a Penetration Test Report',
+      'Writing a Penetration Test Report'
     ], 'Ethical Hacking'),
     quiz: [
       { question: 'A white-hat hacker is:', options: ['A criminal hacker','An ethical security professional who has permission to test','A hacker who works alone','A beginner hacker'], answer: 1 },
@@ -474,10 +459,9 @@ const courses = [
       { question: 'Which framework is used to describe attacker tactics?', options: ['OWASP','MITRE ATT&CK','ISO 27001','NIST'], answer: 1 },
       { question: 'Privilege escalation means:', options: ['Adding new users','Gaining higher access permissions than originally assigned','Encrypting files','Scanning for vulnerabilities'], answer: 1 },
       { question: 'What is lateral movement?', options: ['Moving files between folders','Moving through a network after initial compromise','Changing IP addresses','Firewall rule modification'], answer: 1 },
-      { question: 'A pentest report should include:', options: ['Only the successful exploits','Scope, findings, risk ratings, and recommendations','Names of all employees','Full source code of tools used'], answer: 1 },
-    ],
+      { question: 'A pentest report should include:', options: ['Only the successful exploits','Scope, findings, risk ratings, and recommendations','Names of all employees','Full source code of tools used'], answer: 1 }
+    ]
   },
-  // 10
   {
     title: 'SQL Injection',
     description: 'Understand how SQL injection attacks compromise databases, the different types of SQLi, how to test for it, and how to write secure database queries.',
@@ -487,7 +471,7 @@ const courses = [
       'Types of SQLi (Classic, Blind, Time-based)',
       'Exploiting SQLi with SQLmap',
       'Bypassing Login with SQLi',
-      'Preventing SQLi with Parameterised Queries',
+      'Preventing SQLi with Parameterised Queries'
     ], 'SQL Injection'),
     quiz: [
       { question: "What does ' OR '1'='1 do in a SQL query?", options: ['Deletes all records','Makes the condition always true to bypass login','Creates a new user','Encrypts the database'], answer: 1 },
@@ -504,10 +488,9 @@ const courses = [
       { question: 'Least privilege database access means:', options: ['Admin rights for all users','Database users have only the permissions they need','No user can access the database','All users share one account'], answer: 1 },
       { question: 'A WAF can help reduce SQLi by:', options: ['Encrypting queries','Filtering and blocking malicious input patterns','Creating backups','Hashing passwords'], answer: 1 },
       { question: 'Which SQL comment syntax is abused in injection?', options: ['/* */  and --','// only','# only','Both # and --'], answer: 3 },
-      { question: 'Second-order SQL injection means:', options: ['Running two queries at once','Malicious input stored and executed later','Injecting into two databases','Using two attack tools'], answer: 1 },
-    ],
+      { question: 'Second-order SQL injection means:', options: ['Running two queries at once','Malicious input stored and executed later','Injecting into two databases','Using two attack tools'], answer: 1 }
+    ]
   },
-  // 11
   {
     title: 'XSS Attacks',
     description: 'Explore Cross-Site Scripting (XSS) — stored, reflected, and DOM-based types, how scripts get injected into web pages, and how to fix them.',
@@ -517,7 +500,7 @@ const courses = [
       'Reflected vs Stored vs DOM-Based XSS',
       'Stealing Cookies with XSS',
       'XSS via BeEF Framework (Demo)',
-      'Preventing XSS with CSP and Sanitisation',
+      'Preventing XSS with CSP and Sanitisation'
     ], 'XSS Attacks'),
     quiz: [
       { question: 'XSS attacks inject malicious content into:', options: ['Databases','Web pages viewed by other users','Operating systems','Network packets'], answer: 1 },
@@ -534,10 +517,9 @@ const courses = [
       { question: 'Which OWASP top 10 category covers XSS?', options: ['Injection','Broken Authentication','Cross-Site Scripting (XSS)','Insecure Design'], answer: 2 },
       { question: 'Burp Suite can be used to test for XSS by:', options: ['Scanning databases','Intercepting and modifying HTTP requests','Brute forcing passwords','Monitoring CPU usage'], answer: 1 },
       { question: 'A sanitisation library like DOMPurify is used to:', options: ['Encrypt cookies','Remove malicious HTML/JS from user input','Speed up page loads','Manage session tokens'], answer: 1 },
-      { question: 'XSS can be used to perform CSRF by:', options: ['Stealing server files','Forcing a logged-in user to take unintended actions','Breaking encryption','Crashing the browser'], answer: 1 },
-    ],
+      { question: 'XSS can be used to perform CSRF by:', options: ['Stealing server files','Forcing a logged-in user to take unintended actions','Breaking encryption','Crashing the browser'], answer: 1 }
+    ]
   },
-  // 12
   {
     title: 'Man-in-the-Middle Attack',
     description: 'Learn how MITM attackers intercept and alter communications, tools like Ettercap and Bettercap, and how encryption and certificates prevent interception.',
@@ -547,7 +529,7 @@ const courses = [
       'ARP Poisoning Explained',
       'SSL Stripping Attack',
       'MITM with Ettercap Demo',
-      'Defending Against MITM Attacks',
+      'Defending Against MITM Attacks'
     ], 'Man-in-the-Middle Attack'),
     quiz: [
       { question: 'A MITM attack involves:', options: ['Crashing a server','An attacker secretly relaying and altering communication between two parties','Injecting SQL into a database','Flooding with traffic'], answer: 1 },
@@ -564,10 +546,9 @@ const courses = [
       { question: 'A MITM attack on HTTPS is significantly harder because:', options: ['HTTPS is slower','TLS encrypts and authenticates the communication','HTTPS uses a different port','The server blocks it automatically'], answer: 1 },
       { question: 'BGP hijacking is a MITM attack at:', options: ['Local network level','Internet routing level','Application level','Physical cable level'], answer: 1 },
       { question: 'SSH protects against MITM through:', options: ['IP filtering only','Host key verification on first connection','Traffic shaping','MAC address binding'], answer: 1 },
-      { question: 'Which is NOT an effective MITM defence?', options: ['Using HTTPS everywhere','VPN usage','Checking for HTTPS padlock','Using the same Wi-Fi as the attacker'], answer: 3 },
-    ],
+      { question: 'Which is NOT an effective MITM defence?', options: ['Using HTTPS everywhere','VPN usage','Checking for HTTPS padlock','Using the same Wi-Fi as the attacker'], answer: 3 }
+    ]
   },
-  // 13
   {
     title: 'DoS & DDoS Attacks',
     description: 'Understand Denial of Service and Distributed DoS attacks, how botnets are weaponised, amplification techniques, and mitigation strategies.',
@@ -577,7 +558,7 @@ const courses = [
       'Types of DDoS (Volumetric, Protocol, Application)',
       'How Botnets Power DDoS Attacks',
       'Amplification Attacks (DNS, NTP)',
-      'Mitigating DDoS with CDN and Rate Limiting',
+      'Mitigating DDoS with CDN and Rate Limiting'
     ], 'DoS & DDoS Attacks'),
     quiz: [
       { question: 'The goal of a DoS attack is to:', options: ['Steal data','Make a service unavailable to legitimate users','Encrypt files','Gain admin access'], answer: 1 },
@@ -594,10 +575,9 @@ const courses = [
       { question: 'Which is a sign that you are under a DDoS attack?', options: ['Faster website speeds','Unusual spike in traffic causing slow/unavailable service','More users logging in','Disk usage increase'], answer: 1 },
       { question: 'Anycast routing is used to mitigate DDoS by:', options: ['Hiding the server IP','Distributing attack traffic across multiple data centres','Encrypting all traffic','Rate limiting globally'], answer: 1 },
       { question: 'Slowloris is a DDoS tool that:', options: ['Floods with UDP packets','Opens many HTTP connections slowly to exhaust server resources','Exploits DNS','Targets SMTP servers'], answer: 1 },
-      { question: 'What does a DDoS mitigation provider scrubbing centre do?', options: ['Stores backup data','Filters malicious traffic before sending clean traffic to the origin','Encrypts server traffic','Monitors user logins'], answer: 1 },
-    ],
+      { question: 'What does a DDoS mitigation provider scrubbing centre do?', options: ['Stores backup data','Filters malicious traffic before sending clean traffic to the origin','Encrypts server traffic','Monitors user logins'], answer: 1 }
+    ]
   },
-  // 14
   {
     title: 'VPN Security',
     description: 'Explore how VPNs work, different protocols (OpenVPN, WireGuard, IPSec), legitimate use cases, limitations, and how attackers abuse VPNs.',
@@ -607,7 +587,7 @@ const courses = [
       'VPN Protocols Compared (OpenVPN, WireGuard, IPSec)',
       'Setting Up a VPN',
       'VPN Limitations and Risks',
-      'Corporate VPN vs Consumer VPN',
+      'Corporate VPN vs Consumer VPN'
     ], 'VPN Security'),
     quiz: [
       { question: 'A VPN primarily provides:', options: ['Faster internet','An encrypted tunnel for network traffic','Free Wi-Fi','Malware protection'], answer: 1 },
@@ -624,10 +604,9 @@ const courses = [
       { question: 'Using a VPN on public Wi-Fi protects against:', options: ['Viruses','Traffic interception by others on the same network','Phishing sites','Weak passwords'], answer: 1 },
       { question: 'Corporate VPNs are used to:', options: ['Browse anonymously','Provide remote employees secure access to internal resources','Speed up internet','Block social media'], answer: 1 },
       { question: 'Multi-hop VPN routes traffic through:', options: ['A single server','Multiple VPN servers for extra privacy','Faster servers','Only encrypted servers'], answer: 1 },
-      { question: 'Which government can compel a VPN provider to share data?', options: ['None can','The government of the country where the VPN is legally registered','Only Interpol',"Only the user's country"], answer: 1 },
-    ],
+      { question: 'Which government can compel a VPN provider to share data?', options: ['None can','The government of the country where the VPN is legally registered','Only Interpol',"Only the user's country"], answer: 1 }
+    ]
   },
-  // 15
   {
     title: 'Wi-Fi Hacking & Security',
     description: 'Learn how Wi-Fi networks are attacked — WEP/WPA cracking, evil twin attacks, deauthentication, and how to secure wireless networks properly.',
@@ -637,7 +616,7 @@ const courses = [
       'Capturing WPA Handshakes',
       'Password Cracking with Aircrack-ng',
       'Evil Twin and Deauth Attacks',
-      'Securing Your Wi-Fi Network',
+      'Securing Your Wi-Fi Network'
     ], 'Wi-Fi Hacking & Security'),
     quiz: [
       { question: 'WEP (Wired Equivalent Privacy) is considered:', options: ['The most secure Wi-Fi standard','Completely broken and insecure','Better than WPA3','The current standard'], answer: 1 },
@@ -654,10 +633,9 @@ const courses = [
       { question: 'Channel hopping in Wi-Fi monitoring means:', options: ['Changing TV channels','Scanning across multiple Wi-Fi channels to capture traffic','Switching to a faster channel','Interfering with channels'], answer: 1 },
       { question: 'Using WPA2-Enterprise instead of WPA2-Personal adds:', options: ['Faster speeds','Individual user authentication via RADIUS server','AES-256 only','Automatic key rotation'], answer: 1 },
       { question: 'A rogue AP attack is detected using:', options: ['Antivirus software','Wireless Intrusion Detection Systems (WIDS)','Firewall logs only','DNS monitoring'], answer: 1 },
-      { question: 'The most secure home Wi-Fi configuration is:', options: ['WEP + hidden SSID','WPA3 + strong unique password + WPS disabled','WPA2 + MAC filtering','Open network with VPN'], answer: 1 },
-    ],
+      { question: 'The most secure home Wi-Fi configuration is:', options: ['WEP + hidden SSID','WPA3 + strong unique password + WPS disabled','WPA2 + MAC filtering','Open network with VPN'], answer: 1 }
+    ]
   },
-  // 16
   {
     title: 'Cyber Laws & Compliance',
     description: 'Understand key cybersecurity laws, regulations like GDPR and IT Act 2000, compliance frameworks, and the legal consequences of cybercrime.',
@@ -667,7 +645,7 @@ const courses = [
       'IT Act 2000 (India) Explained',
       'GDPR and Data Privacy',
       'Cybercrime Categories and Penalties',
-      'Compliance Frameworks (ISO 27001, NIST)',
+      'Compliance Frameworks (ISO 27001, NIST)'
     ], 'Cyber Laws & Compliance'),
     quiz: [
       { question: 'The IT Act 2000 is a law enacted by:', options: ['USA','UK','India','European Union'], answer: 2 },
@@ -684,10 +662,9 @@ const courses = [
       { question: 'The NIST Cybersecurity Framework core functions are:', options: ['Plan, Do, Check, Act','Identify, Protect, Detect, Respond, Recover','Prevent, Monitor, Respond, Review','Assess, Deploy, Monitor, Report'], answer: 1 },
       { question: 'Cyber extortion is covered under which IT Act section?', options: ['Section 43','Section 66B','Section 66D','Section 67'], answer: 2 },
       { question: 'PCI-DSS compliance is required for:', options: ['Healthcare organisations','Organisations handling payment card data','Government agencies only','ISPs'], answer: 1 },
-      { question: 'A privacy impact assessment (PIA) is used to:', options: ['Assess server performance','Identify and reduce privacy risks in new projects','Calculate fine amounts','Train employees'], answer: 1 },
-    ],
+      { question: 'A privacy impact assessment (PIA) is used to:', options: ['Assess server performance','Identify and reduce privacy risks in new projects','Calculate fine amounts','Train employees'], answer: 1 }
+    ]
   },
-  // 17
   {
     title: 'Digital Forensics',
     description: 'Learn the science of digital forensics — evidence collection, chain of custody, memory forensics, file system analysis, and how investigators work cybercrime cases.',
@@ -697,7 +674,7 @@ const courses = [
       'Chain of Custody and Evidence Handling',
       'Disk Imaging with Autopsy/FTK',
       'Memory Forensics with Volatility',
-      'Analysing Network Logs for Evidence',
+      'Analysing Network Logs for Evidence'
     ], 'Digital Forensics'),
     quiz: [
       { question: 'Digital forensics involves:', options: ['Hacking into systems','Collecting and analysing digital evidence for legal purposes','Creating malware signatures','Network penetration testing'], answer: 1 },
@@ -714,10 +691,9 @@ const courses = [
       { question: 'Steganography analysis is done using tools like:', options: ['Nmap','StegSolve / Stegdetect','Metasploit','SQLmap'], answer: 1 },
       { question: 'Registry analysis in Windows forensics helps find:', options: ['Open network ports','Software installed, user activity, USB history','Malware source code','Encrypted files'], answer: 1 },
       { question: 'A hash (MD5/SHA) is used in forensics to:', options: ['Encrypt the evidence','Verify the integrity of forensic copies','Speed up analysis','Identify the attacker'], answer: 1 },
-      { question: 'First responder priority at a digital crime scene is:', options: ['Take screenshots','Preserve and document evidence without contamination','Reboot the system','Delete suspicious files'], answer: 1 },
-    ],
+      { question: 'First responder priority at a digital crime scene is:', options: ['Take screenshots','Preserve and document evidence without contamination','Reboot the system','Delete suspicious files'], answer: 1 }
+    ]
   },
-  // 18
   {
     title: 'Identity Theft',
     description: 'Understand how identity theft occurs online, techniques criminals use to steal personal information, the impact on victims, and protection strategies.',
@@ -727,7 +703,7 @@ const courses = [
       'How Criminals Steal Your Identity',
       'Types of Identity Fraud',
       'Real-Life Identity Theft Cases',
-      'Protecting Your Digital Identity',
+      'Protecting Your Digital Identity'
     ], 'Identity Theft'),
     quiz: [
       { question: 'Identity theft occurs when someone:', options: ['Uses your computer','Uses your personal information without permission for fraudulent purposes','Hacks your email','Steals your phone'], answer: 1 },
@@ -744,10 +720,9 @@ const courses = [
       { question: 'Child identity theft is particularly damaging because:', options: ['Children use social media more','It may go undetected for years until the child becomes an adult','Children are more trusting','Children do not have bank accounts'], answer: 1 },
       { question: 'What is a data broker?', options: ['A cybercriminal who sells stolen data','A company that collects and sells personal information legally','An identity protection service','A dark web marketplace'], answer: 1 },
       { question: 'Two-factor authentication reduces identity theft risk by:', options: ['Encrypting your data','Requiring a second verification step even if password is stolen','Hiding your IP address','Blocking phishing emails'], answer: 1 },
-      { question: 'If you become an identity theft victim, you should FIRST:', options: ['Change all passwords only','Report to authorities and freeze credit/accounts immediately','Wait to see if more fraud occurs','Post about it on social media'], answer: 1 },
-    ],
+      { question: 'If you become an identity theft victim, you should FIRST:', options: ['Change all passwords only','Report to authorities and freeze credit/accounts immediately','Wait to see if more fraud occurs','Post about it on social media'], answer: 1 }
+    ]
   },
-  // 19
   {
     title: 'Spyware & Adware',
     description: 'Discover how spyware secretly collects your data, the difference between spyware and adware, stalkerware, and how to detect and remove them.',
@@ -757,7 +732,7 @@ const courses = [
       'Adware vs Spyware vs Stalkerware',
       'How Spyware Gets Installed',
       'Detecting Spyware on Your Device',
-      'Removing Spyware and Staying Safe',
+      'Removing Spyware and Staying Safe'
     ], 'Spyware & Adware'),
     quiz: [
       { question: 'Spyware secretly collects:', options: ['Your Wi-Fi password only','User data without knowledge or consent','Only browser history','Only keystrokes'], answer: 1 },
@@ -774,10 +749,9 @@ const courses = [
       { question: 'A screen capture spyware takes:', options: ['Camera photos','Screenshots of your activity periodically','Video of your screen','Photos of nearby people'], answer: 1 },
       { question: 'Permissions a legitimate app should NOT need include:', options: ['Camera access for a camera app','Microphone for a voice app','SMS access for a flashlight app','Storage for a file manager'], answer: 2 },
       { question: 'Factory reset effectively removes spyware because:', options: ['It updates the OS','It wipes all data and apps returning the device to original state','It changes the IP address','It installs new security patches'], answer: 1 },
-      { question: 'Which tool can help detect spyware on a PC?', options: ['VLC Player','Malwarebytes Anti-Malware','Notepad','WinRAR'], answer: 1 },
-    ],
+      { question: 'Which tool can help detect spyware on a PC?', options: ['VLC Player','Malwarebytes Anti-Malware','Notepad','WinRAR'], answer: 1 }
+    ]
   },
-  // 20
   {
     title: 'Trojans & Backdoors',
     description: 'Understand how Trojans disguise themselves as legitimate software, how backdoors are planted, Remote Access Trojans (RATs), and detection methods.',
@@ -787,7 +761,7 @@ const courses = [
       'Remote Access Trojans (RATs)',
       'How Trojans are Delivered',
       'Famous Trojans (Zeus, Emotet)',
-      'Detecting and Removing Trojans',
+      'Detecting and Removing Trojans'
     ], 'Trojans & Backdoors'),
     quiz: [
       { question: 'A Trojan horse malware disguises itself as:', options: ['A network packet','Legitimate useful software','An email server','A browser plugin only'], answer: 1 },
@@ -804,10 +778,9 @@ const courses = [
       { question: 'Port binding Trojans open listening ports for:', options: ['Speeding up internet','Remote attacker connections','Blocking inbound traffic','Running legitimate services'], answer: 1 },
       { question: 'Which registry key do Trojans commonly abuse for persistence?', options: ['HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run','HKLM\\SYSTEM\\ControlSet001\\Enum','HKCU\\SOFTWARE\\Classes','HKLM\\HARDWARE\\ACPI'], answer: 0 },
       { question: 'Signature-based antivirus fails against new Trojans because:', options: ['It scans too slowly','New Trojans have no known signature yet','It uses too much memory','It only scans emails'], answer: 1 },
-      { question: 'Which is the best defence against Trojan infection?', options: ['Using only paid software','Downloading software only from official/verified sources + antivirus','Disabling USB ports only','Using Linux only'], answer: 1 },
-    ],
+      { question: 'Which is the best defence against Trojan infection?', options: ['Using only paid software','Downloading software only from official/verified sources + antivirus','Disabling USB ports only','Using Linux only'], answer: 1 }
+    ]
   },
-  // 21
   {
     title: 'Rootkits',
     description: 'Explore how rootkits hide deep in operating systems, the different types (user-mode, kernel-mode, bootkit), detection challenges, and removal techniques.',
@@ -817,7 +790,7 @@ const courses = [
       'Types of Rootkits (User, Kernel, Bootkit)',
       'How Rootkits Hide from Antivirus',
       'Detecting Rootkits with Specialized Tools',
-      'Rootkit Removal and System Recovery',
+      'Rootkit Removal and System Recovery'
     ], 'Rootkits'),
     quiz: [
       { question: "A rootkit's primary goal is to:", options: ['Encrypt files','Hide the presence of malware and maintain persistent access','Steal passwords only','Conduct DDoS attacks'], answer: 1 },
@@ -834,10 +807,9 @@ const courses = [
       { question: 'Stuxnet is notable because it combined a rootkit with:', options: ['A banking Trojan','A worm targeting industrial control systems (PLCs)','A ransomware component','A keylogger'], answer: 1 },
       { question: 'Memory-only rootkits are volatile because:', options: ['They use strong encryption','They only exist in RAM and are removed on reboot','They target virtual machines','They are updated daily'], answer: 1 },
       { question: 'Comparing running processes with a clean OS image helps detect rootkits by:', options: ['Measuring CPU usage','Revealing discrepancies caused by rootkit hiding techniques','Scanning network traffic','Checking disk health'], answer: 1 },
-      { question: 'Which of the following is a characteristic of a firmware rootkit?', options: ['Removed by formatting the hard drive','Survives OS reinstallation by hiding in device firmware','Only affects Windows 7','Detected by standard antivirus'], answer: 1 },
-    ],
+      { question: 'Which of the following is a characteristic of a firmware rootkit?', options: ['Removed by formatting the hard drive','Survives OS reinstallation by hiding in device firmware','Only affects Windows 7','Detected by standard antivirus'], answer: 1 }
+    ]
   },
-  // 22
   {
     title: 'Cloud Security',
     description: 'Understand the shared responsibility model, common cloud misconfigurations, IAM best practices, data protection in the cloud, and major cloud breach case studies.',
@@ -847,7 +819,7 @@ const courses = [
       'AWS/Azure/GCP Shared Responsibility Model',
       'Common Cloud Misconfigurations',
       'IAM and Least Privilege in the Cloud',
-      'Cloud Security Tools and Best Practices',
+      'Cloud Security Tools and Best Practices'
     ], 'Cloud Security'),
     quiz: [
       { question: 'The shared responsibility model means:', options: ['Cloud provider is responsible for everything','Security responsibilities are shared between cloud provider and customer','Customer is responsible for everything','Only applies to IaaS'], answer: 1 },
@@ -864,10 +836,9 @@ const courses = [
       { question: 'Which tool helps secure AWS environments?', options: ['Nmap','AWS CloudTrail + GuardDuty','Metasploit','Wireshark'], answer: 1 },
       { question: 'Egress controls in cloud networks prevent:', options: ['Inbound attacks','Sensitive data from being exfiltrated out of the cloud environment','User login failures','Slow network speeds'], answer: 1 },
       { question: 'DevSecOps integrates security into:', options: ['Only the deployment phase','Every stage of the software development lifecycle','Only the testing phase','Only the design phase'], answer: 1 },
-      { question: 'Container security for Docker/Kubernetes requires:', options: ['Running containers as root always','Using minimal base images, scanning for CVEs, and network policies','Disabling all network access','Using Windows containers only'], answer: 1 },
-    ],
+      { question: 'Container security for Docker/Kubernetes requires:', options: ['Running containers as root always','Using minimal base images, scanning for CVEs, and network policies','Disabling all network access','Using Windows containers only'], answer: 1 }
+    ]
   },
-  // 23
   {
     title: 'Mobile Security',
     description: 'Explore Android and iOS security models, mobile malware, OWASP Mobile Top 10, mobile app security testing, and best practices for mobile device management.',
@@ -877,7 +848,7 @@ const courses = [
       'Android vs iOS Security Models',
       'Mobile Malware and App Risks',
       'OWASP Mobile Top 10',
-      'Securing Mobile Devices and Apps',
+      'Securing Mobile Devices and Apps'
     ], 'Mobile Security'),
     quiz: [
       { question: 'Android uses which security model for app isolation?', options: ['Hypervisor isolation','Sandboxing — each app runs in its own process/user ID','Mandatory Access Control only','App signing only'], answer: 1 },
@@ -894,10 +865,9 @@ const courses = [
       { question: 'Mobile app traffic should be tested using:', options: ['Nmap','Burp Suite as a proxy with the device','Metasploit','Aircrack-ng'], answer: 1 },
       { question: 'A malicious app requesting excessive permissions is an example of:', options: ['App performance optimisation','Privilege abuse / overprivileged app','Standard app behaviour','OS level feature'], answer: 1 },
       { question: 'Encrypted storage (Full Disk Encryption) on mobile protects against:', options: ['Malware installed while running','Data theft if the device is lost or stolen','Network attacks','App vulnerabilities'], answer: 1 },
-      { question: 'Which is the safest place to download mobile apps?', options: ['Any website offering free APKs','Official app stores (Google Play / Apple App Store)','Telegram channels','Third-party APK sites'], answer: 1 },
-    ],
+      { question: 'Which is the safest place to download mobile apps?', options: ['Any website offering free APKs','Official app stores (Google Play / Apple App Store)','Telegram channels','Third-party APK sites'], answer: 1 }
+    ]
   },
-  // 24
   {
     title: 'Email Security',
     description: 'Master email security — SPF, DKIM, DMARC, how email spoofing works, secure email gateways, encryption (S/MIME, PGP), and business email compromise (BEC).',
@@ -907,7 +877,7 @@ const courses = [
       'SPF, DKIM, and DMARC Explained',
       'Email Spoofing and Phishing Detection',
       'Encrypting Email with PGP and S/MIME',
-      'Business Email Compromise (BEC) Attacks',
+      'Business Email Compromise (BEC) Attacks'
     ], 'Email Security'),
     quiz: [
       { question: 'SPF (Sender Policy Framework) helps prevent:', options: ['Email encryption failures','Email spoofing by specifying authorised sending mail servers','Spam volume','Email tracking'], answer: 1 },
@@ -924,10 +894,9 @@ const courses = [
       { question: 'Header analysis of suspicious emails can reveal:', options: ['Email content encryption keys','The true origin mail server and routing path','Recipient passwords','Attachment content'], answer: 1 },
       { question: 'Email archiving is important for:', options: ['Faster email delivery','Legal compliance, e-discovery, and audit trails','Reducing storage costs','Blocking spam'], answer: 1 },
       { question: 'An email attachment with extension .exe should:', options: ['Be opened immediately','Be treated with extreme caution — likely malware','Be forwarded to IT','Be saved for later'], answer: 1 },
-      { question: 'IMAP vs POP3: IMAP is preferred for security because:', options: ['It downloads emails to local disk only','It keeps emails on the server and syncs across devices','It is faster','It encrypts all emails by default'], answer: 1 },
-    ],
+      { question: 'IMAP vs POP3: IMAP is preferred for security because:', options: ['It downloads emails to local disk only','It keeps emails on the server and syncs across devices','It is faster','It encrypts all emails by default'], answer: 1 }
+    ]
   },
-  // 25
   {
     title: 'Zero-Day Attacks',
     description: 'Understand what zero-day vulnerabilities are, how they are discovered and exploited, the dark market for 0days, responsible disclosure, and patching strategies.',
@@ -937,7 +906,7 @@ const courses = [
       'The Zero-Day Exploit Lifecycle',
       'Nation-State Zero-Day Use (Stuxnet, Pegasus)',
       'Bug Bounty and Responsible Disclosure',
-      'Defending Against Zero-Day Attacks',
+      'Defending Against Zero-Day Attacks'
     ], 'Zero-Day Attacks'),
     quiz: [
       { question: 'A zero-day vulnerability is one that:', options: ['Has been patched for zero days','Is unknown to the vendor and has no patch available','Was discovered on a specific date','Only affects zero users'], answer: 1 },
@@ -954,162 +923,29 @@ const courses = [
       { question: 'Which group is known for purchasing zero-days for surveillance?', options: ['Open-source communities','Brokers like Zerodium supplying to government agencies','Bug bounty hunters','Antivirus companies'], answer: 1 },
       { question: 'Memory-safe programming languages (Rust, Go) help reduce zero-days by:', options: ['Running faster','Preventing common memory corruption vulnerabilities like buffer overflows','Encrypting source code','Detecting intrusions at runtime'], answer: 1 },
       { question: 'Fuzzing is a technique used to discover zero-days by:', options: ['Manually reviewing code','Sending random/unexpected input to software to find crashes and bugs','Monitoring network traffic','Scanning with Nmap'], answer: 1 },
-      { question: 'Application sandboxing reduces zero-day impact by:', options: ['Blocking all network access','Limiting what an exploited application can access on the system','Encrypting the app','Increasing memory allocation'], answer: 1 },
-    ],
-  },
-];
-
-// ── Threat Intelligence Mock Data ─────────────────────────────────────────────
-const threats = [
-  {
-    name: "LockBit 3.0 Ransomware",
-    type: "Ransomware",
-    severity: "Critical",
-    date: "Jan 13",
-    description: "Most prolific RaaS operation targeting Indian enterprises. Self-propagation via SMB protocol exploitation, exfiltrates data before encryption. Average ransom demand: ₹85 lakh. Uses triple extortion: encrypt, exfiltrate, DDoS.",
-    indicators_of_compromise: [
-      "C2: 185.220.101.x",
-      "Hash: a1b2c3d4e5...",
-      "Domain: lockbit3[.]xyz",
-    ],
-    mitre_attacks: [
-      "T1486 - Data Encrypted for Impact",
-      "T1021.002 - SMB/Windows Admin Shares",
-      "T1567.002 - Exfiltration to Cloud Storage",
-    ],
-    cve: "CVE-2021-34527",
-    affected_systems: "Windows Server 2012-2022",
-    patch_status: "Available",
-  },
-  {
-    name: "APT-29 (Cozy Bear)",
-    type: "APT",
-    severity: "Critical",
-    date: "Jan 14",
-    description: "Russian state-sponsored threat actor linked to SVR. Known for stealthy, long-term espionage campaigns. Uses SUNBURST malware for supply chain attacks. Recent activity targeting Indian government contractors and defense suppliers.",
-    indicators_of_compromise: [
-      "IP: 45.142.212.x",
-      "Mutex: Global\\{GUID}",
-      "Reg key: HKLM\\System\\...",
-    ],
-    mitre_attacks: [
-      "T1195.002 - Compromise Software Supply Chain",
-      "T1059.001 - PowerShell",
-      "T1078 - Valid Accounts",
-    ],
-    cve: "CVE-2020-10148",
-    affected_systems: "SolarWinds Orion, Gov networks",
-    patch_status: "Critical - Patch Now",
-  },
-  {
-    name: "Log4Shell (CVE-2021-44228)",
-    type: "Vulnerability",
-    severity: "High",
-    date: "Jan 12",
-    description: "Remote Code Execution via JNDI injection in Apache Log4j2 versions 2.0-2.14.1. Still actively exploited in unpatched Indian enterprise Java applications. Trivial to exploit, requires no authentication. CVSS score: 10.0.",
-    indicators_of_compromise: [
-      "Payload: ${jndi:ldap://...}",
-      "Port: 1389 (LDAP)",
-      "User-Agent: PoC string",
-    ],
-    mitre_attacks: [
-      "T1190 - Exploit Public-Facing Application",
-      "T1059 - Command and Scripting Interpreter",
-    ],
-    cve: "CVE-2021-44228",
-    affected_systems: "Log4j2 < 2.17.1",
-    patch_status: "Upgrade to 2.17.1+",
-  },
-  {
-    name: "BEC — CFO Impersonation",
-    type: "Phishing",
-    severity: "Medium",
-    date: "Jan 09",
-    description: "Business Email Compromise targeting Indian fintech CFOs. AI-generated voice messages used as follow-up. Average financial loss: ₹28 lakh. Attackers compromise exec email via credential stuffing, then request wire transfers to overseas accounts.",
-    indicators_of_compromise: [
-      "Sender domain lookalike",
-      "IBAN: XX94...",
-      "Urgency keywords in subject",
-    ],
-    mitre_attacks: [
-      "T1566.002 - Spearphishing Link",
-      "T1534 - Internal Spearphishing",
-    ],
-    cve: "N/A",
-    affected_systems: "Finance & Fintech orgs",
-    patch_status: "Enable email authentication (DMARC/SPF)",
-  },
-  {
-    name: "SSH Brute-Force Campaign",
-    type: "Network",
-    severity: "Low",
-    date: "Jan 07",
-    description: "Coordinated SSH brute-force from 312 Tor exit nodes hitting Indian cloud infrastructure. 45,000+ attempts/day detected. Targeting default credentials on Ubuntu/CentOS boxes. Block via fail2ban + IP reputation feeds.",
-    indicators_of_compromise: [
-      "Source: Tor exit nodes",
-      "Port: 22/TCP",
-      "Tool: Hydra/Medusa signature",
-    ],
-    mitre_attacks: [
-      "T1110.001 - Password Guessing",
-      "T1021.004 - SSH",
-    ],
-    cve: "N/A",
-    affected_systems: "Linux cloud servers",
-    patch_status: "Disable password auth, use SSH keys",
-  },
-  {
-    name: "Mirai Botnet Variant",
-    type: "DDoS",
-    severity: "Medium",
-    date: "Jan 05",
-    description: "New Mirai variant targeting IoT devices in India — routers, CCTV cameras. Recruited devices used for DDoS attacks peaking at 400 Gbps. Exploits default credentials and Telnet vulnerabilities on embedded Linux devices.",
-    indicators_of_compromise: [
-      "Port: 23, 2323 (Telnet)",
-      "Traffic: SYN flood pattern",
-      "C2: 194.165.x.x",
-    ],
-    mitre_attacks: [
-      "T1498 - Network Denial of Service",
-      "T1584.005 - Botnet",
-    ],
-    cve: "CVE-2022-26258",
-    affected_systems: "IoT / Home routers",
-    patch_status: "Change default credentials, disable Telnet",
-  },
-];
+      { question: 'Application sandboxing reduces zero-day impact by:', options: ['Blocking all network access','Limiting what an exploited application can access on the system','Encrypting the app','Increasing memory allocation'], answer: 1 }
+    ]
+  }
+]
 
 // ── Seed function ─────────────────────────────────────────────────────────────
 async function seed() {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cyberlearn');
-    console.log('✅ Connected to MongoDB');
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cyberlearn')
+    console.log('✅ Connected to MongoDB')
 
-    // Clear existing data
-    await Course.deleteMany({});
-    await Threat.deleteMany({});
-    console.log('🗑️  Old data cleared');
+    await Course.deleteMany({})
+    console.log('🗑️  Old courses cleared')
 
-    // Seed courses
-    const insertedCourses = await Promise.all(courses.map(c => new Course(c).save()));
-    console.log(`🌱 Seeded ${insertedCourses.length} courses successfully!`);
+    const inserted = await Promise.all(courses.map(c => new Course(c).save()))
+    console.log(`🌱 Seeded ${inserted.length} courses successfully!`)
 
-    insertedCourses.forEach(c =>
-      console.log(`  ✔ ${c.title} (${c.level}) — ${c.videos.length} videos, ${c.quiz.length} quiz questions`)
-    );
-
-    // Seed threats
-    const insertedThreats = await Promise.all(threats.map(t => new Threat(t).save()));
-    console.log(`🌱 Seeded ${insertedThreats.length} threats successfully!`);
-
-    insertedThreats.forEach(t =>
-      console.log(`  ✔ ${t.name} (${t.type} - ${t.severity})`)
-    );
+    inserted.forEach(c => console.log(`  ✔ ${c.title} (${c.level}) — ${c.videos.length} videos, ${c.quiz.length} quiz questions`))
   } catch (err) {
-    console.error('❌ Seed failed:', err.message);
+    console.error('❌ Seed failed:', err.message)
   } finally {
-    mongoose.connection.close();
+    mongoose.connection.close()
   }
 }
 
-seed();
+seed()

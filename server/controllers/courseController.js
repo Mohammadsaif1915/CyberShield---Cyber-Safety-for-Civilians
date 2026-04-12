@@ -1,5 +1,6 @@
 import Course from '../models/Course.js'
 
+// GET /api/courses
 export const getCourses = async (req, res) => {
   try {
     const { level, search } = req.query
@@ -17,6 +18,7 @@ export const getCourses = async (req, res) => {
   }
 }
 
+// GET /api/courses/:id
 export const getCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id).select('-quiz.answer')

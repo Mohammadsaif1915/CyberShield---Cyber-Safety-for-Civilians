@@ -1,5 +1,5 @@
 // models/Course.js
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const videoSchema = new mongoose.Schema({
   title:    { type: String, required: true },
@@ -34,4 +34,4 @@ courseSchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.model('Course', courseSchema);
+module.exports = mongoose.model('Course', courseSchema);

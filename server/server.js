@@ -22,7 +22,8 @@ import leaderboardRoutes from './routes/leaderboardRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import quizSyncRoute   from './routes/quizSyncRoute.js';
-import quizRoutes from './routes/quiz.js';
+import quizProgressRoutes from './routes/quiz.js';
+import quizRoutes from './routes/quizRoutes.js';
 import gameRoutes from './routes/game.js';
 import aiRoutes from './routes/ai.js';
 import featuresRoutes from './routes/featuresRoutes.js';
@@ -627,8 +628,10 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
   }
 });
 app.use('/api/quiz', quizSyncRoute);
+app.use('/api/quiz', quizProgressRoutes);
 
 app.use('/api', dashboardRoutes);
+
 
 // ══════════════════════════════════════════════════════════════
 // ── COURSE / PROGRESS / CERTIFICATE / LEADERBOARD ROUTES ──────
@@ -636,9 +639,9 @@ app.use('/api', dashboardRoutes);
 app.use('/api/auth',         authRoutes);
 app.use('/api/courses',      courseRoutes);
 app.use('/api/progress',     progressRoutes);
+app.use('/api/quiz',         quizRoutes);
 app.use('/api/certificate',  certificateRoutes);
-app.use('/api/leaderboard',  leaderboardRoutes); // ✅ ADDED
-
+app.use('/api/leaderboard',  leaderboardRoutes);
 // ══════════════════════════════════════════════════════════════
 // ── ADMIN ROUTES ──────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
@@ -655,8 +658,7 @@ app.use((err, _req, res, _next) => {
 
 // ══════════════════════════════════════════════════════════════
 // ── QUIZ ROUTES ───────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-app.use('/api/quiz', quizRoutes);
+// ══════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════
 // ── GAME PROGRESS ROUTES ──────────────────────────────────────
