@@ -256,9 +256,7 @@ export default function ProfilePage() {
                           {course?.level || 'Beginner'}
                         </span>
                       </div>
-                      <div className="progress-bar-wrap" style={{ marginTop:6 }}>
-                        <div className="progress-bar-fill" style={{ width:`${pct}%` }}/>
-                      </div>
+
                       <div className={styles.progressMeta}>
                         <span>{p.completedVideos}/{total} videos</span>
                         <span>{pct}%</span>

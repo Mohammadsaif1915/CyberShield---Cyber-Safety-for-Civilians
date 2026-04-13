@@ -7,11 +7,11 @@ import styles from './CoursesPage.module.css'
 const LEVELS = ['All', 'Beginner', 'Intermediate', 'Advanced']
 
 export default function CoursesPage() {
-  const [courses,  setCourses]  = useState([])
+  const [courses, setCourses] = useState([])
   const [progress, setProgress] = useState({})
-  const [loading,  setLoading]  = useState(true)
-  const [search,   setSearch]   = useState('')
-  const [level,    setLevel]    = useState('All')
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [level, setLevel] = useState('All')
   const navigate = useNavigate()
 
   const fetchData = useCallback(async () => {
@@ -48,10 +48,10 @@ export default function CoursesPage() {
   const getStatusLabel = (courseId) => {
     const p = progress[courseId]
     if (!p) return null
-    if (p.certificateIssued) return { label: '🏆 Certified',      cls: styles.statusCert }
-    if (p.quizPassed)        return { label: '✅ Passed Quiz',    cls: styles.statusPassed }
-    if (p.allVideosWatched)  return { label: '🧠 Quiz Unlocked',  cls: styles.statusQuiz }
-    if (p.completedVideos > 0) return { label: '▶ In Progress',  cls: styles.statusProgress }
+    if (p.certificateIssued) return { label: '🏆 Certified', cls: styles.statusCert }
+    if (p.quizPassed) return { label: '✅ Passed Quiz', cls: styles.statusPassed }
+    if (p.allVideosWatched) return { label: '🧠 Quiz Unlocked', cls: styles.statusQuiz }
+    if (p.completedVideos > 0) return { label: '▶ In Progress', cls: styles.statusProgress }
     return null
   }
 
@@ -61,7 +61,7 @@ export default function CoursesPage() {
       {/* Hero */}
       <section className={styles.hero}>
         <div className="container">
-          <button 
+          <button
             onClick={() => navigate('/dashboard')}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: "pointer", marginBottom: 20, transition: "background 0.2s" }}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
@@ -130,7 +130,7 @@ export default function CoursesPage() {
         {!loading && courses.length > 0 && (
           <div className={styles.grid}>
             {courses.map((course, i) => {
-              const pct    = getProgressPercent(course._id, course.totalVideos)
+              const pct = getProgressPercent(course._id, course.totalVideos)
               const status = getStatusLabel(course._id)
               return (
                 <div
@@ -142,7 +142,7 @@ export default function CoursesPage() {
                   tabIndex={0}
                   onKeyDown={e => e.key === 'Enter' && navigate(`/courses/${course._id}`)}
                 >
-                  <div className={styles.cardAccent} style={{ background: course.color }} />
+
 
                   <div className={styles.cardThumb} style={{ background: `${course.color}18` }}>
                     <span className={styles.courseIcon}>{course.icon}</span>
@@ -168,10 +168,7 @@ export default function CoursesPage() {
 
                     {pct > 0 && (
                       <div className={styles.progressWrap}>
-                        <div className="progress-bar-wrap">
-                          <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className={styles.progressPct}>{pct}%</span>
+                        <span className={styles.progressPct}>{pct}% complete</span>
                       </div>
                     )}
                   </div>

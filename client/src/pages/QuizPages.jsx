@@ -296,13 +296,9 @@ export default function QuizPage() {
           </div>
         </div>
 
-        {/* Progress */}
+        {/* Progress text only — no blue bar */}
         <div className={styles.quizProgress}>
-          <div className="progress-bar-wrap">
-            <div className="progress-bar-fill"
-              style={{ width: `${(answeredCount / questions.length) * 100}%` }} />
-          </div>
-          <span className={styles.progressText}>{answeredCount}/{questions.length}</span>
+          <span className={styles.progressText}>{answeredCount}/{questions.length} answered</span>
         </div>
 
         {/* Question bubbles */}

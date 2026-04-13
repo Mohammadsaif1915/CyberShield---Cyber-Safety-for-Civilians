@@ -284,9 +284,6 @@ export default function CourseDetailPage() {
             </div>
           </div>
           <div className={styles.topProgress}>
-            <div className="progress-bar-wrap" style={{ width: 160 }}>
-              <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
-            </div>
             <span className={styles.topPct}>{completedCount}/{totalVideos} videos</span>
           </div>
         </div>
@@ -344,20 +341,14 @@ export default function CourseDetailPage() {
               </div>
             </div>
 
-            {/* Progress bar — based on real video position */}
+            {/* Timer text only — no blue strip */}
             <div className={styles.timerWrap}>
-              <div className={styles.timerBar}>
-                <div
-                  className={styles.timerFill}
-                  style={{ width: `${videoDone ? 100 : timerPct}%` }}
-                />
-              </div>
               <span className={styles.timerText}>
                 {videoDone
                   ? '✅ Video Completed!'
                   : duration > 0
                   ? `${formatTime(currentTime)} / ${formatTime(duration)} — ${timerPct}% watched`
-                  : 'Loading video…'}
+                  : ''}
               </span>
             </div>
 
@@ -428,9 +419,7 @@ export default function CourseDetailPage() {
                         {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, '0')} min
                       </span>
                       {wpct > 0 && !done && (
-                        <div className={styles.miniProgress}>
-                          <div style={{ width: `${wpct}%` }} />
-                        </div>
+                        <span style={{ fontSize: 10, color: '#0ea5e9', fontWeight: 600 }}>{wpct}%</span>
                       )}
                     </div>
                   </div>

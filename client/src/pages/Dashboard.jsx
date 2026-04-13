@@ -544,7 +544,7 @@ function Sidebar({ page, setPage, user, navigate, collapsed, setCollapsed, mobil
   );
 
   return (
-    <div className={`dsidebar ${mobileMenuOpen ? 'dsidebar-open' : ''}`} style={{ width: w, flexShrink: 0, background: T.surface, borderRight: `1px solid ${T.border}`, display: "flex", flexDirection: "column", height: "100vh", position: "fixed", left: 0, top: 0, zIndex: 100, transition: "width .25s cubic-bezier(.16,1,.3,1)", overflow: "hidden" }}>
+    <div className={`dsidebar ${mobileMenuOpen ? 'dsidebar-open' : ''}`} style={{ width: w, flexShrink: 0, background: T.surface, borderRight: `1px solid ${T.border}`, display: "flex", flexDirection: "column", height: "100vh", position: "fixed", left: 0, top: 0, zIndex: 100, transition: "width .25s cubic-bezier(.16,1,.3,1)", overflow: "hidden", visibility: window.location.pathname.startsWith('/courses') ? 'hidden' : 'visible' }}>
       <div style={{ padding: collapsed ? "14px 8px" : "18px 16px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", minHeight: 62, gap: 8 }}>
         {!collapsed && (
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>

@@ -5,18 +5,18 @@ import toast from 'react-hot-toast'
 import styles from './CertificatePage.module.css'
 
 export default function CertificatePage() {
-  const { id }   = useParams()
+  const { id } = useParams()
   const navigate = useNavigate()
 
-  const [name,       setName]       = useState('')
-  const [loading,    setLoading]    = useState(true)
-  const [paying,     setPaying]     = useState(false)
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [paying, setPaying] = useState(false)
   const [quizPassed, setQuizPassed] = useState(false)
 
   useEffect(() => {
-    const script   = document.createElement('script')
-    script.src     = 'https://checkout.razorpay.com/v1/checkout.js'
-    script.async   = true
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
     document.body.appendChild(script)
     return () => document.body.removeChild(script)
   }, [])
@@ -26,11 +26,11 @@ export default function CertificatePage() {
       try {
         const res = await api.get(`/certificate/${id}`)
         if (res.data.certificate) { navigate('/profile'); return }
-      } catch {}
+      } catch { }
       try {
         const pRes = await api.get(`/progress/${id}`)
         setQuizPassed(pRes.data.progress?.quizPassed || false)
-      } catch {}
+      } catch { }
       setLoading(false)
     }
     check()
@@ -51,19 +51,19 @@ export default function CertificatePage() {
       }
 
       const options = {
-        key:         data.keyId,
-        amount:      data.amount,
-        currency:    data.currency,
-        name:        'CyberShield',
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'CyberShield',
         description: 'Course Completion Certificate — ₹100',
-        order_id:    data.orderId,
+        order_id: data.orderId,
         handler: async (response) => {
           try {
             const verifyRes = await api.post(`/certificate/${id}/verify-payment`, {
-              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature:  response.razorpay_signature,
-              recipientName:       name.trim(),
+              razorpay_signature: response.razorpay_signature,
+              recipientName: name.trim(),
             })
             if (verifyRes.data.success) {
               toast.success('🏆 Payment successful! Certificate issued!')
@@ -75,8 +75,8 @@ export default function CertificatePage() {
             setPaying(false)
           }
         },
-        prefill:  { name: name.trim() },
-        theme:    { color: '#0f4c81' },
+        prefill: { name: name.trim() },
+        theme: { color: '#0f4c81' },
         modal: {
           ondismiss: () => {
             toast('Payment cancelled', { icon: 'ℹ️' })
@@ -94,19 +94,23 @@ export default function CertificatePage() {
   }
 
   if (loading) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
-      minHeight:'60vh', flexDirection:'column', gap:16 }}>
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: '60vh', flexDirection: 'column', gap: 16
+    }}>
       <div className="spinner" />
-      <p style={{ color:'var(--clr-text3)' }}>Loading…</p>
+      <p style={{ color: 'var(--clr-text3)' }}>Loading…</p>
     </div>
   )
 
   if (!quizPassed) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
-      minHeight:'60vh', flexDirection:'column', gap:16, textAlign:'center', padding:24 }}>
-      <div style={{ fontSize:48 }}>🔒</div>
-      <h3 style={{ fontFamily:'var(--font-display)' }}>Quiz not passed yet</h3>
-      <p style={{ color:'var(--clr-text2)' }}>Pass the course quiz to earn your certificate.</p>
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: '60vh', flexDirection: 'column', gap: 16, textAlign: 'center', padding: 24
+    }}>
+      <div style={{ fontSize: 48 }}>🔒</div>
+      <h3 style={{ fontFamily: 'var(--font-display)' }}>Quiz not passed yet</h3>
+      <p style={{ color: 'var(--clr-text2)' }}>Pass the course quiz to earn your certificate.</p>
       <button className="btn btn-primary"
         onClick={() => navigate(`/courses/${id}/quiz`)}>Take Quiz</button>
     </div>
@@ -148,7 +152,7 @@ export default function CertificatePage() {
 
         <div className={styles.priceRow}>
           <span className={styles.priceLabel}>Certificate fee</span>
-          <span className={styles.priceAmount}>₹100</span>
+          <span className={styles.priceAmount}>₹1</span>
         </div>
 
         <button
@@ -157,8 +161,8 @@ export default function CertificatePage() {
           disabled={paying || !name.trim()}
         >
           {paying
-            ? <><span className="spinner spinner-sm" style={{ borderTopColor:'#fff' }} /> Processing…</>
-            : <>🔒 Pay ₹100 &amp; Get Certificate</>
+            ? <><span className="spinner spinner-sm" style={{ borderTopColor: '#fff' }} /> Processing…</>
+            : <>🔒 Pay ₹1 &amp; Get Certificate</>
           }
         </button>
 
