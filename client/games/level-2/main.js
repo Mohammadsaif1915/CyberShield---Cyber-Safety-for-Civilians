@@ -856,12 +856,102 @@ function winGame() {
         'Time Bonus: <span style="color:#00ffc8">+' + timeBonus + '</span><br>' +
         'Infection Penalty: <span style="color:#ff3050">-' + infectionPenalty + '</span><br><br>' +
         '<div style="font-size:28px;color:#00ffc8;font-family:Orbitron;text-shadow:0 0 20px rgba(0,255,200,0.5)">TOTAL: ' + finalScore + '</div>';
+    
+    // 🎮 Save level completion score for syncing with dashboard
+    console.log('🏆 Level 2 COMPLETED! Score:', finalScore);
+    localStorage.setItem('cybershield_level_completed', '2');
+    localStorage.setItem('cybershield_level_score', Math.floor(finalScore));
+    localStorage.setItem('cybershield_level_waves', '5'); // Level 2 has 5 phases
+    localStorage.setItem('cybershield_level_enemies', Math.floor(score / 10)); // Estimate enemies as score/10
+    localStorage.setItem('cybershield_level_time', '180'); // Game duration
+    console.log('💾 Score saved to localStorage for dashboard sync');
+    
+    // Submit to main dashboard backend if authenticated
+    submitScoreToDashboard(finalScore, 2, 5);
+}
+
+/**
+ * Submit game score to authenticated backend endpoint
+ * This updates the user's profile with game stats
+ */
+async function submitScoreToDashboard(score, level, waves) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.warn('⚠️ No auth token - score will not update in dashboard');
+    return;
+  }
+  
+  console.log('📤 Submitting game score to dashboard...', { score, level, waves, token: token.substring(0, 20) + '...' });
+  
+  try {
+    const response = await fetch('http://localhost:5000/api/game/score', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        score: Math.floor(score),
+        level: level,
+        wavesCompleted: waves,
+        enemiesDefeated: Math.floor(score / 50),
+        timeSpent: 180
+      }),
+    });
+    
+    console.log('📨 Backend response status:', response.status);
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('✅ Score submitted to dashboard:', data);
+      
+      // Set detailed completion flags for Dashboard to detect
+      localStorage.setItem('cybershield_just_completed', JSON.stringify({
+        level: 2,
+        score: finalScore,
+        timestamp: Date.now(),
+        status: 'completed'
+      }));
+      
+      // Trigger immediate Dashboard refresh by updating user in localStorage
+      try {
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const updated = {
+          ...currentUser,
+          gameScore: data.gameScore || currentUser.gameScore,
+          gameHighScore: data.gameHighScore || currentUser.gameHighScore,
+          gamesPlayed: (currentUser.gamesPlayed || 0) + 1,
+          score: data.totalScore || currentUser.score,
+          level: data.level || currentUser.level,
+        };
+        localStorage.setItem('user', JSON.stringify(updated));
+        console.log('💾 User cache updated in localStorage:', updated);
+        // Dispatch storage event manually since we're on same tab
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {
+        console.warn('Could not update localStorage:', e);
+      }
+    } else {
+      const error = await response.json();
+      console.error('❌ Backend rejected submission:', error);
+    }
+  } catch (err) {
+    console.error('❌ Failed to submit score to dashboard:', err);
+  }
 }
 
 function failGame(reason) {
     gameRunning = false; hidePrompt();
     document.getElementById('failScreen').classList.remove('hidden');
     document.getElementById('failReason').textContent = reason;
+    
+    // Still save partial progress even on failure
+    console.log('❌ Level 2 FAILED:', reason, 'Partial score:', score);
+    localStorage.setItem('cybershield_level_completed', '2');
+    localStorage.setItem('cybershield_level_score', Math.floor(score * 0.5)); // 50% of partial score
+    localStorage.setItem('cybershield_level_waves', '5');
+    localStorage.setItem('cybershield_level_enemies', Math.floor(score / 10));
+    localStorage.setItem('cybershield_level_time', '180');
 }
 
 function restartGame() { startGame(); }

@@ -300,6 +300,76 @@ function showGameOver(victory) {
         ? 'All systems restored. The city is safe.'
         : 'Time ran out. The cyber attack succeeded.';
     document.getElementById('final-score').textContent = `SCORE: ${GS.score}`;
+    
+    // Submit score to dashboard if victory
+    if (victory) {
+        submitScoreToDashboard(GS.score, 5);
+    }
+}
+
+/**
+ * Submit game score to authenticated backend endpoint
+ * This updates the user's profile with game stats
+ */
+function submitScoreToDashboard(score, level) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('⚠️ No auth token - score will not update in dashboard');
+        return;
+    }
+    
+    console.log('📤 Submitting game score to dashboard...', { score, level, token: token.substring(0, 20) + '...' });
+    
+    fetch('http://localhost:5000/api/game/score', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            score: Math.floor(score),
+            level: level,
+            wavesCompleted: 5, // Level 5 has 5 zones
+            enemiesDefeated: 10,
+            timeSpent: Math.floor((600 - GS.timer)) || 0 // Time spent = 600 - remaining
+        }),
+    }).then(r => {
+        console.log('📨 Backend response status:', r.status);
+        return r.json();
+    }).then(d => {
+        if (d.success) {
+            console.log('✅ Score submitted to dashboard:', d);
+            // Update localStorage immediately to trigger Dashboard refresh
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+                const updated = {
+                    ...currentUser,
+                    gameScore: d.gameScore || currentUser.gameScore,
+                    gameHighScore: d.gameHighScore || currentUser.gameHighScore,
+                    gamesPlayed: (currentUser.gamesPlayed || 0) + 1,
+                    score: d.totalScore || currentUser.score,
+                    level: d.level || currentUser.level,
+                };
+                localStorage.setItem('user', JSON.stringify(updated));
+                console.log('💾 User cache updated in localStorage:', updated);
+            } catch (e) {
+                console.warn('Could not update localStorage:', e);
+            }
+            // Set detailed completion flags for Dashboard to detect
+            localStorage.setItem('cybershield_just_completed', JSON.stringify({
+                level: 5,
+                score: Math.floor(GS.score || 0),
+                timestamp: Date.now(),
+                status: 'completed'
+            }));
+            // Dispatch storage event manually
+            window.dispatchEvent(new Event('storage'));
+        } else {
+            console.error('❌ Backend rejected:', d);
+        }
+    }).catch(err => {
+        console.error('❌ Dashboard score submission failed:', err);
+    });
 }
 
 // ========== HUB ==========

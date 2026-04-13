@@ -113,11 +113,17 @@ export const updateVideoProgress = async (req, res) => {
 export const getAllProgress = async (req, res) => {
   try {
     const userId = getUserId(req)
+    
+    // 1. Pehle fetch karo
     const allProgress = await Progress.find({ user: userId })
       .populate('course', 'title level totalVideos icon color')
       .lean()
 
-    const fixed = allProgress.map(p => {
+    // 2. Phir filter karo
+    const valid = allProgress.filter(p => p.course !== null)
+
+    // 3. valid.map use karo, allProgress.map nahi
+    const fixed = valid.map(p => {
       const completedVideos = p.watchedVideos?.filter(v => v.completed).length || 0
       const totalVideos     = p.course?.totalVideos || p.watchedVideos?.length || 0
       const pct             = totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0

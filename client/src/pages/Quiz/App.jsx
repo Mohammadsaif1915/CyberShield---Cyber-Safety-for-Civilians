@@ -85,9 +85,12 @@ function App() {
     try {
       setLoading(true);
       setError(null);
+      console.log(`[Quiz] Loading progress for module ${selectedModule}...`);
       const response = await quizAPI.getModuleProgress(selectedModule);
+      console.log(`[Quiz] Got response for module ${selectedModule}:`, response);
 
       if (response.success && response.data) {
+        console.log(`[Quiz] Successfully loaded ${response.data.length} sections from DB`);
         const completedSections = response.data
           .filter(section => section.completed)
           .map(section => section.sectionId);
@@ -108,9 +111,11 @@ function App() {
         });
 
         setModuleAnswers(prev => ({ ...prev, ...loadedAnswers }));
+      } else {
+        console.warn(`[Quiz] Unexpected response format:`, response);
       }
     } catch (err) {
-      console.error('Error loading module progress:', err);
+      console.error('[Quiz] Error loading module progress:', err.message || err);
       setError('Failed to load progress. Your answers are saved locally.');
     } finally {
       setLoading(false);

@@ -7,6 +7,7 @@ import FraudDetectionPage from './FraudDetectionPage';
 import IncidentReportPage from './IncidentReportPage';
 import AchievementsPage from './AchievementsPage';
 import CommunityPage from './CommunityPage';
+import ThreatsPage from '../ThreatsPage';
 import {
   Shield, Brain, Mail, BarChart2, Bell, Search, Menu,
   Zap, X, Award, Activity, CheckCircle,
@@ -247,10 +248,39 @@ const G = () => (
     }
 
     /* ═══ AI CHAT RESPONSIVE ═══ */
+    @media(max-width:1024px){
+      .dai-chat-grid{grid-template-columns:1fr!important;gap:12px!important}
+      .dai-quick-prompts{grid-column:auto!important}
+    }
     @media(max-width:768px){
-      .dai-chat-grid{grid-template-columns:1fr!important}
-      .dai-chat-box{height:400px!important}
-      .dai-scanner-grid{grid-template-columns:1fr!important}
+      .dai-chat-grid{grid-template-columns:1fr!important;gap:10px!important}
+      .dai-chat-box{height:calc(100vh - 300px)!important;max-height:450px!important;min-height:300px!important}
+      .dai-quick-prompts{width:100%!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:0!important}
+      .dai-quick-prompts>div:nth-child(2){grid-column:1/-1!important}
+    }
+    @media(max-width:640px){
+      .dai-chat-box{height:calc(100vh - 280px)!important;max-height:350px!important}
+      .dai-quick-prompts{grid-template-columns:1fr!important;gap:6px!important}
+      .dai-quick-prompts>div:nth-child(2){grid-column:auto!important}
+    }
+    @media(max-width:480px){
+      .dai-chat-box{height:calc(100vh - 240px)!important;max-height:320px!important}
+      .dmain-area{padding:8px 6px!important}
+    }
+    
+    /* ═══ AI CHAT MESSAGE BUBBLES ═══ */
+    .dai-chat-box div[style*="maxWidth"] {
+      max-width: 75% !important;
+    }
+    @media(max-width:768px) {
+      .dai-chat-box div[style*="maxWidth"] {
+        max-width: 85% !important;
+      }
+    }
+    @media(max-width:480px) {
+      .dai-chat-box div[style*="maxWidth"] {
+        max-width: 90% !important;
+      }
     }
 
     /* ═══ PROFILE & SETTINGS LAYOUT ═══ */
@@ -353,7 +383,7 @@ function ConnectionStatus({ online }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", fontFamily: "'JetBrains Mono',monospace", color: online ? T.green : T.red }}>
       {online ? <Wifi size={10} /> : <WifiOff size={10} />}
-      {online ? "LIVE" : "OFFLINE"}
+      {online ? "ONLINE" : "OFFLINE"}
     </div>
   );
 }
@@ -755,39 +785,42 @@ function AIChatPage() {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div className="dai-chat-grid" style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: 14 }}>
-        <div className="dai-chat-box" style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, overflow: "hidden", boxShadow: T.sh, display: "flex", flexDirection: "column", height: 560 }}>
-          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 11, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
+      <div className="dai-chat-grid" style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: 14, width: "100%" }}>
+        <div className="dai-chat-box" style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, overflow: "hidden", boxShadow: T.sh, display: "flex", flexDirection: "column", height: 560, minHeight: 400, width: "100%" }}>
+          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 11, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Bot size={16} style={{ color: "#fff" }} />
             </div>
-            <div>
-              <h3 style={{ fontSize: 13, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>CyberShield AI</h3>
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 800, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>CyberShield AI</h3>
               <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: T.green, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>
                 <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.green, animation: "pulse 2s infinite" }} />Online
               </div>
             </div>
           </div>
-          <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
-            {messages.map((msg, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, justifyContent: msg.role === "user" ? "flex-end" : "flex-start", animation: "fadeUp .25s ease" }}>
-                {msg.role === "assistant" && (
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                    <Bot size={12} style={{ color: "#fff" }} />
-                  </div>
-                )}
-                <div style={{ maxWidth: "75%", background: msg.role === "user" ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: msg.role === "user" ? "#fff" : T.text, borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 12, lineHeight: 1.6, fontFamily: "'Nunito',sans-serif" }}>
-                  {msg.content}
-                  <div style={{ fontSize: 9, opacity: 0.6, marginTop: 4, textAlign: "right", fontFamily: "'JetBrains Mono',monospace" }}>
-                    {msg.ts ? fmtTime(msg.ts) : ""}
+          <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "16px 12px", display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
+            {messages.map((msg, i) => {
+              const isUser = msg.role === "user";
+              return (
+                <div key={i} style={{ display: "flex", gap: 8, justifyContent: isUser ? "flex-end" : "flex-start", animation: "fadeUp .25s ease" }}>
+                  {msg.role === "assistant" && (
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+                      <Bot size={12} style={{ color: "#fff" }} />
+                    </div>
+                  )}
+                  <div style={{ background: isUser ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: isUser ? "#fff" : T.text, borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 12, lineHeight: 1.6, fontFamily: "'Nunito',sans-serif", wordBreak: "break-word", maxWidth: "90%", overflow: "hidden" }}>
+                    {msg.content}
+                    <div style={{ fontSize: 9, opacity: 0.6, marginTop: 4, textAlign: "right", fontFamily: "'JetBrains Mono',monospace" }}>
+                      {msg.ts ? fmtTime(msg.ts) : ""}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {loading && (
               <div style={{ display: "flex", gap: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: `linear-gradient(135deg,${T.brand},${T.violet})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Bot size={12} style={{ color: "#fff" }} />
                 </div>
                 <div style={{ background: T.bg, borderRadius: "18px 18px 18px 4px", padding: "14px 18px", display: "flex", gap: 5, alignItems: "center" }}>
@@ -796,19 +829,19 @@ function AIChatPage() {
               </div>
             )}
           </div>
-          <div style={{ padding: "12px 18px", borderTop: `1px solid ${T.border}`, display: "flex", gap: 8 }}>
-            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Ask about cybersecurity…" style={{ flex: 1, border: `1px solid ${T.border}`, borderRadius: 12, padding: "10px 14px", fontSize: 12, fontFamily: "'Nunito',sans-serif", color: T.text, background: T.bg, outline: "none" }} />
+          <div style={{ padding: "12px 14px", borderTop: `1px solid ${T.border}`, display: "flex", gap: 8, flexShrink: 0 }}>
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Ask about cybersecurity…" style={{ flex: 1, border: `1px solid ${T.border}`, borderRadius: 12, padding: "10px 12px", fontSize: 12, fontFamily: "'Nunito',sans-serif", color: T.text, background: T.bg, outline: "none", minWidth: 0 }} />
             <button onClick={sendMessage} disabled={loading || !input.trim()} style={{ width: 40, height: 40, borderRadius: 12, border: "none", background: input.trim() ? `linear-gradient(135deg,${T.brand},${T.violet})` : T.bg, color: input.trim() ? "#fff" : T.textDim, cursor: input.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Send size={14} />
             </button>
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, boxShadow: T.sh }}>
+        <div className="dai-quick-prompts" style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", minWidth: 0 }}>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, boxShadow: T.sh, width: "100%" }}>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: T.text, margin: "0 0 11px", fontFamily: "'Syne',sans-serif" }}>Quick Questions</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {quickPrompts.map((q, i) => (
-                <button key={i} onClick={() => { setInput(q); }} style={{ padding: "8px 11px", borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.textMd, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito',sans-serif", textAlign: "left", transition: "all .15s" }}
+                <button key={i} onClick={() => { setInput(q); }} style={{ padding: "8px 11px", borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.textMd, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito',sans-serif", textAlign: "left", transition: "all .15s", width: "100%" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = `${T.brand}25`; e.currentTarget.style.color = T.brand; e.currentTarget.style.background = `${T.brand}05`; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.textMd; e.currentTarget.style.background = T.bg; }}>
                   {q}
@@ -1069,380 +1102,325 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
     </div>
   );
 }
-
-// ─── PAGE: THREATS ────────────────────────────────────────────────────────────
-function ThreatsPage() {
-  const [threats, setThreats] = useState([]);
-  const [trend, setTrend] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState(null);
-  const [liveCount, setLiveCount] = useState(0);
-  const [lastRefresh, setLastRefresh] = useState(null);
-
-  const fetchThreats = useCallback(async () => {
-    try {
-      const data = await API.get("/api/threats");
-      setThreats(Array.isArray(data) ? data : data.threats || []);
-      setTrend(Array.isArray(data?.trend) ? data.trend : []);
-      setLiveCount(data?.totalDetected || (Array.isArray(data) ? data.length : 0));
-      setLastRefresh(new Date());
-    } catch {
-      // Keep existing data on error
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchThreats();
-    const t = setInterval(fetchThreats, 30000);
-    return () => clearInterval(t);
-  }, [fetchThreats]);
-
-  const filtered = threats.filter(t =>
-    (filter === "all" || t.severity === filter) &&
-    (t.type + t.source + (t.desc || t.description || "") + t.status).toLowerCase().includes(search.toLowerCase())
-  );
-
-  const counts = {
-    critical: threats.filter(t => t.severity === "critical").length,
-    high: threats.filter(t => t.severity === "high").length,
-    medium: threats.filter(t => t.severity === "medium").length,
-  };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div className="dg4" style={{ flex: 1 }}>
-          {[
-            { label: "Total Detected", value: liveCount, color: T.brand, icon: ShieldAlert, live: true },
-            { label: "Critical", value: counts.critical, color: T.red, icon: AlertTriangle },
-            { label: "High", value: counts.high, color: "#EA580C", icon: Zap },
-            { label: "Medium", value: counts.medium, color: T.amber, icon: Eye },
-          ].map((item, i) => (
-            <div key={i} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "16px 18px", boxShadow: T.sh }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: `${item.color}10`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <item.icon size={14} style={{ color: item.color }} />
-                </div>
-                {item.live && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    {loading && <Loader2 size={10} className="spin" style={{ color: T.textDim }} />}
-                    <span style={{ fontSize: 8, fontWeight: 700, color: T.red, background: T.redDim, border: `1px solid ${T.red}20`, borderRadius: 99, padding: "2px 7px", letterSpacing: "0.08em", fontFamily: "'JetBrains Mono',monospace" }}>● LIVE</span>
-                  </div>
-                )}
-              </div>
-              <AnimatedNumber value={item.value} color={item.color} size={26} />
-              <div style={{ fontSize: 11, color: T.textMd, fontWeight: 500, marginTop: 2 }}>{item.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {trend.length > 0 && (
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, boxShadow: T.sh }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-            <div>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>24-Hour Threat Timeline</h3>
-              <p style={{ fontSize: 10, color: T.textMd, margin: "2px 0 0" }}>
-                Real-time detection frequency{lastRefresh && ` · Updated ${fmtTime(lastRefresh)}`}
-              </p>
-            </div>
-            <button onClick={fetchThreats} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <RefreshCw size={12} style={{ color: T.textMd }} />
-            </button>
-          </div>
-          <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={trend}>
-              <defs>
-                {[{ id: "cr", c: T.red }, { id: "hi", c: "#EA580C" }, { id: "me", c: T.amber }].map(g => (
-                  <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={g.c} stopOpacity={0.15} />
-                    <stop offset="95%" stopColor={g.c} stopOpacity={0} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-              <XAxis dataKey="h" tick={{ fontSize: 9, fill: T.textDim }} axisLine={false} tickLine={false} interval={3} />
-              <YAxis tick={{ fontSize: 9, fill: T.textDim }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CTip />} />
-              <Area type="monotone" dataKey="critical" name="Critical" stroke={T.red} fill="url(#cr)" strokeWidth={2} dot={false} />
-              <Area type="monotone" dataKey="high" name="High" stroke="#EA580C" fill="url(#hi)" strokeWidth={1.5} dot={false} />
-              <Area type="monotone" dataKey="medium" name="Medium" stroke={T.amber} fill="url(#me)" strokeWidth={1.5} dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {["all", "critical", "high", "medium"].map(f => (
-            <button key={f} onClick={() => setFilter(f)} style={{ padding: "6px 13px", borderRadius: 8, border: `1px solid ${filter === f ? T.brand : T.border}`, background: filter === f ? `${T.brand}10` : T.card, color: filter === f ? T.brand : T.textMd, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", textTransform: "capitalize", transition: "all .15s" }}>
-              {f} {f !== "all" && `(${threats.filter(t => t.severity === f).length})`}
-            </button>
-          ))}
-        </div>
-        <div style={{ flex: 1, minWidth: 60 }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 9, padding: "6px 12px", flex: "1 1 auto", maxWidth: 280, minWidth: 140 }}>
-          <Search size={11} style={{ color: T.textDim }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search threats…" style={{ border: "none", outline: "none", fontSize: 11, fontFamily: "'Nunito',sans-serif", background: "transparent", color: T.text, width: "100%", minWidth: 0 }} />
-          {search && <button onClick={() => setSearch("")} style={{ border: "none", background: "none", cursor: "pointer", color: T.textDim, padding: 0, display: "flex" }}><X size={11} /></button>}
-        </div>
-        <span style={{ fontSize: 10, color: T.textDim }}>{filtered.length} results</span>
-      </div>
-
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden", boxShadow: T.sh }}>
-        {loading ? (
-          <div style={{ padding: "40px", textAlign: "center", color: T.textDim, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            <Loader2 size={16} className="spin" /> Loading threat intelligence…
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ padding: "40px" }}>
-            <EmptyState icon={ShieldAlert} title="No threats found" desc="No threats match your current filter. Try adjusting your search or filters." color={T.teal} />
-          </div>
-        ) : (
-          <>
-            <div className="dth" style={{ padding: "10px 18px", background: T.bg, borderBottom: `1px solid ${T.border}`, fontSize: 8, fontWeight: 700, color: T.textDim, letterSpacing: "0.1em", fontFamily: "'JetBrains Mono',monospace" }}>
-              <span>TYPE</span><span>SEVERITY</span><span>DESCRIPTION</span><span>SOURCE</span><span>TARGET</span><span>STATUS</span><span>TIME</span>
-            </div>
-            {filtered.map((t, i) => {
-              const sev = SEV[t.severity] || SEV.medium;
-              const sc = STATUS_C[t.status] || T.textDim;
-              const isSel = selected?.id === t.id || selected?._id === t._id;
-              return (
-                <div key={t.id || t._id || i} onClick={() => setSelected(isSel ? null : t)} className="dth" style={{ padding: "11px 18px", borderBottom: i < filtered.length - 1 ? `1px solid ${T.border}` : "none", cursor: "pointer", transition: "background .12s", background: isSel ? `${T.brand}06` : "transparent" }}
-                  onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = T.surfaceHov; }}
-                  onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = "transparent"; }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: T.text, alignSelf: "center" }}>{t.type}</span>
-                  <div style={{ alignSelf: "center" }}><Bdg color={sev.color} bg={sev.bg}>{sev.label}</Bdg></div>
-                  <span style={{ fontSize: 10, color: T.textMd, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", alignSelf: "center" }}>{t.desc || t.description}</span>
-                  <span style={{ fontSize: 10, color: T.text, fontFamily: "'JetBrains Mono',monospace", alignSelf: "center" }}>{(t.source || "").length > 15 ? t.source.substring(0, 14) + "…" : t.source}</span>
-                  <span style={{ fontSize: 10, color: T.textMd, alignSelf: "center" }}>{t.target}</span>
-                  <div style={{ alignSelf: "center" }}><Bdg color={sc} bg={`${sc}12`}>{t.status}</Bdg></div>
-                  <span style={{ fontSize: 9, color: T.textDim, alignSelf: "center", fontFamily: "'JetBrains Mono',monospace" }}>{t.time || fmtTime(t.createdAt)}</span>
-                </div>
-              );
-            })}
-          </>
-        )}
-      </div>
-
-      {selected && (
-        <div style={{ background: T.card, border: `1px solid ${T.brand}20`, borderRadius: 18, padding: 20, boxShadow: T.shMd, animation: "slideIn .2s ease" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <ShieldAlert size={15} style={{ color: SEV[selected.severity]?.color || T.brand }} />
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>{selected.type} — Detailed Analysis</h3>
-            </div>
-            <button onClick={() => setSelected(null)} style={{ border: "none", background: T.bg, borderRadius: 7, width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <X size={11} style={{ color: T.textMd }} />
-            </button>
-          </div>
-          <div className="dg3" style={{ marginBottom: 12 }}>
-            {[
-              { l: "IOC / Indicator", v: selected.ioc || selected.indicator || "—" },
-              { l: "Source / Actor", v: selected.source },
-              { l: "Target", v: selected.target },
-              { l: "Origin Country", v: selected.country || "Unknown" },
-              { l: "Status", v: selected.status },
-              { l: "Detected", v: selected.time || fmtDate(selected.createdAt) },
-            ].map((item, i) => (
-              <div key={i} style={{ background: T.bg, borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ fontSize: 8, color: T.textDim, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4, fontFamily: "'JetBrains Mono',monospace" }}>{item.l}</div>
-                <div style={{ fontSize: 11, color: T.text, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>{item.v}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ background: T.bg, borderRadius: 10, padding: "12px 14px" }}>
-            <div style={{ fontSize: 8, color: T.textDim, fontWeight: 700, marginBottom: 5, fontFamily: "'JetBrains Mono',monospace" }}>FULL DESCRIPTION</div>
-            <p style={{ fontSize: 12, color: T.text, margin: 0, lineHeight: 1.6 }}>{selected.desc || selected.description}</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+const _phishStyle = document.getElementById("phish-style");
+if (!_phishStyle) {
+  const s = document.createElement("style");
+  s.id = "phish-style";
+  s.textContent = `
+    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+    @keyframes phFadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes phSlideIn { from { opacity:0; transform:translateX(-6px) } to { opacity:1; transform:translateX(0) } }
+    @keyframes phSpin { to { transform:rotate(360deg) } }
+    .ph-up   { animation: phFadeUp .3s cubic-bezier(.22,1,.36,1) both }
+    .ph-in   { animation: phSlideIn .25s cubic-bezier(.22,1,.36,1) both }
+    .ph-spin { animation: phSpin 1s linear infinite }
+    .ph-vbtn { transition: transform .15s ease, opacity .15s ease }
+    .ph-vbtn:hover  { transform: translateY(-2px) }
+    .ph-vbtn:active { transform: scale(0.97) }
+    .ph-nbtn { transition: opacity .15s, transform .1s }
+    .ph-nbtn:hover  { opacity: .88; transform: translateY(-1px) }
+    .ph-nbtn:active { transform: scale(0.98) }
+    .ph-prog { transition: width .5s cubic-bezier(.22,1,.36,1) }
+  `;
+  document.head.appendChild(s);
 }
-
-// ─── PAGE: PHISHING SIM ───────────────────────────────────────────────────────
+ 
+const PH = {
+  serif: "'Instrument Serif', Georgia, serif",
+  sans:  "'DM Sans', system-ui, sans-serif",
+  mono:  "'JetBrains Mono', monospace",
+};
+ 
 function PhishingPage({ user, onUserUpdate }) {
-  const [emails, setEmails] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState(0);
-  const [result, setResult] = useState(null);
+  const [emails, setEmails]             = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [step, setStep]                 = useState(0);
+  const [result, setResult]             = useState(null);
+  const [results, setResults]           = useState([]);
+  const [showFinal, setShowFinal]       = useState(false);
   const [sessionScore, setSessionScore] = useState(0);
   const [sessionTotal, setSessionTotal] = useState(0);
-  const [animating, setAnimating] = useState(false);
-
+  const [animating, setAnimating]       = useState(false);
+ 
   useEffect(() => {
     API.get("/api/phishing/emails")
       .then(data => setEmails(Array.isArray(data) ? data : data.emails || []))
       .catch(() => setEmails([]))
       .finally(() => setLoading(false));
   }, []);
-
-  const current = emails[step];
-  const accuracy = sessionTotal > 0 ? Math.round((sessionScore / sessionTotal) * 100) : 0;
-  const overallAcc = user?.phishingSimTotal ? Math.round((user.phishingSimCorrect / user.phishingSimTotal) * 100) : null;
-
+ 
+  const current    = emails[step];
+  const accuracy   = sessionTotal > 0 ? Math.round((sessionScore / sessionTotal) * 100) : 0;
+  const overallAcc = user?.phishingSimTotal
+    ? Math.round((user.phishingSimCorrect / user.phishingSimTotal) * 100) : null;
+ 
   const handleAnswer = async (isPhish) => {
-    if (animating || !current) return;
+    if (animating || !current || result) return;
     const correct = isPhish === current.isPhishing;
     if (correct) setSessionScore(s => s + 1);
     setSessionTotal(t => t + 1);
     setResult({ correct, isPhishing: current.isPhishing });
-    setAnimating(true);
-    setTimeout(() => setAnimating(false), 300);
-
+    setResults(prev => { const n = [...prev]; n[step] = correct; return n; });
+ 
     try {
+      await API.post("/api/phishing/result", { correct, emailSubject: current?.subject });
       await API.post("/api/activity", { type: "phishing", result: correct ? "pass" : "fail", score: correct ? 1 : 0, emailId: current._id });
-    } catch { }
-
+    } catch (err) { console.error("Error saving phishing result:", err); }
+ 
     if (onUserUpdate) {
       const prevCorrect = user?.phishingSimCorrect || 0;
-      const prevTotal = user?.phishingSimTotal || 0;
+      const prevTotal   = user?.phishingSimTotal   || 0;
       onUserUpdate({ phishingSimCorrect: prevCorrect + (correct ? 1 : 0), phishingSimTotal: prevTotal + 1 });
     }
   };
-
+ 
   const next = () => {
-    setAnimating(true);
-    setTimeout(() => {
-      if (step < emails.length - 1) setStep(s => s + 1);
-      else { setStep(0); setSessionScore(0); setSessionTotal(0); }
-      setResult(null);
-      setAnimating(false);
-    }, 200);
+    if (step < emails.length - 1) {
+      setAnimating(true);
+      setTimeout(() => { setStep(s => s + 1); setResult(null); setAnimating(false); }, 180);
+    } else {
+      setShowFinal(true);
+    }
   };
-
-  if (loading) return <div style={{ display: "flex", justifyContent: "center", padding: "60px", color: T.textDim, gap: 10, alignItems: "center" }}><Loader2 size={20} className="spin" /> Loading phishing simulations…</div>;
-  if (emails.length === 0) return <EmptyState icon={Mail} title="No phishing emails available" desc="Check back later — the admin will add phishing simulation emails." color={T.amber} />;
-
+ 
+  const restart = () => {
+    setStep(0); setResult(null); setResults([]);
+    setSessionScore(0); setSessionTotal(0); setShowFinal(false);
+  };
+ 
+  // ── Loading / Empty ────────────────────────────────────────────────────────
+  if (loading) return (
+    <div style={{ display:"flex", justifyContent:"center", padding:60, color:T.textDim, gap:10, alignItems:"center", fontFamily:PH.sans }}>
+      <Loader2 size={18} className="ph-spin" /> Loading simulations…
+    </div>
+  );
+ 
+  if (emails.length === 0) return (
+    <EmptyState icon={Mail} title="No phishing emails available"
+      desc="Check back later — the admin will add phishing simulation emails." color={T.amber} />
+  );
+ 
+  // ── Final results screen ───────────────────────────────────────────────────
+  if (showFinal) {
+    const correct = results.filter(Boolean).length;
+    const pct     = Math.round((correct / emails.length) * 100);
+    const { msg, col } =
+      pct === 100 ? { msg: "Flawless — you caught every single one.",           col: T.green } :
+      pct >= 80   ? { msg: "Sharp eye. A couple slipped through.",              col: T.teal || T.green } :
+      pct >= 60   ? { msg: "Decent instincts — phishers would catch you eventually.", col: T.amber } :
+                    { msg: "High risk. Review the indicators and try again.",   col: T.red };
+ 
+    return (
+      <div className="ph-up" style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:20, padding:"52px 32px", textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center", gap:18, boxShadow:T.sh }}>
+        <div style={{ fontSize:60, fontFamily:PH.serif, fontStyle:"italic", fontWeight:400, color:col, lineHeight:1 }}>
+          {pct}<span style={{ fontSize:30, opacity:.6 }}>%</span>
+        </div>
+        <div>
+          <div style={{ fontSize:13, color:T.textMd, fontFamily:PH.sans }}>{correct} of {emails.length} correct</div>
+          <div style={{ fontSize:16, fontFamily:PH.serif, fontStyle:"italic", color:T.text, marginTop:6, lineHeight:1.4 }}>{msg}</div>
+        </div>
+        <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center" }}>
+          {results.map((r, i) => (
+            <div key={i} style={{
+              width:32, height:32, borderRadius:"50%",
+              background: r ? `${T.green}15` : `${T.red}15`,
+              border:`1px solid ${r ? T.green : T.red}40`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              {r ? <CheckCircle size={13} style={{ color:T.green }} /> : <AlertTriangle size={13} style={{ color:T.red }} />}
+            </div>
+          ))}
+        </div>
+        <button className="ph-nbtn" onClick={restart} style={{
+          marginTop:4, padding:"11px 28px", borderRadius:99,
+          border:`1px solid ${T.border}`, background:T.text,
+          color:"#fff", fontSize:13, fontWeight:500, cursor:"pointer", fontFamily:PH.sans,
+        }}>
+          ↺ Try again
+        </button>
+      </div>
+    );
+  }
+ 
+  // ── Main simulator ─────────────────────────────────────────────────────────
+  const bodyLines = (current?.body || "").split("\n");
+ 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ background: T.card, border: `1px solid ${T.amber}25`, borderRadius: 18, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 13, background: T.amberDim, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Mail size={18} style={{ color: T.amber }} />
+    <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+ 
+      {/* ── Header bar ── */}
+      <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18, padding:"14px 20px", display:"flex", alignItems:"center", gap:14, boxShadow:T.sh }}>
+        <div style={{ width:44, height:44, borderRadius:13, background:`${T.brand}12`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+          <Mail size={18} style={{ color:T.brand }} />
         </div>
-        <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: T.text, margin: "0 0 2px", fontFamily: "'Syne',sans-serif" }}>Phishing Simulator</h2>
-          <p style={{ fontSize: 11, color: T.textMd, margin: 0 }}>Analyse each email. Results sync to your profile instantly.</p>
+        <div style={{ flex:1 }}>
+          <h2 style={{ fontSize:17, fontWeight:400, fontFamily:PH.serif, fontStyle:"italic", color:T.text, margin:"0 0 2px" }}>Phishing Simulator</h2>
+          <p style={{ fontSize:11, color:T.textMd, margin:0, fontFamily:PH.sans }}>Read each email carefully. Real or fake?</p>
         </div>
-        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-          <div style={{ background: `${T.brand}08`, border: `1px solid ${T.brand}20`, borderRadius: 9, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: T.brand, fontFamily: "'JetBrains Mono',monospace" }}>
-            Session: {sessionScore}/{sessionTotal}{sessionTotal > 0 && ` (${accuracy}%)`}
+        <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+          <div style={{ background:`${T.brand}08`, border:`1px solid ${T.brand}20`, borderRadius:10, padding:"6px 13px", textAlign:"center" }}>
+            <div style={{ fontSize:13, fontWeight:600, color:T.brand, fontFamily:PH.mono, lineHeight:1 }}>{sessionScore}/{sessionTotal}</div>
+            <div style={{ fontSize:9, color:T.textDim, fontFamily:PH.sans, marginTop:2, textTransform:"uppercase", letterSpacing:"0.05em" }}>Session</div>
           </div>
           {overallAcc !== null && (
-            <div style={{ background: `${T.teal}08`, border: `1px solid ${T.teal}20`, borderRadius: 9, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: T.teal, fontFamily: "'JetBrains Mono',monospace" }}>
-              All-time: {overallAcc}%
+            <div style={{ background:`${T.teal || T.brand}08`, border:`1px solid ${T.teal || T.brand}20`, borderRadius:10, padding:"6px 13px", textAlign:"center" }}>
+              <div style={{ fontSize:13, fontWeight:600, color:T.teal || T.brand, fontFamily:PH.mono, lineHeight:1 }}>{overallAcc}%</div>
+              <div style={{ fontSize:9, color:T.textDim, fontFamily:PH.sans, marginTop:2, textTransform:"uppercase", letterSpacing:"0.05em" }}>All-time</div>
             </div>
           )}
         </div>
       </div>
-
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 10, color: T.textDim, whiteSpace: "nowrap", fontFamily: "'JetBrains Mono',monospace" }}>Email {step + 1} of {emails.length}</span>
-        <div style={{ flex: 1, height: 4, background: T.bg, borderRadius: 99 }}>
-          <div style={{ height: 4, borderRadius: 99, width: `${((step + 1) / emails.length) * 100}%`, background: `linear-gradient(90deg,${T.amber},${T.brand})`, transition: "width .4s ease" }} />
+ 
+      {/* ── Progress dots + bar ── */}
+      <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:12, padding:"9px 16px", display:"flex", alignItems:"center", gap:12, boxShadow:T.sh }}>
+        <div style={{ display:"flex", gap:5, alignItems:"center" }}>
+          {emails.map((_, i) => {
+            const done   = results[i] !== undefined;
+            const active = i === step && !done;
+            const pass   = results[i] === true;
+            return (
+              <div key={i} style={{
+                width: active ? 18 : 7, height:7, borderRadius:99,
+                background: done ? (pass ? T.green : T.red) : active ? T.brand : T.bg,
+                transition:"all .3s cubic-bezier(.22,1,.36,1)", opacity: done || active ? 1 : 0.4,
+              }} />
+            );
+          })}
         </div>
-        <span style={{ fontSize: 10, color: T.brand, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>{Math.round(((step + 1) / emails.length) * 100)}%</span>
+        <div style={{ flex:1, height:3, background:T.bg, borderRadius:99, overflow:"hidden" }}>
+          <div className="ph-prog" style={{ height:3, borderRadius:99, background:T.brand, width:`${((step+1)/emails.length)*100}%` }} />
+        </div>
+        <span style={{ fontSize:10, color:T.brand, fontWeight:700, fontFamily:PH.mono, flexShrink:0 }}>
+          {step+1}/{emails.length}
+        </span>
       </div>
-
-      <div className="dg12 dphish-grid">
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden", boxShadow: T.sh, opacity: animating ? 0.6 : 1, transition: "opacity .2s" }}>
-          <div style={{ background: T.bg, borderBottom: `1px solid ${T.border}`, padding: "8px 14px", display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57" }} />
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FEBC2E" }} />
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#28C840" }} />
-            <span style={{ fontSize: 10, color: T.textDim, marginLeft: 6, fontFamily: "'JetBrains Mono',monospace" }}>Inbox — {emails.length} unread</span>
-          </div>
-          <div style={{ padding: "14px 18px 12px", borderBottom: `1px solid ${T.border}` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${T.brand}10`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: T.brand, flexShrink: 0 }}>
-                {(current?.from || "?").charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: T.text, fontFamily: "'JetBrains Mono',monospace" }}>{current?.from}</div>
-                <div style={{ fontSize: 9, color: T.textDim }}>To: you@company.com · {current?.time || fmtTime(current?.createdAt)}</div>
+ 
+      {/* ── Email card ── */}
+      <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18, overflow:"hidden", boxShadow:T.sh, opacity:animating ? 0.5 : 1, transition:"opacity .18s ease" }}>
+ 
+        {/* macOS chrome */}
+        <div style={{ background:T.bg, borderBottom:`1px solid ${T.border}`, padding:"9px 14px", display:"flex", alignItems:"center", gap:6 }}>
+          {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width:9, height:9, borderRadius:"50%", background:c }} />)}
+          <span style={{ marginLeft:8, fontSize:10, color:T.textDim, fontFamily:PH.mono }}>Inbox — {emails.length} messages</span>
+        </div>
+ 
+        {/* Sender row */}
+        <div style={{ padding:"16px 20px 12px", borderBottom:`1px solid ${T.border}` }}>
+          <div style={{ display:"flex", alignItems:"center", gap:11, marginBottom:10 }}>
+            <div style={{ width:38, height:38, borderRadius:"50%", background:`${T.brand}12`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:600, color:T.brand, flexShrink:0, fontFamily:PH.sans }}>
+              {(current?.from || "?").charAt(0).toUpperCase()}
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:13, fontWeight:600, color:T.text, fontFamily:PH.sans }}>{current?.from}</div>
+              <div style={{ fontSize:10, color:T.textDim, fontFamily:PH.mono, marginTop:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {current?.email || current?.fromAddress || `${(current?.from||"sender").toLowerCase().replace(/\s/g,"")}@mail.com`}
               </div>
             </div>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: T.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>{current?.subject}</h3>
+            <div style={{ fontSize:10, color:T.textDim, fontFamily:PH.mono, flexShrink:0 }}>
+              {current?.time || fmtTime?.(current?.createdAt) || ""}
+            </div>
           </div>
-          <div style={{ padding: "16px 18px" }}>
-            {(current?.body || "").split("\n").map((line, i) => (
-              <p key={i} style={{ fontSize: 12, color: line.startsWith("http") || line.startsWith("https") ? T.brand : T.textMd, margin: "0 0 3px", lineHeight: 1.7, fontFamily: line.startsWith("http") ? "'JetBrains Mono',monospace" : "inherit", textDecoration: line.startsWith("http") ? "underline" : "none" }}>
+          <div style={{ fontSize:17, fontWeight:400, fontFamily:PH.serif, fontStyle:"italic", color:T.text, lineHeight:1.3 }}>
+            {current?.subject}
+          </div>
+        </div>
+ 
+        {/* Body */}
+        <div style={{ padding:"16px 20px", minHeight:120 }}>
+          {bodyLines.map((line, i) => {
+            const isLink = line.startsWith("http");
+            return (
+              <p key={i} style={{ fontSize: isLink ? 11 : 13, lineHeight:1.75, margin:"0 0 2px", color: isLink ? T.brand : T.textMd, fontFamily: isLink ? PH.mono : PH.sans, textDecoration: isLink ? "underline" : "none", wordBreak: isLink ? "break-all" : "normal" }}>
                 {line || "\u00A0"}
               </p>
-            ))}
-          </div>
+            );
+          })}
         </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-          {!result ? (
-            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, boxShadow: T.sh }}>
-              <h3 style={{ fontSize: 12, fontWeight: 700, color: T.text, margin: "0 0 4px", fontFamily: "'Syne',sans-serif" }}>Your Verdict</h3>
-              <p style={{ fontSize: 10, color: T.textMd, margin: "0 0 13px" }}>Is this email safe or a phishing attempt?</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button onClick={() => handleAnswer(false)} style={{ padding: "11px 13px", borderRadius: 11, border: `1px solid ${T.green}25`, background: T.greenDim, color: T.green, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", display: "flex", alignItems: "center", gap: 8, transition: "all .2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = T.green; e.currentTarget.style.color = "#fff"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = T.greenDim; e.currentTarget.style.color = T.green; }}>
-                  <CheckCircle size={14} /> Legitimate Email ✓
-                </button>
-                <button onClick={() => handleAnswer(true)} style={{ padding: "11px 13px", borderRadius: 11, border: `1px solid ${T.red}20`, background: T.redDim, color: T.red, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif", display: "flex", alignItems: "center", gap: 8, transition: "all .2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = T.red; e.currentTarget.style.color = "#fff"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = T.redDim; e.currentTarget.style.color = T.red; }}>
-                  <AlertTriangle size={14} /> Phishing Attempt ⚠️
-                </button>
+ 
+        {/* ── Verdict buttons ── */}
+        {!result ? (
+          <div style={{ borderTop:`1px solid ${T.border}`, padding:"14px 20px", display:"flex", gap:10, background:T.card }}>
+            <button className="ph-vbtn" onClick={() => handleAnswer(false)} style={{
+              flex:1, padding:"13px 12px", borderRadius:13,
+              border:`1px solid ${T.green}30`, background:`${T.green}10`,
+              cursor:"pointer", fontFamily:PH.sans,
+              display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+            }}>
+              <CheckCircle size={20} style={{ color:T.green }} />
+              <span style={{ fontSize:12, fontWeight:600, color:T.green }}>Looks legit</span>
+              <span style={{ fontSize:10, color:T.green, opacity:0.7 }}>Mark as safe</span>
+            </button>
+            <button className="ph-vbtn" onClick={() => handleAnswer(true)} style={{
+              flex:1, padding:"13px 12px", borderRadius:13,
+              border:`1px solid ${T.red}30`, background:`${T.red}10`,
+              cursor:"pointer", fontFamily:PH.sans,
+              display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+            }}>
+              <AlertTriangle size={20} style={{ color:T.red }} />
+              <span style={{ fontSize:12, fontWeight:600, color:T.red }}>It's a phish</span>
+              <span style={{ fontSize:10, color:T.red, opacity:0.7 }}>Flag suspicious</span>
+            </button>
+          </div>
+ 
+        ) : (
+          // ── Result reveal ──
+          <div className="ph-up" style={{ borderTop:`1px solid ${T.border}`, padding:"14px 20px", background:T.card }}>
+ 
+            {/* Banner */}
+            <div style={{
+              display:"flex", alignItems:"center", gap:9, padding:"11px 14px", borderRadius:12, marginBottom:12,
+              background: result.correct ? `${T.green}12` : `${T.red}12`,
+              border:`1px solid ${result.correct ? T.green : T.red}30`,
+            }}>
+              {result.correct
+                ? <CheckCircle size={17} style={{ color:T.green }} />
+                : <AlertTriangle size={17} style={{ color:T.red }} />}
+              <div>
+                <div style={{ fontSize:13, fontWeight:600, color: result.correct ? T.green : T.red, fontFamily:PH.sans }}>
+                  {result.correct ? "Correct!" : "Missed it."}
+                </div>
+                <div style={{ fontSize:11, color: result.correct ? T.green : T.red, opacity:0.75, fontFamily:PH.sans, marginTop:1 }}>
+                  This was {result.isPhishing ? "a phishing email" : "a legitimate email"}.
+                </div>
               </div>
             </div>
-          ) : (
-            <div style={{ background: result.correct ? T.greenDim : T.redDim, border: `1px solid ${result.correct ? T.green : T.red}20`, borderRadius: 16, padding: 16, animation: "fadeUp .3s ease" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                {result.correct ? <CheckCircle size={18} style={{ color: T.green }} /> : <AlertTriangle size={18} style={{ color: T.red }} />}
-                <h3 style={{ fontSize: 13, fontWeight: 800, color: result.correct ? T.green : T.red, margin: 0, fontFamily: "'Syne',sans-serif" }}>
-                  {result.correct ? "Correct! 🎉" : "Incorrect ⬇️"}
-                </h3>
-              </div>
-              <p style={{ fontSize: 11, color: T.textMd, margin: "0 0 12px" }}>
-                This was {result.isPhishing ? "a phishing / scam email" : "a legitimate email"}.
-              </p>
-              <button onClick={next} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "none", background: result.correct ? T.green : T.red, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito',sans-serif" }}>
-                {step < emails.length - 1 ? "Next Email →" : "Restart ↺"}
-              </button>
-            </div>
-          )}
-
-          {result && current?.clues?.length > 0 && (
-            <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 14, boxShadow: T.sh }}>
-              <h4 style={{ fontSize: 11, fontWeight: 700, color: T.text, margin: "0 0 10px", fontFamily: "'Syne',sans-serif" }}>🔍 Key Indicators</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+ 
+            {/* Clues */}
+            {current?.clues?.length > 0 && (
+              <div style={{ marginBottom:12 }}>
+                <div style={{ fontSize:10, fontWeight:600, color:T.textDim, letterSpacing:"0.06em", textTransform:"uppercase", fontFamily:PH.sans, marginBottom:7 }}>
+                  Key indicators
+                </div>
                 {current.clues.map((clue, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 10, color: T.textMd, lineHeight: 1.5 }}>
-                    <div style={{ width: 14, height: 14, borderRadius: "50%", background: current.isPhishing ? T.redDim : T.greenDim, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                      {current.isPhishing ? <AlertTriangle size={7} style={{ color: T.red }} /> : <CheckCircle size={7} style={{ color: T.green }} />}
+                  <div key={i} className="ph-in" style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"5px 0", borderBottom: i < current.clues.length-1 ? `1px solid ${T.border}` : "none", animationDelay:`${i*0.05}s` }}>
+                    <div style={{ width:15, height:15, borderRadius:"50%", background: current.isPhishing ? `${T.red}15` : `${T.green}15`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                      {current.isPhishing
+                        ? <AlertTriangle size={7} style={{ color:T.red }} />
+                        : <CheckCircle size={7} style={{ color:T.green }} />}
                     </div>
-                    {clue}
+                    <span style={{ fontSize:11, color:T.textMd, lineHeight:1.55, fontFamily:PH.sans }}>{clue}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 13 }}>
-            <div style={{ fontSize: 10, color: T.textDim, marginBottom: 8, fontFamily: "'JetBrains Mono',monospace" }}>SESSION PROGRESS</div>
-            <div style={{ display: "flex", gap: 4 }}>
-              {emails.map((_, i) => (
-                <div key={i} style={{ flex: 1, height: 4, borderRadius: 99, background: i < step ? T.brand : i === step ? T.amber : T.bg }} />
-              ))}
-            </div>
+            )}
+ 
+            {/* Next button */}
+            <button className="ph-nbtn" onClick={next} style={{
+              width:"100%", padding:"11px", borderRadius:11,
+              border:"none", background:T.text, color:"#fff",
+              fontSize:13, fontWeight:500, cursor:"pointer", fontFamily:PH.sans,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+            }}>
+              {step < emails.length - 1 ? "Next email →" : "See results"}
+            </button>
           </div>
-        </div>
+        )}
       </div>
+ 
     </div>
   );
 }
-
+ 
 // ─── PAGE: REPORTS ────────────────────────────────────────────────────────────
 function ReportsPage({ user, navigate, setPage }) {
   const [exporting, setExporting] = useState(null);
@@ -1986,6 +1964,7 @@ export default function Dashboard() {
   const [showSearch, setShowSearch] = useState(false);
   const [notifRead, setNotifRead] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
+  const [threatsViewed, setThreatsViewed] = useState([]);
 
   const [dashData, setDashData] = useState(null);
   const [dashLoading, setDashLoading] = useState(true);
@@ -2006,14 +1985,48 @@ export default function Dashboard() {
     } catch { return null; }
   });
 
-  useEffect(() => {
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
+  // Refresh user data from backend (to pick up game/quiz score updates)
+  // ✅ DECLARE FIRST before any useEffect that references it
+  const refreshUserData = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.log("[Dashboard] No token, skipping refreshUserData");
+        return;
+      }
+
+      console.log("[Dashboard] Fetching fresh user data from /api/auth/me");
+      const data = await API.get("/api/auth/me");
+      if (data?.user) {
+        const raw = data.user;
+        const fresh = { ...raw, _id: raw._id || raw.id };
+        if (!fresh.fullName) {
+          if (raw.name) fresh.fullName = raw.name;
+          else if (raw.username) fresh.fullName = raw.username;
+        }
+        console.log("[Dashboard] ✅ User refreshed:", { score: fresh.score, gameScore: fresh.gameScore });
+        setUser(fresh);
+        localStorage.setItem("user", JSON.stringify(fresh));
+      }
+    } catch (err) {
+      console.error("[Dashboard] ❌ Error refreshing user:", err.message);
+    }
   }, []);
 
+  useEffect(() => {
+    // Listen for game/quiz completion signals from localStorage & refresh user data
+    const handleStorageChange = (e) => {
+      if (e.key === 'cybershield_just_completed' || e.key === 'user' || e.key === 'cybershield_phishing_just_answered' || e.key === 'cybershield_level_completed') {
+        console.log("📢 Score update detected (game/quiz/phishing), refreshing user data...");
+        refreshUserData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [refreshUserData]);
+
+  // Merge dashUser data with local user state
   useEffect(() => {
     if (dashUser) {
       setUser(prev => {
@@ -2027,58 +2040,51 @@ export default function Dashboard() {
     }
   }, [dashUser]);
 
+  // Initial load and polling setup
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    API.get("/api/auth/me")
-      .then(data => {
-        if (data?.user) {
-          const raw = data.user;
-          const fresh = { ...raw, _id: raw._id || raw.id };
-          if (!fresh.fullName) {
-            if (raw.name) fresh.fullName = raw.name;
-            else if (raw.username) fresh.fullName = raw.username;
-          }
-          // Server handles streak calculation, just use returned values
-          setUser(fresh);
-          localStorage.setItem("user", JSON.stringify(fresh));
-        }
-      })
-      .catch(() => {
-        try {
-          const raw = localStorage.getItem("user");
-          if (raw) {
-            const cached = JSON.parse(raw);
-            setUser(cached);
-          }
-        } catch { }
-      });
+    console.log("[Dashboard] Initializing - fetching user data and dashboard stats...");
+    
+    // Initial fetch
+    refreshUserData();
 
     const fetchDashboard = () => {
       API.get("/api/dashboard")
-        .then(data => { setDashData(data); setDashLoading(false); })
-        .catch(() => setDashLoading(false));
+        .then(data => { 
+          console.log("[Dashboard] Dashboard data loaded:", data); 
+          setDashData(data); 
+          setDashLoading(false); 
+        })
+        .catch(err => {
+          console.error("[Dashboard] Error loading dashboard:", err.message);
+          setDashLoading(false);
+        });
     };
     fetchDashboard();
 
     const fetchActivities = () => {
       API.get("/api/activity?limit=10")
         .then(data => setLiveActivities(Array.isArray(data) ? data : data.activities || []))
-        .catch(() => { });
+        .catch(err => console.error("[Dashboard] Error loading activities:", err.message));
     };
     fetchActivities();
 
     API.get("/api/threats?limit=5")
       .then(data => setLiveThreats(Array.isArray(data) ? data : data.threats || []))
-      .catch(() => { });
+      .catch(err => console.error("[Dashboard] Error loading threats:", err.message));
 
+    // Polling intervals — refresh user data every 5 seconds to pick up game/quiz updates
     const pollDash = setInterval(fetchDashboard, 30000);
     const pollActs = setInterval(fetchActivities, 15000);
-    return () => { clearInterval(pollDash); clearInterval(pollActs); };
-  }, []);
+    const pollUser = setInterval(refreshUserData, 5000);  // ← Refresh user data frequently
+    
+    return () => { clearInterval(pollDash); clearInterval(pollActs); clearInterval(pollUser); };
+  }, [refreshUserData]);
 
   const onUserUpdate = useCallback((updates) => {
+    console.log("🔄 onUserUpdate called with:", updates);
     setUser(prev => {
       const merged = { ...prev, ...updates };
       if (updates.score !== undefined) {
@@ -2086,6 +2092,7 @@ export default function Dashboard() {
         merged.level = level;
         merged.xp = xp;
       }
+      console.log("💾 Saving to localStorage:", { gameScore: merged.gameScore, phishingSimCorrect: merged.phishingSimCorrect, phishingSimTotal: merged.phishingSimTotal });
       localStorage.setItem("user", JSON.stringify(merged));
       return merged;
     });
@@ -2093,8 +2100,10 @@ export default function Dashboard() {
     const token = localStorage.getItem("token");
     if (token) {
       setTimeout(() => {
+        console.log("🌐 Refetching fresh user data from /api/auth/me");
         API.get("/api/auth/me")
           .then(data => {
+            console.log("✅ Fresh data received:", { gameScore: data?.user?.gameScore, phishingSimCorrect: data?.user?.phishingSimCorrect, phishingSimTotal: data?.user?.phishingSimTotal });
             if (data?.user) {
               const raw = data.user;
               const fresh = { ...raw, _id: raw._id || raw.id };
@@ -2113,13 +2122,16 @@ export default function Dashboard() {
                   badges: (prev?.badges?.length || 0) > (fresh.badges?.length || 0) ? prev.badges : fresh.badges,
                   avatar: prev?.avatar || fresh.avatar,
                 };
+                console.log("📊 Final merged state:", { gameScore: merged.gameScore, phishingSimCorrect: merged.phishingSimCorrect, phishingSimTotal: merged.phishingSimTotal });
                 localStorage.setItem("user", JSON.stringify(merged));
                 return merged;
               });
             }
           })
-          .catch(() => { });
-      }, 800);
+          .catch((err) => { 
+            console.error("❌ Failed to refetch user data:", err);
+          });
+      }, 2000);
     }
   }, []);
 
@@ -2143,10 +2155,16 @@ export default function Dashboard() {
   const notifCount = notifRead ? 0 : notifList.filter(n => !n.read).length;
   const sideW = collapsed ? 64 : 236;
 
+  const handleThreatView = (threatId, threatName) => {
+    if (!threatsViewed.includes(threatId)) {
+      setThreatsViewed(prev => [...prev, threatId]);
+    }
+  };
+
   const renderPage = () => {
     switch (page) {
       case "overview": return <OverviewPage user={user} setPage={setPage} navigate={navigate} dashData={dashData} dashLoading={dashLoading} liveActivities={liveActivities} />;
-      case "threats": return <ThreatsPage />;
+      case "threats": return <ThreatsPage stats={{ threatsViewed }} onThreatView={handleThreatView} />;
       case "phishing": return <PhishingPage user={user} onUserUpdate={onUserUpdate} />;
       case "reports": return <ReportsPage user={user} navigate={navigate} setPage={setPage} />;
       case "security-score": return <SecurityScorePage user={user} />;

@@ -1046,6 +1046,7 @@ function resetGame() {
  * saveProgressToBackend
  * Sends the player's username, score, and level completion
  * status to POST /api/level1/save.
+ * ALSO sends to main backend /api/game/score if authenticated.
  */
 async function saveProgressToBackend() {
   const statusEl = document.getElementById('save-status');
@@ -1053,6 +1054,7 @@ async function saveProgressToBackend() {
   statusEl.className   = '';
 
   try {
+    // Save to local level backend
     const response = await fetch(`${API_BASE}/save`, {
       method : 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1072,6 +1074,62 @@ async function saveProgressToBackend() {
       showApiToast('📡 Progress synced to server');
     } else {
       throw new Error(data.error || 'Unknown error');
+    }
+
+    // ALSO submit to main dashboard backend if authenticated
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        console.log('📤 Submitting score to main dashboard...', { score, token: token.substring(0, 20) + '...' });
+        
+        const mainRes = await fetch('http://localhost:5000/api/game/score', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ 
+            score: score,
+            level: 1,
+            wavesCompleted: completed.door ? 4 : Object.values(completed).filter(Boolean).length,
+            timeSpent: 0
+          }),
+        });
+        
+        console.log('📨 Backend response status:', mainRes.status);
+        
+        if (mainRes.ok) {
+          const mainData = await mainRes.json();
+          if (mainData.success) {
+            console.log('✅ Dashboard score updated:', mainData);
+            // Update localStorage immediately to trigger Dashboard refresh
+            try {
+              const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+              const updated = {
+                ...currentUser,
+                gameScore: mainData.gameScore || currentUser.gameScore,
+                gameHighScore: mainData.gameHighScore || currentUser.gameHighScore,
+                gamesPlayed: (currentUser.gamesPlayed || 0) + 1,
+                score: mainData.totalScore || currentUser.score,
+                level: mainData.level || currentUser.level,
+              };
+              localStorage.setItem('user', JSON.stringify(updated));
+              console.log('💾 User cache updated in localStorage:', updated);
+            } catch (e) {
+              console.warn('Could not update localStorage:', e);
+            }
+            // Set flags so Dashboard knows to refresh
+            localStorage.setItem('cybershield_just_completed', JSON.stringify({ level: 1, score, timestamp: Date.now() }));
+            localStorage.setItem('cybershield_level_completed', 'level1');
+            window.dispatchEvent(new Event('storage'));
+          }
+        } else {
+          const errorData = await mainRes.json();
+          console.error('❌ Backend rejected submission:', errorData);
+        }
+      } catch (err) {
+        console.warn('Main backend sync failed:', err);
+      }
     }
 
   } catch (err) {

@@ -579,7 +579,94 @@ document.body.addEventListener("click", function (e) {
   if (musicOn && bgMusic.paused && audioUnlocked) {
     bgMusic.play().catch(() => {});
   }
-}, true);
+} );
+
+/* ========== GAME COMPLETION & SCORE SAVING ========== */
+/**
+ * Save game/level score to backend when player completes or exits a level
+ * Called when returning from level pages
+ */
+async function saveLevelScore(levelNum, score, wavesCompleted = 0, enemiesDefeated = 0, timeSpent = 0) {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.warn("⚠️ No auth token found — cannot save score");
+    return;
+  }
+
+  try {
+    console.log(`📤 Saving level ${levelNum} score:`, { score, wavesCompleted, enemiesDefeated, timeSpent });
+    const res = await fetch("http://localhost:5000/api/game/score", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        score,
+        level: levelNum,
+        wavesCompleted: wavesCompleted || 0,
+        enemiesDefeated: enemiesDefeated || 0,
+        timeSpent: timeSpent || Math.floor(Math.random() * 600), // Fallback to random time if not provided
+      }),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      console.log(`✅ Level ${levelNum} score saved! New total: ${data.totalScore}`);
+      // Update localStorage immediately
+      try {
+        const cached = JSON.parse(localStorage.getItem("user") || "{}");
+        const updated = {
+          ...cached,
+          score: data.totalScore,
+          gameScore: data.gameScore,
+          gameHighScore: data.gameHighScore,
+          level: data.level,
+          xp: data.totalScore,
+        };
+        localStorage.setItem("user", JSON.stringify(updated));
+        console.log("💾 User data updated in localStorage");
+      } catch (e) {
+        console.error("Failed to update localStorage:", e);
+      }
+      return data;
+    } else {
+      console.error(`❌ Failed to save level ${levelNum} score:`, data.message);
+    }
+  } catch (err) {
+    console.error("❌ Error saving level score:", err);
+  }
+}
+
+/**
+ * Check if player has returned from a level and save their score
+ * Called on page load and when levelScreen is shown
+ */
+function checkAndSaveLevelCompletionScore() {
+  const completedLevel = localStorage.getItem("cybershield_level_completed");
+  const levelScore = localStorage.getItem("cybershield_level_score");
+  const levelWaves = localStorage.getItem("cybershield_level_waves");
+  const levelEnemies = localStorage.getItem("cybershield_level_enemies");
+  const levelTime = localStorage.getItem("cybershield_level_time");
+
+  if (completedLevel && levelScore) {
+    const levelNum = parseInt(completedLevel);
+    const score = parseInt(levelScore) || 0;
+    const waves = parseInt(levelWaves) || 0;
+    const enemies = parseInt(levelEnemies) || 0;
+    const time = parseInt(levelTime) || 0;
+
+    console.log(`🎮 Detected level ${levelNum} completion with score ${score}`);
+    saveLevelScore(levelNum, score, waves, enemies, time);
+
+    // Clear the completion flags after saving
+    localStorage.removeItem("cybershield_level_completed");
+    localStorage.removeItem("cybershield_level_score");
+    localStorage.removeItem("cybershield_level_waves");
+    localStorage.removeItem("cybershield_level_enemies");
+    localStorage.removeItem("cybershield_level_time");
+  }
+}
 
 /* ========== TOAST ========== */
 function showToast(msg) {
@@ -593,6 +680,7 @@ function showToast(msg) {
 /* ========== BOOT ========== */
 initLevels();
 checkReturnFromLevel();
+checkAndSaveLevelCompletionScore(); // Check for completed levels and save scores
 updateUserLabel();
 updateStats();
 initParticles();

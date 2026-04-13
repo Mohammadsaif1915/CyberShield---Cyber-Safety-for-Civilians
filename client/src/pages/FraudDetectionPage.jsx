@@ -25,23 +25,59 @@ function URLRiskAnalyzer() {
       // Simulate analysis - in production, call a real threat intelligence API
       await new Promise(resolve => setTimeout(resolve, 1500));
       
+      const urlLower = url.toLowerCase();
       const riskFactors = [];
       let riskScore = 0;
       
-      // Basic heuristics
-      if (url.includes("bit.ly") || url.includes("tinyurl")) { riskFactors.push("Shortened URL"); riskScore += 15; }
-      if (url.includes("@")) { riskFactors.push("@ Symbol (Phishing)"); riskScore += 30; }
-      if (!url.startsWith("https")) { riskFactors.push("No HTTPS"); riskScore += 20; }
-      if (url.includes("login") && !url.includes("official")) { riskFactors.push("Suspicious Login Path"); riskScore += 25; }
-      if (url.length > 100) { riskFactors.push("Unusually Long URL"); riskScore += 10; }
-      if ((url.match(/\d+\.\d+\.\d+\.\d+/g) || []).length > 0) { riskFactors.push("IP-Based Address"); riskScore += 20; }
+      // Known malicious domain patterns
+      const maliciousDomains = ["phishing", "fake", "scam", "hack", "malware", "trojan", "virus", "paypa1", "goggl", "amazo", "bankkk"];
+      const isMaliciousDomain = maliciousDomains.some(d => urlLower.includes(d));
+      if (isMaliciousDomain) { riskFactors.push("⚠️ Known malicious domain pattern"); riskScore += 45; }
+      
+      // Suspicious patterns
+      if (urlLower.includes("bit.ly") || urlLower.includes("tinyurl") || urlLower.includes("short.link")) { riskFactors.push("🔗 Shortened URL (hides real destination)"); riskScore += 20; }
+      if (urlLower.includes("@")) { riskFactors.push("⚠️ @ Symbol in URL (phishing indicator)"); riskScore += 40; }
+      if (!urlLower.startsWith("https://")) { 
+        riskFactors.push("🔓 No HTTPS encryption"); 
+        riskScore += 25; 
+      } else {
+        riskFactors.push("✓ HTTPS encrypted connection");
+      }
+      if ((urlLower.match(/\d+\.\d+\.\d+\.\d+/g) || []).length > 0) { riskFactors.push("⚠️ IP-Based address (suspicious)"); riskScore += 35; }
+      if (urlLower.includes("login") || urlLower.includes("signin") || urlLower.includes("account")) { 
+        if (!this?.isOfficialDomain?.(url)) {
+          riskFactors.push("⚠️ Login page on non-official domain"); 
+          riskScore += 40; 
+        }
+      }
+      if (urlLower.includes("-") && urlLower.includes(".")) {
+        const domain = urlLower.split("/")[2];
+        if (domain && domain.split(".")[0].split("-").length > 3) { 
+          riskFactors.push("⚠️ Suspicious domain pattern (many hyphens)"); 
+          riskScore += 15; 
+        }
+      }
+      if (url.length > 120) { riskFactors.push("📏 Unusually long URL"); riskScore += 10; }
+      
+      // Look for common phishing indicators
+      const phishingWords = ["confirm", "verify", "update-now", "act-now", "click-here", "urgent"];
+      const hasPhishingWord = phishingWords.some(w => urlLower.includes(w));
+      if (hasPhishingWord) { riskFactors.push("🎣 Contains phishing-trigger words"); riskScore += 25; }
+      
+      // Safe indicators
+      if (urlLower.includes("bank") && urlLower.includes("official")) riskScore -= 10;
+      if (riskFactors.length === 0 || (riskScore < 20 && !isMaliciousDomain)) {
+        riskFactors.push("✓ URL appears legitimate based on available checks");
+      }
+      
+      const finalScore = Math.min(100, Math.max(0, riskScore));
       
       setAnalysis({
         url,
-        riskScore: Math.min(100, riskScore),
-        riskLevel: riskScore > 70 ? "CRITICAL" : riskScore > 40 ? "HIGH" : riskScore > 20 ? "MEDIUM" : "LOW",
-        riskFactors: riskFactors.length > 0 ? riskFactors : ["URL appears legitimate"],
-        safe: riskScore < 30,
+        riskScore: finalScore,
+        riskLevel: finalScore >= 75 ? "CRITICAL" : finalScore >= 50 ? "HIGH" : finalScore >= 25 ? "MEDIUM" : "LOW",
+        riskFactors: riskFactors.length > 0 ? riskFactors : ["URL appears legitimate based on current analysis"],
+        safe: finalScore < 25,
       });
     } catch (err) {
       console.error("URL Analysis Error:", err);

@@ -3,8 +3,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
+  const url = `${API_BASE_URL}${endpoint}`;
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    console.log(`[Quiz API] ${options.method || 'GET'} ${url}`);
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -13,16 +15,25 @@ const apiCall = async (endpoint, options = {}) => {
       ...options,
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      console.error(`[Quiz API] Failed to parse JSON from ${url}:`, e);
+      throw new Error(`Invalid JSON response from ${url}`);
+    }
 
     // some backend routes return { message: ... } instead of { success: ... }.
     if (!response.ok) {
-      throw new Error(data.message || 'API request failed');
+      const errorMsg = data.message || data.error || 'API request failed';
+      console.error(`[Quiz API] ${response.status} error from ${url}:`, errorMsg);
+      throw new Error(errorMsg);
     }
 
+    console.log(`[Quiz API] Success from ${url}:`, data);
     return data;
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('API Error:', error.message || error);
     throw error;
   }
 };

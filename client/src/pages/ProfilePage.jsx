@@ -46,7 +46,11 @@ export default function ProfilePage() {
     finally { setDownloading(null) }
   }
 
-  const completedCourses = allProgress.filter(p => p.quizPassed).length
+  // ✅ Fix: certificates se bhi count karo agar progress records delete ho gaye ho
+  const completedCourses = Math.max(
+    allProgress.filter(p => p.quizPassed).length,
+    certificates.length
+  )
   const inProgress = allProgress.filter(p => p.completedVideos > 0 && !p.quizPassed).length
 
   return (
@@ -138,13 +142,10 @@ export default function ProfilePage() {
                         {/* Shahim Signature */}
                         <div className={styles.sigBlock}>
                           <svg className={styles.sigSvg} viewBox="0 0 200 80" fill="none">
-                            {/* Big loops at start - Sa */}
                             <path d="M8 60 C12 30, 22 15, 28 35 C32 48, 26 62, 34 50 C40 40, 36 18, 48 26 C56 32, 50 55, 60 42 C67 32, 62 14, 75 22 C84 28, 78 52, 88 38 C96 26, 90 10, 104 18 C114 24, 108 50, 120 36 C128 24, 122 8, 138 16 C148 22, 142 46, 155 34 C163 25, 160 12, 172 20 C180 26, 177 42, 185 35"
                               stroke="#0a0a2e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                            {/* Underline */}
                             <path d="M6 70 C40 64, 80 68, 120 65 C155 62, 175 66, 192 63"
                               stroke="#0a0a2e" strokeWidth="2" strokeLinecap="round" fill="none"/>
-                            {/* Extra flourish */}
                             <path d="M24 35 C20 25, 28 18, 34 26 C38 32, 32 42, 26 38"
                               stroke="#0a0a2e" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
                             <path d="M46 26 C42 16, 52 10, 58 18 C62 24, 56 34, 48 30"

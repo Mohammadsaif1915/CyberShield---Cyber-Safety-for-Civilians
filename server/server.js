@@ -19,6 +19,8 @@ import courseRoutes      from './routes/courseRoutes.js';
 import progressRoutes    from './routes/progressRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
+import phishingRoutes from './routes/phishing.js';
+import activityRoutes from './routes/activity.js';
 import blogRoutes from './routes/blogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import quizSyncRoute   from './routes/quizSyncRoute.js';

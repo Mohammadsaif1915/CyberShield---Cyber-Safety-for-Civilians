@@ -502,6 +502,69 @@ async function saveGameProgress({ levelCompleted, ransomwareChoice }) {
     } else {
       throw new Error(result.message || 'Save failed');
     }
+
+    // ALSO submit to main dashboard backend if authenticated
+    const token = localStorage.getItem('token');
+    if (token && levelCompleted) {
+      try {
+        console.log('📤 Submitting game score to main dashboard...', { score: GS.score, token: token.substring(0, 20) + '...' });
+        
+        const mainRes = await fetch('http://localhost:5000/api/game/score', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            score: GS.score,
+            level: 3,
+            wavesCompleted: GS.phaseComplete.filter(Boolean).length,
+            enemiesDefeated: 3,
+            timeSpent: timeTaken
+          }),
+        });
+
+        console.log('📨 Backend response status:', mainRes.status);
+
+        if (mainRes.ok) {
+          const mainData = await mainRes.json();
+          if (mainData.success) {
+            console.log('✅ Dashboard score updated:', mainData);
+            // Update localStorage immediately to trigger Dashboard refresh
+            try {
+              const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+              const updated = {
+                ...currentUser,
+                gameScore: mainData.gameScore || currentUser.gameScore,
+                gameHighScore: mainData.gameHighScore || currentUser.gameHighScore,
+                gamesPlayed: (currentUser.gamesPlayed || 0) + 1,
+                score: mainData.totalScore || currentUser.score,
+                level: mainData.level || currentUser.level,
+              };
+              localStorage.setItem('user', JSON.stringify(updated));
+              console.log('💾 User cache updated in localStorage:', updated);
+            } catch (e) {
+              console.warn('Could not update localStorage:', e);
+            }
+            // Set detailed completion flags for Dashboard to detect
+            localStorage.setItem('cybershield_just_completed', JSON.stringify({
+              level: 3,
+              score: Math.floor(finalScore || 0),
+              timestamp: Date.now(),
+              status: 'completed'
+            }));
+            // Dispatch storage event manually
+            window.dispatchEvent(new Event('storage'));
+          }
+        } else {
+          const errorData = await mainRes.json();
+          console.error('❌ Backend rejected submission:', errorData);
+        }
+      } catch (err) {
+        console.warn('Main backend sync failed:', err);
+      }
+    }
+
   } catch (error) {
     // Don't crash the game if the API is unreachable — just log it
     console.error('API save error:', error.message);

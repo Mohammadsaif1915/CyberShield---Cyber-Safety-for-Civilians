@@ -1,8 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Results.css';
 
 const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
   const [expandedSection, setExpandedSection] = useState(null);
+  const [submitting, setSubmitting] = useState(true);
+  const [submitError, setSubmitError] = useState(null);
+
+  // Submit quiz result to authenticated backend endpoint
+  useEffect(() => {
+    const submitQuizResult = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.warn('No auth token found - quiz score will not be saved to global profile');
+          setSubmitting(false);
+          return;
+        }
+
+        const results = calculateResults();
+        const sectionResults = results.sectionResults.map(s => ({
+          sectionId: s.sectionId,
+          title: s.title,
+          correct: s.correct,
+          total: s.total,
+          percentage: s.percentage
+        }));
+
+        const response = await fetch('http://localhost:5000/api/quiz/result', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            moduleId: module.id,
+            moduleTitle: module.title,
+            totalCorrect: results.totalCorrect,
+            totalQuestions: results.totalQuestions,
+            percentage: results.percentage,
+            grade: getGradeFromPercentage(results.percentage),
+            timeSpent: timeSpent,
+            sectionResults: sectionResults
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          console.log('✅ Quiz result submitted to profile:', data);
+        } else {
+          throw new Error(data.message || 'Failed to save quiz result');
+        }
+      } catch (err) {
+        console.error('Quiz result submission error:', err);
+        setSubmitError(err.message);
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    submitQuizResult();
+  }, [module, timeSpent]);
+
+  const getGradeFromPercentage = (percentage) => {
+    if (percentage >= 90) return 'A+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B';
+    if (percentage >= 60) return 'C';
+    return 'D';
+  };
 
   const calculateResults = () => {
     let totalCorrect = 0;
@@ -210,6 +279,21 @@ const Results = ({ module, moduleAnswers, onBackToModules, timeSpent }) => {
       </div>
 
       <div className="results-actions">
+        {submitting && (
+          <div style={{ padding: '12px', textAlign: 'center', color: '#00ddff', fontSize: '13px', marginBottom: '12px' }}>
+            ⏳ Syncing your score to your profile...
+          </div>
+        )}
+        {submitError && (
+          <div style={{ padding: '12px', textAlign: 'center', color: '#ff6b6b', fontSize: '13px', marginBottom: '12px', background: 'rgba(255, 107, 107, 0.1)', borderRadius: '6px', border: '1px solid rgba(255, 107, 107, 0.3)' }}>
+            ⚠️ {submitError}
+          </div>
+        )}
+        {!submitting && !submitError && (
+          <div style={{ padding: '12px', textAlign: 'center', color: '#00ff88', fontSize: '13px', marginBottom: '12px' }}>
+            ✅ Score saved to your profile!
+          </div>
+        )}
         <button className="results-btn primary" onClick={onBackToModules}>
           ← Back to Modules
         </button>
