@@ -1,13 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════
    CYBER DEFENSE — Level Hub Script
-  5 levels (1, 2, 3, 4, 5) — playable games for 1, 2, 3, 4, 5
+  50 mission nodes shown in the hub.
+  Levels 1-5 are playable; levels 6-50 are future placeholders.
    Sequential unlock: must complete previous to open next
    Backend persistence via /api/game/*
 ═══════════════════════════════════════════════════════════════ */
 
-const API_BASE = window.location.origin.includes('localhost')
-  ? 'http://localhost:5000'
-  : '';
+const gameApi = window.CyberShieldGameApi;
 
 /* ========== DOM ========== */
 const homeScreen        = document.getElementById("homeScreen");
@@ -49,8 +48,8 @@ let scanlineOn = true;
 let lightTheme = false;
 
 /* ========== LEVEL CONFIG ========== */
-const TOTAL_LEVELS = 5;
-const LEVELS_VISIBLE = 5;
+const TOTAL_LEVELS = 50;
+const LEVELS_VISIBLE = 50;
 
 const LEVEL_META = {
   1: { title: "PASSWORD SECURITY",     icon: "🔐", type: "FIREWALL",   diff: "EASY",   xp: 100, playable: true,  path: "levels/1/index.html" },
@@ -59,6 +58,30 @@ const LEVEL_META = {
   4: { title: "DARK WEB IDENTITY",     icon: "🎭", type: "IDENTITY",   diff: "HARD",   xp: 400, playable: true,  path: "levels/4/index.html" },
   5: { title: "CYBER CITY DEFENSE",    icon: "🏙️", type: "CITY",       diff: "ELITE",  xp: 500, playable: true,  path: "levels/5/index.html" },
 };
+
+const FUTURE_MISSION_TYPES = [
+  "MALWARE",
+  "PRIVACY",
+  "NETWORK",
+  "PAYMENTS",
+  "MOBILE",
+  "CLOUD",
+  "SOCIAL",
+  "AI SAFETY",
+];
+
+for (let i = 6; i <= TOTAL_LEVELS; i++) {
+  const type = FUTURE_MISSION_TYPES[(i - 6) % FUTURE_MISSION_TYPES.length];
+  LEVEL_META[i] = {
+    title: `FUTURE CYBER DRILL ${i}`,
+    icon: "🎮",
+    type,
+    diff: i < 15 ? "EASY" : i < 30 ? "MED" : i < 45 ? "HARD" : "ELITE",
+    xp: i * 100,
+    playable: false,
+    path: null,
+  };
+}
 
 let levels = {};
 let currentLevelSelected = null;
@@ -115,8 +138,9 @@ async function syncProgressFromBackend() {
   if (!user) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/game/stats/${encodeURIComponent(user.name)}`);
-    const data = await res.json();
+    const data = gameApi
+      ? await gameApi.getStats(user.name)
+      : await fetch(`/api/game/stats/${encodeURIComponent(user.name)}`).then(res => res.json());
     if (!data.success || !data.data?.levels) return;
 
     // Reset all to defaults
@@ -155,18 +179,25 @@ async function saveProgressToBackend(lvl, completed) {
   if (!user) return;
 
   try {
-    await fetch(`${API_BASE}/api/game/save`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: user.name,
-        level: [1, 2, 3, 4, 5].includes(lvl) ? lvl : undefined,
-        score: completed ? (LEVEL_META[lvl]?.xp || 100) : 0,
-        maxScore: LEVEL_META[lvl]?.xp || 100,
-        levelCompleted: completed,
-        timeSpent: 0,
-      }),
-    });
+    const payload = {
+      username: user.name,
+      userId: user.id || null,
+      level: [1, 2, 3, 4, 5].includes(lvl) ? lvl : undefined,
+      score: completed ? (LEVEL_META[lvl]?.xp || 100) : 0,
+      maxScore: LEVEL_META[lvl]?.xp || 100,
+      levelCompleted: completed,
+      timeSpent: 0,
+    };
+
+    if (gameApi) {
+      await gameApi.saveProgress(payload);
+    } else {
+      await fetch('/api/game/save', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    }
     console.log(`✅ Progress saved to backend: Level ${lvl}, completed: ${completed}`);
   } catch (err) {
     console.warn("Failed to save to backend:", err.message);
@@ -525,6 +556,7 @@ profileSubmitBtn.onclick = function () {
   if (!/^[A-Za-z0-9._]+$/.test(name)) { nameError.textContent = "⚠ Only letters, numbers, . and _ allowed"; nameError.style.display = "block"; return; }
   const user = { name, id: "CY-" + Math.floor(100000 + Math.random() * 900000) };
   localStorage.setItem("user_v2", JSON.stringify(user));
+  gameApi?.rememberAgent(name);
   updateUserLabel();
   profileTitle.textContent = user.name.toUpperCase();
   agentName.textContent    = user.name;

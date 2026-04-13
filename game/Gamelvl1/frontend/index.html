@@ -262,6 +262,23 @@
     font-size: 13px; border-radius: 8px; cursor: pointer;
   }
   #play-again:hover { background: #00ffe711; }
+
+  #next-level-btn {
+    margin-top: 12px; padding: 13px 36px;
+    border: 2px solid #00ff88;
+    background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05));
+    color: #00ff88;
+    font-family: 'Courier New', monospace;
+    font-size: 14px; font-weight: bold; letter-spacing: 1px;
+    border-radius: 8px; cursor: pointer;
+    box-shadow: 0 0 18px rgba(0,255,136,0.25);
+    transition: all 0.2s;
+  }
+  #next-level-btn:hover {
+    background: linear-gradient(135deg, rgba(0,255,136,0.3), rgba(0,255,136,0.1));
+    box-shadow: 0 0 30px rgba(0,255,136,0.45);
+    transform: scale(1.03);
+  }
 </style>
 </head>
 <body>
@@ -339,6 +356,7 @@
   </div>
 
   <button id="play-again" onclick="resetGame()">↺ PLAY AGAIN</button>
+  <button id="next-level-btn" onclick="goToNextLevel()">CONTINUE TO LEVEL 2 ▶</button>
 </div>
 
 <!-- ==================== JAVASCRIPT ==================== -->
@@ -1026,6 +1044,15 @@ function startGame() {
 }
 
 /** Called by the Play Again button on the complete screen. */
+/**
+ * goToNextLevel — marks level 1 complete and navigates to the game hub.
+ * Does NOT reload this page.
+ */
+function goToNextLevel() {
+  localStorage.setItem('cybershield_just_completed', '1');
+  window.location.href = '../../game-app/index.html';
+}
+
 function resetGame() {
   score           = 0;
   currentUsername = '';

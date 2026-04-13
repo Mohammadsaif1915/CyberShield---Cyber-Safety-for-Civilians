@@ -1,0 +1,19 @@
+{
+  "name": "cybershield-game-backend",
+  "version": "1.0.0",
+  "description": "Centralized backend for CyberShield 2D game — manages player progress, scores, and game state across Levels 1–5",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "mongoose": "^8.23.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

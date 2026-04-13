@@ -5,11 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Cyber Shield Level 4: Dark Web Identity Theft - A 2D top-down action stealth game" />
   <title>Cyber Shield – Level 4: Dark Web Identity Theft</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="Style.css" />
+  <style>
+    #victoryOverlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,8,0.92);
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      font-family: 'Orbitron', 'Share Tech Mono', monospace;
+      text-align: center;
+    }
+    #victoryOverlay.show { display: flex; }
+    #victoryOverlay .vo-icon { font-size: 60px; margin-bottom: 16px; }
+    #victoryOverlay h1 {
+      color: #00ff88; font-size: 28px; font-weight: 900;
+      letter-spacing: 3px; margin-bottom: 8px;
+      text-shadow: 0 0 30px #00ff88;
+    }
+    #victoryOverlay .vo-sub {
+      color: rgba(0,255,136,0.5); font-size: 12px;
+      letter-spacing: 2px; margin-bottom: 20px;
+    }
+    #victoryOverlay .vo-score {
+      color: rgba(0,245,255,0.6); font-size: 13px;
+      margin-bottom: 32px; line-height: 1.8;
+    }
+    #victoryOverlay .vo-btn {
+      padding: 13px 36px; margin: 6px 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px; letter-spacing: 2px;
+      border-radius: 4px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    #victoryOverlay .vo-retry {
+      border: 1px solid rgba(0,245,255,0.4);
+      background: transparent; color: rgba(0,245,255,0.6);
+    }
+    #victoryOverlay .vo-retry:hover { background: rgba(0,245,255,0.1); }
+    #victoryOverlay .vo-next {
+      border: 2px solid #00ff88;
+      background: linear-gradient(135deg,rgba(0,255,136,0.15),rgba(0,255,136,0.05));
+      color: #00ff88; font-weight: bold;
+      box-shadow: 0 0 20px rgba(0,255,136,0.3);
+    }
+    #victoryOverlay .vo-next:hover {
+      background: linear-gradient(135deg,rgba(0,255,136,0.3),rgba(0,255,136,0.1));
+      box-shadow: 0 0 34px rgba(0,255,136,0.5);
+      transform: scale(1.03);
+    }
+  </style>
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
   <div id="scanline"></div>
-  <script src="main.js"></script>
+  <div id="victoryOverlay">
+    <div class="vo-icon">🛡</div>
+    <h1>ALL SYSTEMS SECURED</h1>
+    <div class="vo-sub">DARK WEB IDENTITY THEFT — NEUTRALISED</div>
+    <div class="vo-score" id="voScore"></div>
+    <div>
+      <button class="vo-btn vo-retry" onclick="lvl4PlayAgain()">&#x21BA; PLAY AGAIN</button>
+      <button class="vo-btn vo-next" onclick="lvl4ContinueToNext()">CONTINUE TO LEVEL 5 &#x25B6;</button>
+    </div>
+  </div>
+  <script src="Main.js"></script>
 </body>
 </html>

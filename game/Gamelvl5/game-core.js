@@ -300,6 +300,20 @@ function showGameOver(victory) {
         ? 'All systems restored. The city is safe.'
         : 'Time ran out. The cyber attack succeeded.';
     document.getElementById('final-score').textContent = `SCORE: ${GS.score}`;
+
+    // Show "Return to Hub" only on victory (level 5 is the final level)
+    const nb = document.getElementById('next-level-btn5');
+    if (nb) {
+        if (victory) {
+            nb.style.display = 'block';
+            nb.onclick = function() {
+                localStorage.setItem('cybershield_just_completed', '5');
+                window.location.href = '../../game-app/index.html';
+            };
+        } else {
+            nb.style.display = 'none';
+        }
+    }
 }
 
 // ========== HUB ==========

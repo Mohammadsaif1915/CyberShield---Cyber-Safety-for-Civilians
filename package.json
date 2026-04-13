@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "server": "cd server && npm run dev",
+    "game-backend": "cd backend && npm run dev",
     "client": "cd client && npm run dev",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently -n server,game,client -c blue,green,magenta \"npm run server\" \"npm run game-backend\" \"npm run client\""
   },
   "repository": {
     "type": "git",

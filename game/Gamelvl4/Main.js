@@ -658,9 +658,9 @@ function updateSimSwap(dt){
   phaseData.objective='Block reroute nodes ('+phaseData.blocked+'/'+phaseData.total+') | Lost: '+phaseData.lost;
   const allBlocked=phaseData.blocked>=phaseData.total;
   const tooManyLost=phaseData.lost>=3;
-  if(allBlocked){toast('✔ ALL SIGNALS SECURED','#00ff88');setTimeout(()=>startPhase('password'),1500);}
-  else if(tooManyLost){toast('✘ TOO MANY SIGNALS LOST','#ff4444');setTimeout(()=>startPhase('gameover'),1500);}
-  else if(allDone&&!allBlocked&&!tooManyLost){toast('✘ SIGNALS COMPROMISED','#ff4444');setTimeout(()=>startPhase('gameover'),1500);}
+  if(allBlocked&&!phaseData._done){phaseData._done=true;toast('✔ ALL SIGNALS SECURED','#00ff88');setTimeout(()=>startPhase('password'),1500);}
+  else if(tooManyLost&&!phaseData._done){phaseData._done=true;toast('✘ TOO MANY SIGNALS LOST','#ff4444');setTimeout(()=>startPhase('gameover'),1500);}
+  else if(allDone&&!allBlocked&&!tooManyLost&&!phaseData._done){phaseData._done=true;toast('✘ SIGNALS COMPROMISED','#ff4444');setTimeout(()=>startPhase('gameover'),1500);}
 }
 function drawSimSwap(){
   const L=WALL_T,PW=canvas.width-WALL_T*2;
@@ -720,7 +720,7 @@ function updatePassword(dt){
         n.secureProg+=dt;
         if(n.secureProg>=2){n.secured=true;n.infected=false;d.secured++;sfx(660,0.3,'sine',0.08);sfx(880,0.2,'sine',0.06);
           spawnP(n.x,n.y,15,'#00ff88',90,0.8);toast('✔ SECURITY NODE ACTIVE ('+d.secured+'/'+d.totalSecurity+')','#00ff88');score+=100;
-          if(d.secured>=d.totalSecurity){toast('✔ NETWORK SECURED','#00ff88');setTimeout(()=>startPhase('deepfake'),1500);}
+          if(d.secured>=d.totalSecurity&&!d._done){d._done=true;toast('✔ NETWORK SECURED','#00ff88');setTimeout(()=>startPhase('deepfake'),1500);}
         }
       }
     }
@@ -780,7 +780,7 @@ function updateDeepfake(dt){
       const inGlitch=(c.glitchT%c.glitchInterval)<c.glitchDur;
       if(inGlitch){c.flagged=true;d.flagged++;sfx(550,0.2,'sine',0.07);spawnP(c.x,c.y,10,'#00ff88',60,0.6);
         toast('✔ DEEPFAKE DETECTED ('+d.flagged+'/'+d.total+')','#00ff88');score+=100;
-        if(d.flagged>=d.total){toast('✔ ALL DEEPFAKES IDENTIFIED','#00ff88');setTimeout(()=>startPhase('boss'),1500);}
+        if(d.flagged>=d.total&&!d._done){d._done=true;toast('✔ ALL DEEPFAKES IDENTIFIED','#00ff88');setTimeout(()=>startPhase('boss'),1500);}
       }else{sfx(200,0.3,'sawtooth',0.06);flash(255,30,50,0.2);shake(3,0.2);toast('✘ FALSE POSITIVE — Wait for glitch!','#ff4444');P.hp-=5;}
     }
   }}
@@ -879,7 +879,7 @@ function updateBoss(dt){
     if(d.chargeTimer>=3){
       d.bossHp-=50;sfx(440,0.5,'sine',0.1);sfx(660,0.3,'sine',0.08);flash(0,255,100,0.4);shake(8,0.5);
       spawnP(d.bx,d.by,30,'#00ff88',150,1);d.chargeTimer=0;d.charging=false;score+=300;
-      if(d.bossHp<=0){toast('✔ DARK WEB BROKER NEUTRALIZED','#00ff88');score+=500;setTimeout(()=>startPhase('victory'),2000);}
+      if(d.bossHp<=0&&!d._done){d._done=true;toast('✔ DARK WEB BROKER NEUTRALIZED','#00ff88');score+=500;setTimeout(()=>startPhase('victory'),2000);}
       else{d.vulnerable=false;d.bossPhase++;
         for(let i=0;i<2;i++){const idx=d.shields.findIndex(s=>!s.alive);if(idx>=0){d.shields[idx].alive=true;d.shields[idx].hp=2;}}
         toast('⚠ BOSS REGENERATING SHIELDS','#ff4444');
@@ -978,20 +978,13 @@ function drawStart(){
 /* ══════ VICTORY SCREEN ══════ */
 function drawVictory(){
   drawBG();drawParticles(1/60);
-  const cx=canvas.width/2,cy=canvas.height/2;const pulse=0.5+0.5*Math.sin(gameTime*2);
-  ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.font='52px serif';ctx.fillText('🛡',cx,cy-100);
-  ctx.font='900 28px "Orbitron"';ctx.fillStyle='#00ff88';ctx.shadowColor='#00ff88';ctx.shadowBlur=30;
-  ctx.fillText('ALL SYSTEMS SECURED',cx,cy-50);
-  ctx.font='12px "Share Tech Mono"';ctx.fillStyle='rgba(0,255,136,0.5)';ctx.shadowBlur=8;
-  ctx.fillText('DARK WEB IDENTITY THEFT — NEUTRALISED',cx,cy-25);
-  ctx.fillStyle='rgba(0,245,255,0.4)';ctx.font='11px "Share Tech Mono"';
-  ctx.fillText('FINAL SCORE: '+score,cx,cy+20);
-  ctx.fillText('HEALTH REMAINING: '+P.hp+'/'+P.maxHp,cx,cy+45);
-  ctx.font='bold 13px "Share Tech Mono"';ctx.fillStyle=`rgba(0,255,136,${0.4+0.4*pulse})`;ctx.shadowColor='#00ff88';ctx.shadowBlur=14;
-  ctx.fillText('[ PRESS ENTER TO PLAY AGAIN ]',cx,cy+90);
-  ctx.restore();
-  if(consumeKey('Enter')){resetGame();phase='start';}
+  // Show HTML overlay on first frame
+  const ov=document.getElementById('victoryOverlay');
+  if(ov&&!ov.classList.contains('show')){
+    ov.classList.add('show');
+    const sc=document.getElementById('voScore');
+    if(sc){sc.innerHTML='FINAL SCORE: <span style="color:#00ff88;font-weight:bold">'+score+'</span><br>HEALTH REMAINING: '+P.hp+'/'+P.maxHp;}
+  }
 }
 
 /* ══════ GAME OVER ══════ */
@@ -1011,7 +1004,18 @@ function drawGameOver(){
   if(consumeKey('Enter')){resetGame();phase='start';}
 }
 
-function resetGame(){P.hp=100;score=0;particles=[];fx.toasts=[];fx.msgQueue=[];gameTime=0;walls=[];npcs=[];fragments=[];projectiles=[];phaseData={};helpOpen=false;tutorialOpen=false;tutorialData=null;spawnBG();}
+function resetGame(){P.hp=100;score=0;particles=[];fx.toasts=[];fx.msgQueue=[];gameTime=0;walls=[];npcs=[];fragments=[];projectiles=[];phaseData={};helpOpen=false;tutorialOpen=false;tutorialData=null;spawnBG();
+  const ov=document.getElementById('victoryOverlay');if(ov)ov.classList.remove('show');}
+
+function lvl4PlayAgain(){
+  const ov=document.getElementById('victoryOverlay');if(ov)ov.classList.remove('show');
+  resetGame();phase='start';
+}
+
+function lvl4ContinueToNext(){
+  localStorage.setItem('cybershield_just_completed','4');
+  window.location.href='../../game-app/index.html';
+}
 
 /* ══════ MAIN UPDATE ══════ */
 function update(dt){

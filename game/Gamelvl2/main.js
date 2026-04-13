@@ -207,7 +207,7 @@ function drawViralGiveaway() {
 function initDMClone() {
     dmMessages = []; dmsBlocked = 0; dmsRequired = 8; dmSpawnTimer = 0;
     player.x = W/2; player.y = H/2;
-    const realMsgs = ['Hey! Lunch tomorrow?','Meeting at 3pm','Check this repo','Game night Friday?','Happy birthday!🎂'];
+    const realMsgs = ['Hey! Lunch tomorrow?','Meeting at 3pm','Check this repo','Game night Friday?','Happy birthday!\uD83C\uDF82'];
     const fakeMsgs = ['SEND CODE NOW','Verify ur account ASAP','Click link 4 prize','ur acc suspended!! act NOW','FREE gift card!! DM back','I need ur password','Wire me $500 urgent','Login here immediately'];
     for(let i=0;i<16;i++) {
         let fake = i < 8;
@@ -233,10 +233,10 @@ function updateDMClone() {
         if(unblockedFakes.length > 0 && dmMessages.length < 22) {
             let src = unblockedFakes[Math.floor(Math.random()*unblockedFakes.length)];
             dmMessages.push({...src, x:src.x+40, y:src.y+40, multiplied:true, intercepted:false, blocked:false, inspecting:false, inspectProgress:0, vx:(Math.random()-0.5)*60, vy:(Math.random()-0.5)*60});
-            addMsg('⚠ Fake DM multiplied!', 'warning'); infection += 1.5;
+            addMsg('\u26A0 Fake DM multiplied!', 'warning'); infection += 1.5;
         }
     }
-    let nearDM = null; let minD = 60;
+    let nearDM = null; let minD = 130;
     dmMessages.forEach(m => {
         if(m.blocked) return;
         m.age += dt; m.glow += dt;
@@ -247,6 +247,9 @@ function updateDMClone() {
             // Player intercept
             if(rectCollide(player, m)) {
                 m.intercepted = true; m.vx = 0; m.vy = 0;
+                // Snap the intercepted DM near the player so it's always in range
+                m.x = player.x + 16 - m.w/2;
+                m.y = player.y + 16 - m.h/2;
                 addMsg('DM intercepted! Hold [E] to inspect.', 'info');
                 spawnParticles(m.x+m.w/2, m.y+m.h/2, 10, '#b464ff', 60);
             }
@@ -338,12 +341,12 @@ function updateDeepfake() {
     ds.beamX += (mouseX - ds.beamX)*0.08; ds.beamY += (mouseY - ds.beamY)*0.08;
     ds.beamX = Math.max(ds.screenX, Math.min(ds.screenX+ds.screenW-ds.beamW, ds.beamX));
     ds.beamY = Math.max(ds.screenY, Math.min(ds.screenY+ds.screenH-ds.beamH, ds.beamY));
-    // Check glitch zones
+    // Check glitch zones — enlarged hit area for reliability
     ds.glitchZones.forEach(gz => {
         gz.pulseTimer += dt;
         if(gz.found) return;
         let bCx = ds.beamX+ds.beamW/2, bCy = ds.beamY+ds.beamH/2;
-        if(Math.hypot(bCx-gz.x, bCy-gz.y) < gz.r+20 && (keys['e']||mouseDown)) {
+        if(Math.hypot(bCx-gz.x, bCy-gz.y) < gz.r+35 && (keys['e']||mouseDown)) {
             gz.found = true; ds.foundZones++; score += 120;
             addMsg('Glitch zone ' + ds.foundZones + '/' + ds.totalZones + ' locked!', 'success');
             addFloatText(gz.x, gz.y, '+120 GLITCH', '#00ffc8');
@@ -523,19 +526,24 @@ function initSecuritySeq() {
 }
 
 function updateSecuritySeq() {
-    // Check drop
+    // Check drop — snap if dropped near enough the target slot
     secModules.forEach(m => {
         if(m.placed) return;
         if(m === dragItem && !mouseDown) {
-            if(Math.hypot(m.x+m.w/2 - (m.slotX+m.slotW/2), m.y+m.h/2 - (m.slotY+m.slotH/2)) < 60) {
+            if(Math.hypot(m.x+m.w/2 - (m.slotX+m.slotW/2), m.y+m.h/2 - (m.slotY+m.slotH/2)) < 80) {
                 m.placed = true; m.x = m.slotX; m.y = m.slotY; modulesPlaced++; dragItem = null;
                 score += 100; addMsg(m.name + ' installed! (' + modulesPlaced + '/' + modulesRequired + ')', 'success');
                 addFloatText(m.x, m.y, '+100', '#00ffc8');
                 spawnParticles(m.x+m.w/2, m.y+m.h/2, 25, m.color, 100);
+            } else {
+                dragItem = null; // Release the module even if not in slot
             }
         }
     });
-    hidePrompt();
+    // Show instruction prompt for Phase 5
+    if(modulesPlaced < modulesRequired) {
+        showPrompt('Drag modules to the matching slots at the top (' + modulesPlaced + '/' + modulesRequired + ')', 0);
+    } else { hidePrompt(); }
     if(modulesPlaced >= modulesRequired) { winGame(); }
 }
 
@@ -865,3 +873,8 @@ function failGame(reason) {
 }
 
 function restartGame() { startGame(); }
+
+function goToNextLevel2() {
+    localStorage.setItem('cybershield_just_completed', '2');
+    window.location.href = '../../game-app/index.html';
+}

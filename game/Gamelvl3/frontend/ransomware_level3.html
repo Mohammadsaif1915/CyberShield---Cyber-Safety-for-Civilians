@@ -428,12 +428,15 @@
   <div class="end-title" id="endTitle"></div>
   <div class="end-stats" id="endStats"></div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;">
-    <button class="diff-btn" onclick="returnToTitle()">↩ PLAY AGAIN</button>
+    <button class="diff-btn" onclick="returnToTitle()">&#x21A9; PLAY AGAIN</button>
     <button class="diff-btn" onclick="showPastRuns()" style="border-color:rgba(0,238,255,0.4);color:rgba(0,238,255,0.6);font-size:12px;">
       📋 MY RUNS
     </button>
     <button class="diff-btn" onclick="showLeaderboard()" style="border-color:rgba(255,204,0,0.4);color:rgba(255,204,0,0.6);font-size:12px;">
       🏆 LEADERBOARD
+    </button>
+    <button id="nextLevelBtn3" class="diff-btn" onclick="goToNextLevel3()" style="display:none;border-color:#00ff88;color:#00ff88;font-weight:bold;letter-spacing:2px;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,255,136,0.04));box-shadow:0 0 18px rgba(0,255,136,0.2);">
+      CONTINUE TO LEVEL 4 &#x25B6;
     </button>
   </div>
 </div>
@@ -1828,6 +1831,9 @@ function triggerVictory() {
   `;
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('endScreen').classList.add('active');
+  // Show "Continue to Level 4" button on the victory path only
+  const nb = document.getElementById('nextLevelBtn3');
+  if (nb) nb.style.display = 'inline-block';
 
   // ── SAVE TO BACKEND ─────────────────────────────────────
   // levelCompleted = true because this is the victory path
@@ -1870,6 +1876,8 @@ function returnToTitle() {
   document.getElementById('titleScreen').classList.add('active');
   document.getElementById('logPanel').innerHTML='';
   document.getElementById('objPanel').innerHTML='';
+  const nb = document.getElementById('nextLevelBtn3');
+  if (nb) nb.style.display = 'none';
 }
 
 // ============================================================
@@ -1912,6 +1920,14 @@ window.addEventListener('resize', ()=>{
 
 // Prevent context menu on canvas
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
+
+// ============================================================
+// NEXT LEVEL NAVIGATION
+// ============================================================
+function goToNextLevel3() {
+  localStorage.setItem('cybershield_just_completed', '3');
+  window.location.href = '../../../game-app/index.html';
+}
 </script>
 </body>
 </html>
