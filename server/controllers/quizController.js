@@ -1,5 +1,7 @@
 import Course    from '../models/Course.js'
 import Progress  from '../models/Progress.js'
+import QuizResult from '../models/QuizResult.js'
+import User from '../models/User.js'
 
 const getUserId = (req) => req.user._id
 
@@ -49,6 +51,7 @@ export const submitQuiz = async (req, res) => {
     const passed     = correct >= 8
     const percentage = Math.round((correct / course.quiz.length) * 100)
 
+    // Update Progress model
     progress.quizAttempts++
     progress.quizScore = correct
     if (correct > progress.bestScore) progress.bestScore = correct
@@ -58,8 +61,32 @@ export const submitQuiz = async (req, res) => {
     }
     await progress.save()
 
+    // Save to QuizResult model for dashboard
+    const quizResult = await QuizResult.create({
+      user: userId,
+      moduleId: parseInt(course._id.toString().slice(-2)) || Math.random() * 100,
+      moduleTitle: course.title,
+      totalCorrect: correct,
+      totalQuestions: course.quiz.length,
+      percentage,
+      grade: percentage >= 80 ? 'A' : percentage >= 70 ? 'B' : percentage >= 60 ? 'C' : 'F',
+      timeSpent: Math.round(timeSpent / 1000) || 0,
+    })
+
+    // Update user stats
+    await User.updateOne(
+      { _id: userId },
+      {
+        $inc: { quizzesDone: 1 },
+        $set: { avgScore: percentage }
+      }
+    )
+
+    console.log('[Quiz] User', userId, 'completed quiz for', course.title, 'Score:', percentage)
+
     res.json({ success: true, score: correct, total: course.quiz.length, percentage, passed, attempts: progress.quizAttempts, results })
   } catch (err) {
+    console.error('[Quiz Submit Error]:', err.message)
     res.status(500).json({ success: false, message: err.message })
   }
 }

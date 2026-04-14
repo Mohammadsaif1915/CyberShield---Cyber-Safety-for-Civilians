@@ -6,8 +6,11 @@ import express    from 'express';
 import jwt        from 'jsonwebtoken';
 import bcrypt     from 'bcryptjs';
 import mongoose   from 'mongoose';
+import multer     from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
 import User       from '../models/User.js';
 import QuizResult from '../models/QuizResult.js';
+import { getDashboardOverview } from '../controllers/dashboardController.js';
 
 const router = express.Router();
 
@@ -23,6 +26,20 @@ const auth = (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Invalid token' });
   }
 };
+
+// ── Multer configuration for avatar uploads ──────────────────
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  },
+});
 
 // ── Helper: compute level from score ─────────────────────────
 const computeLevel = (score = 0) => Math.floor(score / 500) + 1;
@@ -57,6 +74,7 @@ const safeUser = (u) => ({
   gameScore:     u.gameScore     || 0,
   gamesPlayed:   u.gamesPlayed   || 0,
   gameHighScore: u.gameHighScore || 0,
+
   coursesCompleted: u.coursesCompleted || 0,
   phishingScore: u.phishingScore || 0,
   malwareScore:  u.malwareScore  || 0,
@@ -88,18 +106,35 @@ router.get('/auth/me', auth, async (req, res) => {
       const newAvg   = Math.round(totalPct / quizResults.length);
       const newDone  = quizResults.length;
 
-      // Only write back if something changed (avoid infinite save loops)
+      let changed = false;
       if (user.quizzesDone !== newDone || user.avgScore !== newAvg) {
         user.quizzesDone = newDone;
         user.avgScore    = newAvg;
-        // Recompute score: quiz XP = avg% * 10 * modules done
-        const quizXP     = Math.round(newAvg * newDone * 10);
-        const gameXP     = user.gameScore  || 0;
-        const phishingXP = user.phishingSimCorrect ? user.phishingSimCorrect * 50 : 0;
-        user.score = quizXP + gameXP + phishingXP;
-        user.xp    = user.score;
-        user.level = computeLevel(user.score);
-        await user.save({ validateBeforeSave: false });
+        changed = true;
+      }
+      
+      const quizXP     = Math.round(user.avgScore * user.quizzesDone * 10);
+      const gameXP     = user.gameScore  || 0;
+      const phishingXP = user.phishingSimCorrect ? user.phishingSimCorrect * 50 : 0;
+      const totalXP    = quizXP + gameXP + phishingXP;
+      
+      if (user.score !== totalXP || changed) {
+         user.score = totalXP;
+         user.xp    = user.score;
+         user.level = computeLevel(user.score);
+         await user.save({ validateBeforeSave: false });
+      }
+    } else {
+      // Even if no quizzes are done, user might have game points
+      const gameXP     = user.gameScore  || 0;
+      const phishingXP = user.phishingSimCorrect ? user.phishingSimCorrect * 50 : 0;
+      const totalXP    = gameXP + phishingXP;
+      
+      if (user.score !== totalXP) {
+         user.score = totalXP;
+         user.xp    = user.score;
+         user.level = computeLevel(user.score);
+         await user.save({ validateBeforeSave: false });
       }
     }
 
@@ -129,9 +164,9 @@ router.get('/auth/me', auth, async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// PUT /api/auth/profile — update profile fields
+// PUT /api/auth/profile — update profile fields + avatar upload
 // ═══════════════════════════════════════════════════════════════
-router.put('/auth/profile', auth, async (req, res) => {
+router.put('/auth/profile', auth, upload.single('avatar'), async (req, res) => {
   try {
     const allowed = [
       'fullName','name','phone','city','location','bio','role','department',
@@ -150,6 +185,36 @@ router.put('/auth/profile', auth, async (req, res) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     }
 
+    // Handle avatar file upload to Cloudinary
+    if (req.file) {
+      try {
+        const transformation = [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }];
+
+        const result = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: 'cybershield/avatars',
+              public_id: `${req.userId}_avatar`,
+              overwrite: true,
+              transformation,
+              format: 'webp',
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          stream.end(req.file.buffer);
+        });
+
+        updates.avatar = result.secure_url;
+        console.log(`✅ Avatar uploaded for user ${req.userId}: ${result.secure_url}`);
+      } catch (uploadErr) {
+        console.error('Cloudinary upload error:', uploadErr);
+        return res.status(500).json({ success: false, message: 'Avatar upload failed', error: uploadErr.message });
+      }
+    }
+
     // Keep fullName / name in sync
     if (updates.fullName && !updates.name)     updates.name     = updates.fullName;
     if (updates.name     && !updates.fullName) updates.fullName = updates.name;
@@ -162,10 +227,10 @@ router.put('/auth/profile', auth, async (req, res) => {
 
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    return res.json({ success: true, user: safeUser(user) });
+    return res.json({ success: true, user: safeUser(user), message: 'Profile updated successfully' });
   } catch (err) {
     console.error('PUT /api/auth/profile error:', err);
-    return res.status(500).json({ success: false, message: 'Update failed' });
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -193,6 +258,38 @@ router.put('/auth/password', auth, async (req, res) => {
   } catch (err) {
     console.error('PUT /api/auth/password error:', err);
     return res.status(500).json({ success: false, message: 'Password update failed' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// PUT /api/auth/2fa — toggle two-factor authentication
+// ═══════════════════════════════════════════════════════════════
+router.put('/auth/2fa', auth, async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ success: false, message: '2FA enabled flag is required and must be boolean' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.twoFaEnabled = enabled;
+    await user.save();
+
+    return res.json({ 
+      success: true, 
+      message: `Two-factor authentication ${enabled ? 'enabled' : 'disabled'} successfully`,
+      user: {
+        _id: user._id,
+        twoFaEnabled: user.twoFaEnabled
+      }
+    });
+  } catch (err) {
+    console.error('PUT /api/auth/2fa error:', err);
+    return res.status(500).json({ success: false, message: '2FA update failed' });
   }
 });
 
@@ -321,21 +418,16 @@ router.get('/leaderboard', auth, async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// GET /api/dashboard — get dashboard mock info
+// GET /api/dashboard — get dashboard overview with real data
 // ═══════════════════════════════════════════════════════════════
 router.get('/dashboard', auth, async (req, res) => {
-  try {
-    return res.json({
-      success: true,
-      stats: {
-        activeThreats: 14,
-        resolvedIssues: 128,
-        systemHealth: 98
-      }
-    });
-  } catch (err) {
-    return res.status(500).json({ success: false, message: 'Server error' });
+  // Convert auth middleware userId to user._id format for getDashboardOverview
+  const user = await User.findById(req.userId);
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
   }
+  req.user = { _id: req.userId, id: req.userId };
+  return getDashboardOverview(req, res);
 });
 
 // ═══════════════════════════════════════════════════════════════

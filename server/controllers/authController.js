@@ -1,4 +1,5 @@
 import jwt  from 'jsonwebtoken'
+import { v2 as cloudinary } from 'cloudinary'
 import User from '../models/User.js'
 
 const signToken = (id) =>
@@ -82,10 +83,61 @@ export const getMe = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { loginStreak, lastLoginDate, ...otherUpdates } = req.body;
-    const user = await User.findByIdAndUpdate(req.user._id, otherUpdates, { new: true, runValidators: false });
-    res.json({ success: true, user });
+    const { fullName, email, phone, location, role, bio } = req.body
+    const userId = req.user._id
+
+    // Build update object
+    const updateData = {}
+    if (fullName) {
+      updateData.fullName = fullName
+      updateData.name = fullName // Keep name field in sync
+    }
+    if (email) updateData.email = email
+    if (phone) updateData.phone = phone
+    if (location) updateData.location = location
+    if (role) updateData.role = role
+    if (bio) updateData.bio = bio
+
+    // Handle avatar file upload to Cloudinary
+    if (req.file) {
+      try {
+        const transformation = [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]
+        
+        const result = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: 'cybershield/avatars',
+              public_id: `${userId}_avatar`,
+              overwrite: true,
+              transformation,
+              format: 'webp'
+            },
+            (error, result) => {
+              if (error) reject(error)
+              else resolve(result)
+            }
+          )
+          stream.end(req.file.buffer)
+        })
+
+        updateData.avatar = result.secure_url
+        console.log(`✅ Avatar uploaded for user ${userId}: ${result.secure_url}`)
+      } catch (uploadErr) {
+        console.error('Cloudinary upload error:', uploadErr)
+        return res.status(500).json({ success: false, message: 'Avatar upload failed', error: uploadErr.message })
+      }
+    }
+
+    // Update user in database
+    const user = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: false })
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    res.json({ success: true, user, message: 'Profile updated successfully' })
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Profile update error:', err)
+    res.status(500).json({ success: false, message: err.message })
   }
 }

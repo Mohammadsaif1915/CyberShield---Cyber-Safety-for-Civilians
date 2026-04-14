@@ -1,15 +1,32 @@
 import IncidentReport from '../models/IncidentReport.js';
 import Achievement from '../models/Achievement.js';
 import Alert from '../models/Alert.js';
+import User from '../models/User.js';
+import { sendIncidentReportConfirmation, sendIncidentStatusUpdate } from '../services/emailService.js';
 
 // ── Create Incident Report ──────────────────────────────────
 export const createIncidentReport = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { reportType, title, description, url, email, phoneNumber, severity } = req.body;
+    // Map frontend field names to backend schema
+    const { 
+      type: reportType,           // frontend sends 'type'
+      subject: title,             // frontend sends 'subject'
+      description, 
+      evidenceUrl: url,           // frontend sends 'evidenceUrl'
+      reporterEmail: email,       // frontend sends 'reporterEmail'
+      severity,
+      anonymous 
+    } = req.body;
 
     if (!reportType || !title || !description) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    // Get user data
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     const report = await IncidentReport.create({
@@ -18,13 +35,40 @@ export const createIncidentReport = async (req, res) => {
       title,
       description,
       url,
-      email,
-      phoneNumber,
+      email: anonymous ? null : email,
       severity: severity || 'medium',
+      anonymous,
+      sendEmailUpdates: !anonymous, // Send updates if not anonymous
     });
 
-    res.status(201).json({ success: true, message: 'Report submitted successfully', report });
+    console.log(`[IncidentReport] Created report #${report._id} by user ${userId}`);
+
+    // Send confirmation email if not anonymous
+    if (!anonymous && email) {
+      try {
+        await sendIncidentReportConfirmation(email, user.fullName || user.name || 'User', report);
+        console.log(`[IncidentReport] Confirmation email sent to ${email}`);
+      } catch (emailErr) {
+        console.error(`[IncidentReport] Failed to send email: ${emailErr.message}`);
+        // Continue despite email failure
+      }
+    }
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Report submitted successfully', 
+      report: {
+        _id: report._id,
+        reportType: report.reportType,
+        title: report.title,
+        description: report.description,
+        severity: report.severity,
+        status: report.status,
+        createdAt: report.createdAt,
+      } 
+    });
   } catch (err) {
+    console.error('[IncidentReport] Error creating report:', err.message);
     res.status(500).json({
       success: false,
       message: 'Error creating incident report',
@@ -44,6 +88,69 @@ export const getIncidentReports = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching incident reports',
+      error: err.message,
+    });
+  }
+};
+
+// ── Update Incident Report Status ──────────────────────────
+export const updateIncidentStatus = async (req, res) => {
+  try {
+    const { reportId } = req.params;
+    const { status, notes } = req.body;
+
+    // Validate status
+    const validStatuses = ['pending', 'reviewed', 'verified', 'resolved'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    // Get the report
+    const report = await IncidentReport.findById(reportId);
+    if (!report) {
+      return res.status(404).json({ success: false, message: 'Report not found' });
+    }
+
+    const oldStatus = report.status;
+
+    // Update report
+    report.status = status;
+    if (notes) report.notes = notes;
+    report.lastStatusUpdate = new Date();
+
+    if (status === 'verified') {
+      report.isVerified = true;
+      report.verifiedAt = new Date();
+    } else if (status === 'resolved') {
+      report.resolvedAt = new Date();
+    }
+
+    await report.save();
+
+    // Send email notification if not anonymous and sendEmailUpdates is true
+    if (!report.anonymous && report.sendEmailUpdates && report.email) {
+      try {
+        const user = await User.findById(report.userId);
+        await sendIncidentStatusUpdate(report.email, user?.fullName || user?.name || 'User', report, oldStatus, status);
+        console.log(`[IncidentReport] Status update email sent to ${report.email}`);
+      } catch (emailErr) {
+        console.error(`[IncidentReport] Failed to send status update email: ${emailErr.message}`);
+        // Continue despite email failure
+      }
+    }
+
+    console.log(`[IncidentReport] Report #${reportId} status updated: ${oldStatus} → ${status}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Report status updated successfully',
+      report
+    });
+  } catch (err) {
+    console.error('[IncidentReport] Error updating status:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating report status',
       error: err.message,
     });
   }

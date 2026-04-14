@@ -30,6 +30,8 @@ import gameRoutes from './routes/game.js';
 import aiRoutes from './routes/ai.js';
 import featuresRoutes from './routes/featuresRoutes.js';
 import threatRoutes from './routes/threatRoutes.js';
+import achievementRoutes from './routes/achievementRoutes.js';
+import communityRoutes from './routes/communityRoutes.js';
 
 dotenv.config();
 
@@ -652,7 +654,13 @@ app.use('/api/admin',        adminRoutes);
 // ── FEATURES ROUTES ───────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
 app.use('/api/features',     featuresRoutes);
-// ── Global Error Handler ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// ── ACHIEVEMENTS ROUTES ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+app.use('/api/achievements', achievementRoutes);// ═══════════════════════════════════════════════════════════════
+// ── COMMUNITY ROUTES ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+app.use('/api/community', communityRoutes);// ── Global Error Handler ──────────────────────────────────────
 app.use((err, _req, res, _next) => {
   console.error('❌', err.message);
   res.status(err.status || 500).json({ success: false, message: err.message || 'Server Error' });

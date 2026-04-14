@@ -71,29 +71,32 @@ export default function SecurityScorePage({ user }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchSecurityScore = async () => {
-      try {
-        const res = await API.get("/api/features/overview");
-        if (res?.success) {
-          setSecurityData({
-            overallScore: res.securityScore?.overall || 0,
-            quizScore: res.securityScore?.quizScore || 0,
-            courseProgress: res.securityScore?.courseProgress || 0,
-            gameProgress: res.securityScore?.gameProgress || 0,
-            toolUsage: res.securityScore?.toolUsage || 0,
-            suggestions: res.securityScore?.suggestions || []
-          });
-        } else {
-          throw new Error(res?.message || "Failed to fetch security score");
-        }
-      } catch (err) {
-        console.error("Security Score Error:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchSecurityScore = async () => {
+    try {
+      const res = await API.get("/api/features/overview");
+      if (res?.success) {
+        setSecurityData({
+          overallScore: res.securityScore?.overall || 0,
+          quizScore: res.securityScore?.quizScore || 0,
+          courseProgress: res.securityScore?.courseProgress || 0,
+          reportScore: res.securityScore?.reportScore || 0,
+          toolUsage: res.securityScore?.toolUsage || 0,
+          streak: res.securityScore?.streak || 0,
+          suggestions: res.securityScore?.suggestions || []
+        });
+        setError(null);
+      } else {
+        throw new Error(res?.message || "Failed to fetch security score");
       }
-    };
+    } catch (err) {
+      console.error("Security Score Error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchSecurityScore();
   }, []);
 
@@ -130,8 +133,12 @@ export default function SecurityScorePage({ user }) {
               <h3 style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 20, fontFamily: "'Syne',sans-serif" }}>Score Breakdown</h3>
               <Scorebar label="Quiz Performance" score={securityData?.quizScore || 0} color={T.brand} />
               <Scorebar label="Course Progress" score={securityData?.courseProgress || 0} color={T.teal} />
-              <Scorebar label="Game Progress" score={securityData?.gameProgress || 0} color={T.violet} />
+              <Scorebar label="Threat Reports" score={securityData?.reportScore || 0} color={T.violet} />
               <Scorebar label="Tool Usage" score={securityData?.toolUsage || 0} color={T.amber} />
+              <div style={{ marginTop: 20, padding: "16px", background: `${T.brandDim}33`, border: `1px solid ${T.brand}`, borderRadius: 8, textAlign: "center" }}>
+                <div style={{ fontSize: 12, color: T.textMd }}>🔥 Current Streak</div>
+                <div style={{ fontSize: 28, fontWeight: 800, color: T.brand, marginTop: 6 }}>{securityData?.streak || 0} days</div>
+              </div>
             </div>
           </div>
 

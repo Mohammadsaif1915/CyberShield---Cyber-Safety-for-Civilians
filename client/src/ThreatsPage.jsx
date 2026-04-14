@@ -6,23 +6,23 @@ import {
 } from "lucide-react";
 
 const C = {
-  bg: "#050810",
-  bgCard: "#0C1120",
-  border: "rgba(99,102,241,0.18)",
+  bg: "#F8FAFC",
+  bgCard: "#FFFFFF",
+  border: "rgba(99,102,241,0.15)",
   brand: "#6366F1",
-  teal: "#14B8A6",
-  violet: "#A78BFA",
-  green: "#10B981",
-  text: "#F1F5F9",
-  textMd: "#94A3B8",
-  textDim: "#475569",
+  teal: "#0D9488",
+  violet: "#7C3AED",
+  green: "#059669",
+  text: "#1E293B",
+  textMd: "#64748B",
+  textDim: "#94A3B8",
 };
 
 const SEV = {
-  Critical: { c: "#EF4444", bg: "rgba(239,68,68,0.10)", border: "rgba(239,68,68,0.30)", glow: "rgba(239,68,68,0.15)" },
-  High:     { c: "#F97316", bg: "rgba(249,115,22,0.10)", border: "rgba(249,115,22,0.30)", glow: "rgba(249,115,22,0.12)" },
-  Medium:   { c: "#F59E0B", bg: "rgba(245,158,11,0.10)", border: "rgba(245,158,11,0.30)", glow: "rgba(245,158,11,0.10)" },
-  Low:      { c: "#10B981", bg: "rgba(16,185,129,0.10)", border: "rgba(16,185,129,0.30)", glow: "rgba(16,185,129,0.10)" },
+  Critical: { c: "#DC2626", bg: "rgba(220,38,38,0.07)",  border: "rgba(220,38,38,0.25)",  glow: "none" },
+  High:     { c: "#EA580C", bg: "rgba(234,88,12,0.07)",  border: "rgba(234,88,12,0.25)",  glow: "none" },
+  Medium:   { c: "#D97706", bg: "rgba(217,119,6,0.07)",  border: "rgba(217,119,6,0.25)",  glow: "none" },
+  Low:      { c: "#059669", bg: "rgba(5,150,105,0.07)",  border: "rgba(5,150,105,0.25)",  glow: "none" },
 };
 
 const TYPE_ICONS = {
@@ -123,6 +123,8 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
       width: "100%",
       maxWidth: "100%",
       overflowX: "hidden",
+      background: C.bg,
+      minHeight: "100vh",
     }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -130,49 +132,38 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
         @keyframes fadeUp   { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         .tp { animation:fadeUp .28s ease both; }
 
-        /* sev grid always 2 col */
         .sev-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
 
-        /* chip scroll row */
         .chip-row { display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px; }
         .chip-row::-webkit-scrollbar { display:none; }
         .chip { flex-shrink:0; padding:5px 13px; border-radius:20px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid; font-family:inherit; white-space:nowrap; transition:all .15s; background:transparent; }
 
-        /* threat card */
-        .t-card { border-radius:14px; overflow:hidden; transition:border-color .2s,box-shadow .2s; }
+        .t-card { border-radius:14px; overflow:hidden; transition:border-color .2s; }
 
-        /* card tap row */
         .c-row { display:flex; align-items:flex-start; gap:10px; padding:12px 12px; cursor:pointer; }
-
-        /* text block must clip */
         .c-body { flex:1; min-width:0; }
-
-        /* name: ellipsis if needed */
-        .c-name { font-size:13px; font-weight:700; color:#F1F5F9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0 0 4px; }
-
-        /* tags row */
+        .c-name { font-size:13px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0 0 4px; }
         .c-tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:5px; }
-
-        /* desc clamp */
-        .c-desc { font-size:12px; color:#94A3B8; line-height:1.55; margin:0;
+        .c-desc { font-size:12px; color:#64748B; line-height:1.55; margin:0;
                   overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
         .c-desc.full { display:block; }
-
-        /* chevron col */
         .c-chev { display:flex; flex-direction:column; align-items:center; gap:5px; flex-shrink:0; }
 
-        /* detail block */
         .d-sec { border-radius:11px; padding:11px 12px; margin-bottom:8px; }
         .d-lbl { font-size:9px; font-weight:700; font-family:"JetBrains Mono",monospace; letter-spacing:.08em; margin:0 0 7px; }
-        .d-ln  { font-size:11px; color:#94A3B8; margin:3px 0; word-break:break-all; line-height:1.5; }
+        .d-ln  { font-size:11px; color:#64748B; margin:3px 0; word-break:break-all; line-height:1.5; }
 
-        /* actions */
         .a-row { display:flex; gap:6px; }
         .a-btn { flex:1; display:inline-flex; align-items:center; justify-content:center; gap:4px;
                  padding:6px 8px; border-radius:8px; font-size:11px; font-weight:600;
-                 border:1px solid rgba(99,102,241,0.22); background:transparent;
-                 cursor:pointer; font-family:inherit; color:#94A3B8; transition:all .15s; }
-        .a-btn:hover { border-color:rgba(99,102,241,0.5); color:#6366F1; }
+                 border:1px solid rgba(99,102,241,0.25); background:#F8F9FF;
+                 cursor:pointer; font-family:inherit; color:#6366F1; transition:all .15s; }
+        .a-btn:hover { border-color:#6366F1; background:#EEF0FF; }
+
+        .search-input { width:100%; box-sizing:border-box; padding:9px 12px 9px 32px; border-radius:11px;
+                        border:1px solid #E2E8F0; background:#FFFFFF; color:#1E293B;
+                        font-size:13px; font-family:inherit; outline:none; }
+        .search-input:focus { border-color:#A5B4FC; }
       `}</style>
 
       <div className="tp">
@@ -180,12 +171,12 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
         {/* ── INFO STRIP ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12, gap:8 }}>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-            <Tag label={`${stats.threatsViewed?.length || 0} analyzed`} color={C.teal} bg="rgba(20,184,166,0.09)" />
-            <Tag label={`${THREATS.length} active threats`} color={C.violet} bg="rgba(167,139,250,0.09)" />
+            <Tag label={`${stats.threatsViewed?.length || 0} analyzed`} color={C.teal} bg="rgba(13,148,136,0.09)" />
+            <Tag label={`${THREATS.length} active threats`} color={C.violet} bg="rgba(124,58,237,0.09)" />
           </div>
-          <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:99, background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.22)", flexShrink:0 }}>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:"#EF4444", animation:"pulseRed 1.5s infinite" }} />
-            <span style={{ fontSize:9, fontWeight:700, color:"#EF4444", letterSpacing:"0.1em", fontFamily:"JetBrains Mono,monospace" }}>LIVE</span>
+          <div style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:99, background:"rgba(220,38,38,0.08)", border:"1px solid rgba(220,38,38,0.22)", flexShrink:0 }}>
+            <div style={{ width:6, height:6, borderRadius:"50%", background:"#DC2626", animation:"pulseRed 1.5s infinite" }} />
+            <span style={{ fontSize:9, fontWeight:700, color:"#DC2626", letterSpacing:"0.1em", fontFamily:"JetBrains Mono,monospace" }}>LIVE</span>
           </div>
         </div>
 
@@ -196,7 +187,7 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
             const active = filter === sev;
             return (
               <button key={sev} onClick={() => setSev(active ? "All" : sev)}
-                style={{ padding:"13px 8px", border:`1px solid ${active ? sc.border : C.border}`, borderRadius:13, textAlign:"center", cursor:"pointer", background: active ? sc.bg : C.bgCard, fontFamily:"inherit", transition:"all .2s", boxShadow: active ? `0 0 16px ${sc.glow}` : "none" }}>
+                style={{ padding:"13px 8px", border:`1px solid ${active ? sc.border : "#E2E8F0"}`, borderRadius:13, textAlign:"center", cursor:"pointer", background: active ? sc.bg : "#FFFFFF", fontFamily:"inherit", transition:"all .2s" }}>
                 <div style={{ fontSize:26, fontWeight:800, color:sc.c, fontFamily:"Syne,sans-serif", lineHeight:1 }}>{count}</div>
                 <div style={{ fontSize:11, color:C.textMd, marginTop:3, fontWeight:600 }}>{sev}</div>
                 <div style={{ width:16, height:2, background:sc.c, borderRadius:99, margin:"5px auto 0", opacity: active ? 1 : 0.3 }} />
@@ -211,7 +202,7 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search threats…"
-            style={{ width:"100%", boxSizing:"border-box", padding:"9px 12px 9px 32px", borderRadius:11, border:`1px solid ${C.border}`, background:C.bgCard, color:C.text, fontSize:13, fontFamily:"inherit", outline:"none" }}
+            className="search-input"
           />
         </div>
 
@@ -219,7 +210,7 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
         <div className="chip-row" style={{ marginBottom:12 }}>
           {allTypes.map(t => (
             <button key={t} onClick={() => setType(t)} className="chip"
-              style={{ borderColor: typeFilter===t ? C.brand+"55" : C.border, background: typeFilter===t ? "rgba(99,102,241,0.12)" : "transparent", color: typeFilter===t ? C.brand : C.textMd }}>
+              style={{ borderColor: typeFilter===t ? "#6366F155" : "#E2E8F0", background: typeFilter===t ? "rgba(99,102,241,0.08)" : "transparent", color: typeFilter===t ? C.brand : C.textMd }}>
               {t}
             </button>
           ))}
@@ -228,7 +219,7 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
         {/* ── CARDS ── */}
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {list.length === 0 && (
-            <div style={{ textAlign:"center", padding:"40px 20px", background:C.bgCard, borderRadius:14, border:`1px solid ${C.border}` }}>
+            <div style={{ textAlign:"center", padding:"40px 20px", background:"#FFFFFF", borderRadius:14, border:"1px solid #E2E8F0" }}>
               <ShieldAlert size={26} style={{ color:C.textDim, marginBottom:8 }} />
               <p style={{ color:C.textMd, fontSize:13, margin:0 }}>No threats match your filter</p>
             </div>
@@ -242,10 +233,10 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
 
             return (
               <div key={t.id} className="t-card"
-                style={{ background:C.bgCard, border:`1px solid ${open ? sc.border : C.border}`, boxShadow: open ? `0 0 20px ${sc.glow}` : "none" }}>
+                style={{ background:"#FFFFFF", border:`1px solid ${open ? sc.border : "#E2E8F0"}` }}>
 
-                {/* accent */}
-                <div style={{ height:2, background:`linear-gradient(90deg,${sc.c},${sc.c}30)` }} />
+                {/* accent bar */}
+                <div style={{ height:2, background:sc.c }} />
 
                 {/* tap row */}
                 <div className="c-row" onClick={() => handleExpand(t)}>
@@ -257,18 +248,15 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
 
                   {/* body */}
                   <div className="c-body">
-                    {/* name row */}
                     <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:4, overflow:"hidden" }}>
                       <p className="c-name">{t.name}</p>
                       <Tag label={t.sev} color={sc.c} bg={sc.bg} />
-                      {viewed && <Tag label="✓" color={C.green} bg="rgba(16,185,129,0.09)" />}
+                      {viewed && <Tag label="✓" color={C.green} bg="rgba(5,150,105,0.09)" />}
                     </div>
-                    {/* secondary tags */}
                     <div className="c-tags">
-                      <Tag label={t.type} color={C.textMd} bg="rgba(255,255,255,0.05)" />
-                      {t.cve !== "N/A" && <Tag label={t.cve} color={C.violet} bg="rgba(167,139,250,0.09)" />}
+                      <Tag label={t.type} color={C.textMd} bg="rgba(0,0,0,0.04)" />
+                      {t.cve !== "N/A" && <Tag label={t.cve} color={C.violet} bg="rgba(124,58,237,0.07)" />}
                     </div>
-                    {/* description */}
                     <p className={`c-desc${open ? " full" : ""}`}>{t.desc}</p>
                   </div>
 
@@ -281,26 +269,26 @@ export default function ThreatsPage({ stats = {}, onThreatView = () => {} }) {
                   </div>
                 </div>
 
-                {/* expanded */}
+                {/* expanded detail */}
                 {open && (
-                  <div style={{ padding:"0 12px 14px", borderTop:"1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ padding:"0 12px 14px", borderTop:"1px solid #F1F5F9" }}>
 
                     <p style={{ fontSize:13, color:C.textMd, lineHeight:1.7, margin:"12px 0" }}>{t.desc}</p>
 
-                    <div className="d-sec" style={{ background:"rgba(239,68,68,0.05)", border:"1px solid rgba(239,68,68,0.15)" }}>
-                      <p className="d-lbl" style={{ color:"#EF4444" }}>INDICATORS OF COMPROMISE</p>
+                    <div className="d-sec" style={{ background:"rgba(220,38,38,0.04)", border:"1px solid rgba(220,38,38,0.15)" }}>
+                      <p className="d-lbl" style={{ color:"#DC2626" }}>INDICATORS OF COMPROMISE</p>
                       {t.iocs.map((v,i) => <p key={i} className="d-ln" style={{ fontFamily:"JetBrains Mono,monospace" }}>{v}</p>)}
                     </div>
 
-                    <div className="d-sec" style={{ background:"rgba(99,102,241,0.05)", border:"1px solid rgba(99,102,241,0.15)" }}>
+                    <div className="d-sec" style={{ background:"rgba(99,102,241,0.04)", border:"1px solid rgba(99,102,241,0.15)" }}>
                       <p className="d-lbl" style={{ color:C.brand }}>MITRE ATT&CK</p>
                       {t.mitre.map((v,i) => <p key={i} className="d-ln">{v}</p>)}
                     </div>
 
-                    <div className="d-sec" style={{ background:"rgba(16,185,129,0.05)", border:"1px solid rgba(16,185,129,0.15)", marginBottom:12 }}>
+                    <div className="d-sec" style={{ background:"rgba(5,150,105,0.04)", border:"1px solid rgba(5,150,105,0.15)", marginBottom:12 }}>
                       <p className="d-lbl" style={{ color:C.green }}>REMEDIATION</p>
                       <p className="d-ln">Affected: <strong style={{ color:C.text }}>{t.affected}</strong></p>
-                      <p className="d-ln">Patch: <strong style={{ color: t.patch.includes("Now") ? "#EF4444" : C.green }}>{t.patch}</strong></p>
+                      <p className="d-ln">Patch: <strong style={{ color: t.patch.includes("Now") ? "#DC2626" : C.green }}>{t.patch}</strong></p>
                     </div>
 
                     <div className="a-row">

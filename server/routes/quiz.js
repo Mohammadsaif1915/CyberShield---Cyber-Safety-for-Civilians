@@ -1,9 +1,11 @@
 import express from 'express';
 import { QuizProgress, ModuleProgress } from '../models/QuizProgress.js';
+import QuizResult from '../models/QuizResult.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Save or update section progress
+// Save or update section progress (works with or without auth)
 router.post('/progress/section', async (req, res) => {
   try {
     const { userId, moduleId, sectionId, answers, score, timeSpent, completed } = req.body;
@@ -43,7 +45,7 @@ router.post('/progress/section', async (req, res) => {
   }
 });
 
-// Get section progress
+// Get section progress (works with or without auth)
 router.get('/progress/section/:userId/:moduleId/:sectionId', async (req, res) => {
   try {
     const { userId, moduleId, sectionId } = req.params;
@@ -76,7 +78,7 @@ router.get('/progress/section/:userId/:moduleId/:sectionId', async (req, res) =>
   }
 });
 
-// Get all sections progress for a module
+// Get all sections progress for a module (works with or without auth)
 router.get('/progress/module/:userId/:moduleId', async (req, res) => {
   try {
     const { userId, moduleId } = req.params;
@@ -100,10 +102,12 @@ router.get('/progress/module/:userId/:moduleId', async (req, res) => {
   }
 });
 
-// Save module completion
+// Save module completion - tries to link to authenticated user for dashboard
 router.post('/progress/module', async (req, res) => {
   try {
     const { userId, moduleId, completedSections, totalScore, timeSpent, completed } = req.body;
+    // Try to get authenticated user if available
+    const authenticatedUserId = req.user?._id;
 
     if (!userId || !moduleId) {
       return res.status(400).json({ 
@@ -125,6 +129,25 @@ router.post('/progress/module', async (req, res) => {
       { upsert: true, new: true, runValidators: true }
     );
 
+    // ALSO SAVE TO QUIZRESULT FOR DASHBOARD AGGREGATION (if authenticated)
+    if (completed && moduleProgress && authenticatedUserId) {
+      const percentage = Math.round((totalScore / 40) * 100);
+      await QuizResult.create({
+        user: authenticatedUserId,
+        moduleId: moduleId,
+        moduleTitle: `Module ${moduleId}`,
+        totalCorrect: totalScore,
+        totalQuestions: 40,
+        percentage,
+        grade: percentage >= 80 ? 'A' : percentage >= 70 ? 'B' : percentage >= 60 ? 'C' : 'F',
+        timeSpent: Math.round(timeSpent / 1000) || 0,
+      }).catch(err => console.error('[Quiz] Failed to save QuizResult:', err.message));
+      
+      console.log('[Quiz] Module completed. QuizProgress User:', userId, '| Authenticated User:', authenticatedUserId, '| Module:', moduleId, '| Score:', totalScore, '| QuizResult saved');
+    } else {
+      console.log('[Quiz] Module progress saved. User:', userId, '| Completed:', completed, '| Authenticated:', !!authenticatedUserId);
+    }
+
     res.json({ 
       success: true, 
       message: 'Module progress saved successfully',
@@ -140,7 +163,7 @@ router.post('/progress/module', async (req, res) => {
   }
 });
 
-// Get all user progress (all modules)
+// Get all user progress (all modules) - works with or without auth
 router.get('/progress/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -167,7 +190,7 @@ router.get('/progress/user/:userId', async (req, res) => {
   }
 });
 
-// Get user statistics
+// Get user statistics - works with or without auth
 router.get('/stats/:userId', async (req, res) => {
   try {
     const { userId } = req.params;

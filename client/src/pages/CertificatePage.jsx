@@ -152,7 +152,7 @@ export default function CertificatePage() {
 
         <div className={styles.priceRow}>
           <span className={styles.priceLabel}>Certificate fee</span>
-          <span className={styles.priceAmount}>₹1</span>
+          <span className={styles.priceAmount}>₹100</span>
         </div>
 
         <button
@@ -162,7 +162,7 @@ export default function CertificatePage() {
         >
           {paying
             ? <><span className="spinner spinner-sm" style={{ borderTopColor: '#fff' }} /> Processing…</>
-            : <>🔒 Pay ₹1 &amp; Get Certificate</>
+            : <>🔒 Pay ₹100 &amp; Get Certificate</>
           }
         </button>
 

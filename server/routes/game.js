@@ -1,27 +1,20 @@
-/**
- * routes/game.js
- * ─────────────────────────────────────────────────
- * REST API routes for CyberShield game progress.
- * Handles save, leaderboard, progress, stats,
- * and sequential unlock checks for all 5 levels.
- *
- * Mounted at /api/game in server.js
- */
 
 import express from 'express';
+import { protect } from '../middleware/auth.js';
 import GameProgress from '../models/GameProgress.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
 // ══════════════════════════════════════════════════════════════
 // POST /api/game/save
-// Save a game session to MongoDB
+// Save a game session to MongoDB (PROTECTED)
 // ══════════════════════════════════════════════════════════════
-router.post('/save', async (req, res) => {
+router.post('/save', protect, async (req, res) => {
   try {
+    const userId = req.user._id;
+    const username = req.user.username || req.body.username;
     const {
-      userId,
-      username,
       level,
       score,
       maxScore,
@@ -46,7 +39,7 @@ router.post('/save', async (req, res) => {
     if (!level || !validLevels.includes(level)) {
       return res.status(400).json({
         success: false,
-        error: 'Level must be 1, 2, 4, or 5',
+        error: 'Level must be 1, 2, 3, 4, or 5',
       });
     }
 
@@ -59,7 +52,7 @@ router.post('/save', async (req, res) => {
 
     // ── Build and save document ──
     const entry = new GameProgress({
-      userId: userId || null,
+      userId: userId,
       username: username.trim(),
       level,
       score: score ?? 0,
@@ -76,7 +69,15 @@ router.post('/save', async (req, res) => {
 
     const saved = await entry.save();
 
-    console.log(`✅ Game progress saved: ${username} | Level ${level} | Score ${score}`);
+    // Update user's best level
+    if (levelCompleted) {
+      await User.updateOne(
+        { _id: userId },
+        { $set: { gameLevel: Math.max(level, req.user.gameLevel || 0) } }
+      );
+    }
+
+    console.log(`[Game] Progress saved: ${username} | Level ${level} | Score ${score} | Completed: ${levelCompleted}`);
 
     return res.status(201).json({
       success: true,
@@ -88,7 +89,7 @@ router.post('/save', async (req, res) => {
       const messages = Object.values(err.errors).map((e) => e.message);
       return res.status(400).json({ success: false, error: messages.join(', ') });
     }
-    console.error('Game save error:', err.message);
+    console.error('[Game Save Error]:', err.message);
     return res.status(500).json({ success: false, error: 'Failed to save game progress' });
   }
 });

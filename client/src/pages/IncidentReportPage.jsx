@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AlertTriangle, Send, CheckCircle, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { AlertTriangle, Send, CheckCircle, AlertCircle, Loader2, Shield } from "lucide-react";
 
 const T = {
   bg: "#F0F2F8", surface: "#FFFFFF", card: "#FFFFFF", border: "rgba(99,102,241,0.14)",
@@ -13,6 +13,7 @@ const T = {
 
 const API = {
   headers: () => ({ "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` }),
+  get: (url) => fetch(url, { headers: API.headers() }).then(r => r.ok ? r.json() : Promise.reject(r)),
   post: (url, body) => fetch(url, { method: "POST", headers: API.headers(), body: JSON.stringify(body) }).then(r => r.json()),
 };
 
@@ -43,6 +44,27 @@ export default function IncidentReportPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [reports, setReports] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
+
+  // Fetch submitted reports
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const data = await API.get("/api/features/incidents");
+        if (data?.success && Array.isArray(data.reports)) {
+          setReports(data.reports);
+        } else {
+          setReports([]);
+        }
+      } catch (err) {
+        console.error("Error fetching reports:", err);
+      } finally {
+        setReportsLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,6 +97,12 @@ export default function IncidentReportPage() {
         setEvidenceUrl("");
         setReporterEmail("");
         setAnonymous(false);
+
+        // Refresh reports list
+        const data = await API.get("/api/features/incidents");
+        if (data?.success && Array.isArray(data.reports)) {
+          setReports(data.reports);
+        }
 
         setTimeout(() => setSuccess(false), 4000);
       } else {
@@ -284,6 +312,88 @@ export default function IncidentReportPage() {
           All reports are confidential and processed by our security team. If you choose to report anonymously, your identity will be completely protected. We never share reporter information with third parties.
         </div>
       </form>
+
+      {/* Submitted Reports List */}
+      <div style={{ marginTop: 50 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: T.text, marginBottom: 20, fontFamily: "'Syne',sans-serif", display: "flex", alignItems: "center", gap: 8 }}>
+          <Shield size={20} style={{ color: T.brand }} />
+          Your Submitted Reports
+        </h2>
+        
+        {reportsLoading ? (
+          <div style={{ textAlign: "center", padding: "40px 20px", color: T.textDim }}>
+            <Loader2 size={24} className="spin" style={{ margin: "0 auto 12px", color: T.brand }} />
+            <p>Loading your reports...</p>
+          </div>
+        ) : reports.length === 0 ? (
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "40px 20px", textAlign: "center" }}>
+            <AlertTriangle size={32} style={{ color: T.textDim, margin: "0 auto 12px", opacity: 0.3 }} />
+            <p style={{ fontSize: 14, color: T.textMd, fontWeight: 500 }}>No reports submitted yet</p>
+            <p style={{ fontSize: 12, color: T.textDim, marginTop: 4 }}>Submit your first threat report above to help protect our community</p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+            {reports.map((report) => {
+              const THREAT_INFO = {
+                phishing: { icon: "🎣", color: T.amber },
+                malware: { icon: "🦠", color: "#EA580C" },
+                scam_call: { icon: "☎️", color: T.red },
+                fraud_link: { icon: "🔗", color: T.brand },
+                suspicious_email: { icon: "✉️", color: T.violet },
+                other: { icon: "❓", color: T.textDim },
+              };
+              const threatInfo = THREAT_INFO[report.reportType] || THREAT_INFO.other;
+              const statusColor = {
+                pending: T.amber,
+                reviewed: T.brand,
+                verified: T.green,
+                resolved: T.teal,
+              }[report.status] || T.textDim;
+
+              return (
+                <div key={report._id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px", boxShadow: T.sh, transition: "all 0.2s" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
+                    <div style={{ fontSize: 20 }}>{threatInfo.icon}</div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ fontSize: 13, fontWeight: 700, color: T.text, margin: 0, marginBottom: 4, fontFamily: "'Syne',sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{report.title}</h4>
+                      <p style={{ fontSize: 11, color: T.textDim, margin: 0 }}>
+                        {new Date(report.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <p style={{ fontSize: 12, color: T.textMd, margin: "0 0 12px", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                    {report.description}
+                  </p>
+
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 10, background: `${threatInfo.color}15`, color: threatInfo.color, border: `1px solid ${threatInfo.color}30`, padding: "4px 10px", borderRadius: 6, fontWeight: 600, textTransform: "capitalize" }}>
+                      {report.reportType?.replace(/_/g, " ")}
+                    </span>
+                    <span style={{ fontSize: 10, background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}30`, padding: "4px 10px", borderRadius: 6, fontWeight: 600, textTransform: "capitalize" }}>
+                      {report.status}
+                    </span>
+                    <span style={{ fontSize: 10, background: {low: T.tealDim, medium: T.amberDim, high: "rgba(234,88,12,0.1)", critical: T.redDim}[report.severity] || T.amberDim, color: {low: T.teal, medium: T.amber, high: "#EA580C", critical: T.red}[report.severity] || T.amber, border: `1px solid ${{low: T.teal, medium: T.amber, high: "#EA580C", critical: T.red}[report.severity] || T.amber}30`, padding: "4px 10px", borderRadius: 6, fontWeight: 600, textTransform: "capitalize" }}>
+                      {report.severity}
+                    </span>
+                  </div>
+
+                  {report.url && (
+                    <div style={{ fontSize: 11, color: T.brand, padding: "8px", background: `${T.brand}08`, borderRadius: 6, wordBreak: "break-all", marginBottom: 12 }}>
+                      <span style={{ fontWeight: 600, display: "block", marginBottom: 4 }}>Evidence URL:</span>
+                      <a href={report.url} target="_blank" rel="noopener noreferrer" style={{ color: T.brand, textDecoration: "none", borderBottom: `1px solid ${T.brand}` }}>{report.url}</a>
+                    </div>
+                  )}
+
+                  <div style={{ fontSize: 10, color: T.textDim, fontStyle: "italic" }}>
+                    {report.email ? `Reported by: ${report.email}` : "Submitted anonymously"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

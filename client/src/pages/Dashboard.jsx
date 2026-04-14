@@ -7,6 +7,7 @@ import FraudDetectionPage from './FraudDetectionPage';
 import IncidentReportPage from './IncidentReportPage';
 import AchievementsPage from './AchievementsPage';
 import CommunityPage from './CommunityPage';
+import CommunityForum from './CommunityForum';
 import ThreatsPage from '../ThreatsPage';
 import {
   Shield, Brain, Mail, BarChart2, Bell, Search, Menu,
@@ -630,7 +631,8 @@ function TopBar({ page, user, notifCount, onNotifClick, onProfileClick, onSearch
     overview: "Overview", threats: "Threat Intelligence", courses: "Learning Courses",
     phishing: "Phishing Simulator", quiz: "Quiz Center", game: "CyberDefense Game",
     reports: "Analytics & Reports", profile: "My Profile", settings: "Settings",
-    leaderboard: "Leaderboard", aichat: "AI Security Assistant",
+    leaderboard: "Leaderboard", aichat: "AI Security Assistant", community: "Community Forum",
+    "security-score": "Security Score", "fraud-detection": "Fraud Detection", "incident-report": "Report Threat", achievements: "Achievements",
   };
   return (
     <div className="dtopbar" style={{ height: 62, background: T.surface, borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", padding: "0 22px", gap: 12, position: "sticky", top: 0, zIndex: 50 }}>
@@ -950,7 +952,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
               <div style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(79,70,229,0.12)", borderRadius: 11, padding: "8px 14px", minWidth: 160, backdropFilter: "blur(4px)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: T.textDim, marginBottom: 6 }}>
                   <span>Level {level} Progress</span>
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", color: T.brand }}>{xpInLevel}/500 XP</span>
+                  <span style={{ fontFamily: "'JetBrains Mono',monospace", color: T.brand }}>{xpInLevel}/300 XP</span>
                 </div>
                 <div style={{ height: 4, background: "rgba(79,70,229,0.12)", borderRadius: 99 }}>
                   <div style={{ height: 4, width: `${xpPct}%`, background: `linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius: 99, transition: "width 1s ease" }} />
@@ -992,7 +994,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
         {[
           { label: "Total Score", value: score, icon: Star, color: T.brand, sub: score > 0 ? `${Math.floor(score)} XP` : "Start earning!", animated: true },
           { label: "Avg Quiz Score", value: avgScore > 0 ? `${avgScore}%` : "—", icon: Brain, color: T.violet, sub: quizDone > 0 ? `${quizDone} quiz${quizDone !== 1 ? "zes" : ""} attempted` : "No quizzes yet" },
-          { label: "Game Score", value: gameScore, icon: Gamepad2, color: T.pink, sub: gamesPlayed > 0 ? `Played ${gamesPlayed}x, Best: ${gameHighScore}` : "No games yet", animated: true },
+          { label: "Threat Reports", value: dashData?.statistics?.reportsSubmitted || 0, icon: AlertTriangle, color: T.red, sub: (dashData?.statistics?.reportsSubmitted || 0) > 0 ? `${dashData.statistics.reportsSubmitted} threat${dashData.statistics.reportsSubmitted !== 1 ? "s" : ""} reported` : "No reports yet" },
           { label: "Phishing Accuracy", value: phTotal > 0 ? `${phishingAccuracy}%` : "—", icon: Mail, color: T.teal, sub: phTotal > 0 ? `${phCorrect}/${phTotal} correct` : "Try the simulator" },
         ].map((s, i) => {
           const [hov, setHov] = useState(false);
@@ -1089,7 +1091,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
                   onMouseEnter={e => { e.currentTarget.style.background = T.amberDim; e.currentTarget.style.transform = "scale(1.06)"; }}
                   onMouseLeave={e => { e.currentTarget.style.background = T.bg; e.currentTarget.style.transform = "scale(1)"; }}>
                   <div style={{ fontSize: 20, lineHeight: 1 }}>{b.emoji || "🏅"}</div>
-                  <p style={{ fontSize: 9, color: T.textMd, marginTop: 5, fontWeight: 700 }}>{b.label || b.badgeName || b}</p>
+                  <p style={{ fontSize: 9, color: T.textMd, marginTop: 5, fontWeight: 700 }}>{b.label || b.badgeName || b.name || "Badge"}</p>
                   {b.earnedAt && <p style={{ fontSize: 8, color: T.textDim, margin: "2px 0 0", fontFamily: "'JetBrains Mono',monospace" }}>{fmtDate(b.earnedAt)}</p>}
                 </div>
               ))}
@@ -1530,34 +1532,115 @@ function ReportsPage({ user, navigate, setPage }) {
 // ─── PAGE: PROFILE ────────────────────────────────────────────────────────────
 function ProfilePage({ user, onUserUpdate }) {
   const [avatar, setAvatar] = useState(user?.avatar || null);
+  const [avatarFile, setAvatarFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ fullName: getFullName(user), email: user?.email || "", phone: user?.phone || "", location: user?.location || "", role: user?.role || "", bio: user?.bio || "" });
   const fileRef = useRef();
 
+  // Only update form fields when user changes, NOT avatar (to prevent polling from resetting it)
   useEffect(() => {
     setForm({ fullName: getFullName(user), email: user?.email || "", phone: user?.phone || "", location: user?.location || "", role: user?.role || "", bio: user?.bio || "" });
-    setAvatar(user?.avatar || null);
+    // Only update avatar if it's different and not already set (to prevent polling from clearing uploads)
+    if (user?.avatar && user.avatar !== avatar) {
+      setAvatar(user.avatar);
+    }
+    setError(null);
   }, [user]);
 
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setUploading(true);
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Avatar must be less than 5MB");
+      return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload a valid image file");
+      return;
+    }
+
+    setAvatarFile(file);
     const url = URL.createObjectURL(file);
     setAvatar(url);
-    if (onUserUpdate) onUserUpdate({ avatar: url });
-    setUploading(false);
+    setError(null);
   };
 
   const handleSave = async () => {
+    if (!form.fullName.trim()) {
+      setError("Full name is required");
+      return;
+    }
+
     setSaving(true);
-    try { await API.put("/api/auth/profile", form); } catch { }
-    if (onUserUpdate) onUserUpdate({ ...form, name: form.fullName });
-    setSaved(true); setEditMode(false); setSaving(false);
-    setTimeout(() => setSaved(false), 3000);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("fullName", form.fullName);
+      formData.append("email", form.email);
+      formData.append("phone", form.phone);
+      formData.append("location", form.location);
+      formData.append("role", form.role);
+      formData.append("bio", form.bio);
+      
+      // Add avatar file if selected
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+
+      // Use fetch instead of API helper for FormData
+      const response = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update profile");
+      }
+
+      // Update local state with response data
+      if (data.user) {
+        // Update avatar immediately with the Cloudinary URL (not temporary blob URL)
+        if (data.user.avatar) {
+          setAvatar(data.user.avatar);
+        }
+        
+        // Update localStorage immediately with new user data including avatar
+        const updatedUser = {
+          ...form,
+          name: form.fullName,
+          avatar: data.user.avatar,
+          ...data.user,
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
+        if (onUserUpdate) onUserUpdate(updatedUser);
+      }
+
+      setSaved(true);
+      setEditMode(false);
+      setAvatarFile(null);
+      
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Profile update error:", err);
+      setError(err.message || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const { level, xp, xpInLevel, xpPct } = computeLevel(user?.score || 0);
@@ -1580,6 +1663,12 @@ function ProfilePage({ user, onUserUpdate }) {
           <span style={{ fontSize: 12, fontWeight: 600, color: T.green }}>Profile updated successfully!</span>
         </div>
       )}
+      {error && (
+        <div style={{ background: T.redDim, border: `1px solid ${T.red}20`, borderRadius: 12, padding: "10px 16px", display: "flex", alignItems: "center", gap: 8, animation: "slideIn .2s ease" }}>
+          <AlertCircle size={14} style={{ color: T.red }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: T.red }}>{error}</span>
+        </div>
+      )}
       <div className="dprofile-grid">
         <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
           <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: T.sh }}>
@@ -1599,7 +1688,7 @@ function ProfilePage({ user, onUserUpdate }) {
             <div style={{ marginTop: 14, padding: "10px 12px", background: T.bg, borderRadius: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: T.textDim, marginBottom: 6 }}>
                 <span>Level Progress</span>
-                <span style={{ fontFamily: "'JetBrains Mono',monospace", color: T.brand }}>{xpInLevel}/500 XP</span>
+                <span style={{ fontFamily: "'JetBrains Mono',monospace", color: T.brand }}>{xpInLevel}/300 XP</span>
               </div>
               <div style={{ height: 4, background: "rgba(79,70,229,0.1)", borderRadius: 99 }}>
                 <div style={{ height: 4, width: `${xpPct}%`, background: `linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius: 99 }} />
@@ -1636,9 +1725,36 @@ function ProfilePage({ user, onUserUpdate }) {
             ].map((field) => (
               <div key={field.key} style={{ gridColumn: field.full ? "span 2" : "auto" }}>
                 <label style={{ fontSize: 9, fontWeight: 700, color: T.textDim, letterSpacing: "0.08em", display: "block", marginBottom: 5, fontFamily: "'JetBrains Mono',monospace" }}>{field.label.toUpperCase()}</label>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, background: T.bg, border: `1px solid ${editMode ? `${T.brand}25` : T.border}`, borderRadius: 10, padding: "9px 12px" }}>
-                  <field.icon size={13} style={{ color: T.textDim, flexShrink: 0 }} />
-                  <input value={form[field.key]} readOnly={!editMode} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))} type={field.type} placeholder={editMode ? `Enter ${field.label.toLowerCase()}` : "—"} style={{ border: "none", background: "transparent", outline: "none", fontSize: 12, color: T.text, width: "100%", fontFamily: "'Nunito',sans-serif", fontWeight: 500 }} />
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 8, 
+                  background: editMode ? "#fff" : T.bg, 
+                  border: `2px solid ${editMode ? T.brand : T.border}`, 
+                  borderRadius: 10, 
+                  padding: "9px 12px",
+                  transition: "all .2s",
+                  boxShadow: editMode ? `0 0 0 3px ${T.brand}15` : "none"
+                }}>
+                  <field.icon size={13} style={{ color: editMode ? T.brand : T.textDim, flexShrink: 0, transition: "color .2s" }} />
+                  <input 
+                    value={form[field.key] || ""} 
+                    readOnly={!editMode} 
+                    onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))} 
+                    type={field.type} 
+                    placeholder={editMode ? `Enter ${field.label.toLowerCase()}` : "Not set"} 
+                    style={{ 
+                      border: "none", 
+                      background: "transparent", 
+                      outline: "none", 
+                      fontSize: 12, 
+                      color: T.text, 
+                      width: "100%", 
+                      fontFamily: "'Nunito',sans-serif", 
+                      fontWeight: 500,
+                      cursor: editMode ? "text" : "default"
+                    }} 
+                  />
                 </div>
               </div>
             ))}
@@ -1650,7 +1766,7 @@ function ProfilePage({ user, onUserUpdate }) {
                 {user.badges.map((b, i) => (
                   <div key={i} style={{ textAlign: "center", padding: "8px 12px", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10 }}>
                     <div style={{ fontSize: 18, lineHeight: 1 }}>{b.emoji || "🏅"}</div>
-                    <p style={{ fontSize: 9, color: T.textMd, marginTop: 4, fontWeight: 700 }}>{b.label || b.badgeName || b}</p>
+                    <p style={{ fontSize: 9, color: T.textMd, marginTop: 4, fontWeight: 700 }}>{b.label || b.badgeName || b.name || "Badge"}</p>
                   </div>
                 ))}
               </div>
@@ -1668,7 +1784,8 @@ function SettingsPage({ user, onUserUpdate }) {
   const [pw, setPw] = useState({ current: "", newPw: "", confirm: "" });
   const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
   const [pwStatus, setPwStatus] = useState(null);
-  const [twoFa, setTwoFa] = useState(user?.twoFaEnabled ?? true);
+  const [twoFa, setTwoFa] = useState(user?.twoFaEnabled ?? false);
+  const [twoFaLoading, setTwoFaLoading] = useState(false);
 
   const tabs = [
     { id: "password", label: "Password", icon: Key },
@@ -1689,23 +1806,105 @@ function SettingsPage({ user, onUserUpdate }) {
   const strClr = [T.textDim, T.red, T.amber, "#65A30D", T.green];
 
   const handlePwChange = async () => {
-    if (!pw.current || !pw.newPw || !pw.confirm) { setPwStatus({ type: "error", msg: "All fields are required." }); return; }
-    if (pw.newPw !== pw.confirm) { setPwStatus({ type: "error", msg: "Passwords do not match." }); return; }
-    if (str < 2) { setPwStatus({ type: "error", msg: "Password is too weak." }); return; }
+    if (!pw.current || !pw.newPw || !pw.confirm) { 
+      setPwStatus({ type: "error", msg: "All fields are required." }); 
+      return; 
+    }
+    if (pw.newPw !== pw.confirm) { 
+      setPwStatus({ type: "error", msg: "Passwords do not match." }); 
+      return; 
+    }
+    if (str < 2) { 
+      setPwStatus({ type: "error", msg: "Password is too weak." }); 
+      return; 
+    }
+    
     setPwStatus({ type: "loading" });
     try {
-      const res = await API.put("/api/auth/password", { currentPassword: pw.current, newPassword: pw.newPw });
-      if (res.error) throw new Error(res.message || "Failed");
-      setPwStatus({ type: "success", msg: "Password updated successfully." });
+      const response = await fetch("/api/auth/password", {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({ 
+          currentPassword: pw.current, 
+          newPassword: pw.newPw 
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update password");
+      }
+
+      setPwStatus({ type: "success", msg: "Password updated successfully! ✓" });
       setPw({ current: "", newPw: "", confirm: "" });
+      setTimeout(() => setPwStatus(null), 3000);
     } catch (err) {
+      console.error("Password change error:", err);
       setPwStatus({ type: "error", msg: err.message || "Failed to update password." });
     }
   };
 
-  const Toggle = ({ checked, onChange, color = T.brand }) => (
-    <div onClick={() => onChange(!checked)} style={{ width: 40, height: 20, borderRadius: 99, background: checked ? color : "#D1D5DB", cursor: "pointer", transition: "background .2s", position: "relative", flexShrink: 0 }}>
-      <div style={{ width: 14, height: 14, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: checked ? 23 : 3, transition: "left .2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
+  const handleTwoFaToggle = async (newValue) => {
+    setTwoFaLoading(true);
+    try {
+      const response = await fetch("/api/auth/2fa", {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({ enabled: newValue }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update 2FA settings");
+      }
+
+      setTwoFa(newValue);
+      if (onUserUpdate) {
+        onUserUpdate({ twoFaEnabled: newValue });
+      }
+    } catch (err) {
+      console.error("2FA toggle error:", err);
+      // Revert the toggle if it fails
+      setTwoFa(!newValue);
+      alert("Failed to update 2FA settings: " + err.message);
+    } finally {
+      setTwoFaLoading(false);
+    }
+  };
+
+  const Toggle = ({ checked, onChange, color = T.brand, disabled = false }) => (
+    <div 
+      onClick={() => !disabled && onChange(!checked)} 
+      style={{ 
+        width: 40, 
+        height: 20, 
+        borderRadius: 99, 
+        background: checked ? color : "#D1D5DB", 
+        cursor: disabled ? "not-allowed" : "pointer", 
+        transition: "background .2s", 
+        position: "relative", 
+        flexShrink: 0,
+        opacity: disabled ? 0.6 : 1
+      }}>
+      <div style={{ 
+        width: 14, 
+        height: 14, 
+        borderRadius: "50%", 
+        background: "#fff", 
+        position: "absolute", 
+        top: 3, 
+        left: checked ? 23 : 3, 
+        transition: "left .2s", 
+        boxShadow: "0 1px 4px rgba(0,0,0,0.2)" 
+      }} />
     </div>
   );
 
@@ -1769,7 +1968,15 @@ function SettingsPage({ user, onUserUpdate }) {
                   <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Two-Factor Authentication</div>
                   <div style={{ fontSize: 10, color: T.textMd }}>Adds extra layer of security to your account</div>
                 </div>
-                <Toggle checked={twoFa} color={T.green} onChange={v => { setTwoFa(v); onUserUpdate?.({ twoFaEnabled: v }); }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {twoFaLoading && <Loader2 size={13} style={{ color: T.brand }} className="spin" />}
+                  <Toggle 
+                    checked={twoFa} 
+                    color={T.green} 
+                    onChange={handleTwoFaToggle}
+                    disabled={twoFaLoading}
+                  />
+                </div>
               </div>
               <div style={{ padding: "14px 16px", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: T.textDim, marginBottom: 8, fontFamily: "'JetBrains Mono',monospace" }}>SESSION INFO</div>
@@ -2171,7 +2378,7 @@ export default function Dashboard() {
       case "fraud-detection": return <FraudDetectionPage />;
       case "incident-report": return <IncidentReportPage />;
       case "achievements": return <AchievementsPage user={user} />;
-      case "community": return <CommunityPage user={user} />;
+      case "community": return <CommunityForum />;
       case "profile": return <ProfilePage user={user} onUserUpdate={onUserUpdate} />;
       case "settings": return <SettingsPage user={user} onUserUpdate={onUserUpdate} />;
       case "leaderboard": return <LeaderboardPage user={user} />;

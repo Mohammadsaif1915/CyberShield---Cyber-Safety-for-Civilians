@@ -26,7 +26,7 @@ const securityScoreSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
-    gameProgress: {
+    reportScore: {
       type: Number,
       default: 0,
       min: 0,
@@ -37,6 +37,11 @@ const securityScoreSchema = new mongoose.Schema(
       default: 0,
       min: 0,
       max: 100,
+    },
+    streak: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     activityLevel: {
       type: Number,

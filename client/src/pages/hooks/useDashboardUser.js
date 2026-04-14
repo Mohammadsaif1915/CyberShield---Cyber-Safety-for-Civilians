@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-const API = 'http://localhost:5000';   // ← change if your backend URL differs
+const API = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') : '';   // ← dynamic API base url
 
 // XP / level helper (mirrors the one in Dashboard.jsx)
 const computeLevel = (score = 0) => {

@@ -32,6 +32,18 @@ const communityPostSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    likedBy: [
+      {
+        userId: mongoose.Schema.Types.ObjectId,
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    viewedBy: [
+      {
+        userId: mongoose.Schema.Types.ObjectId,
+        viewedAt: { type: Date, default: Date.now },
+      },
+    ],
     comments: [
       {
         userId: mongoose.Schema.Types.ObjectId,

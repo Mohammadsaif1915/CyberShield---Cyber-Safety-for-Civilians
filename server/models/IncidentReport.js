@@ -52,6 +52,30 @@ const incidentReportSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    anonymous: {
+      type: Boolean,
+      default: false,
+    },
+    sendEmailUpdates: {
+      type: Boolean,
+      default: true,
+    },
+    notes: {
+      type: String,
+      default: null,
+    },
+    resolvedAt: {
+      type: Date,
+      default: null,
+    },
+    verifiedAt: {
+      type: Date,
+      default: null,
+    },
+    lastStatusUpdate: {
+      type: Date,
+      default: null,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -59,5 +83,9 @@ const incidentReportSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Index for faster queries
+incidentReportSchema.index({ userId: 1, createdAt: -1 });
+incidentReportSchema.index({ status: 1, severity: 1 });
 
 export default mongoose.model('IncidentReport', incidentReportSchema);

@@ -152,7 +152,7 @@ export const createPaymentOrder = async (req, res) => {
     }
 
     const options = {
-      amount: 1 * 100, // ₹1 in paise
+      amount: 100 * 100, // ₹100 in paise
       currency: 'INR',
       receipt: `rcpt_${userId.toString().slice(-8)}${courseId.toString().slice(-8)}`.slice(0, 40),
     };

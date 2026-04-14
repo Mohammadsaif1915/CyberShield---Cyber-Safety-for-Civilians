@@ -101,6 +101,14 @@ export const updateVideoProgress = async (req, res) => {
 
     progress.completedVideos  = progress.watchedVideos.filter(v => v.completed).length
     progress.allVideosWatched = progress.completedVideos >= course.videos.length
+    
+    // AUTO-MARK AS QUIZ PASSED WHEN ALL VIDEOS WATCHED (for dashboard)
+    if (progress.allVideosWatched && !progress.quizPassed) {
+      progress.quizPassed = true
+      progress.completedAt = new Date()
+      console.log('[Course] All videos watched, marking course as completed for dashboard. User:', userId, 'Course:', course.title)
+    }
+    
     await progress.save()
 
     res.json({ success: true, progress })

@@ -23,6 +23,7 @@ import LeaderboardPage      from "./LeaderboardPage";
 import PhisingSimulatorPage from "./PhisingSimulatorPage";
 import ReportsPage          from "./ReportsPage";
 import ThreatsPage          from "./ThreatsPage";
+import CommunityForum       from "./pages/CommunityForum";
 
 import QuizPages        from "./pages/QuizPages";
 import CoursesPage      from './pages/CoursesPage';
@@ -79,6 +80,7 @@ function App() {
       <Route path="/phishing-simulator"      element={<Layout><PhisingSimulatorPage /></Layout>} />
       <Route path="/reports"                 element={<Layout><ReportsPage /></Layout>} />
       <Route path="/threats"                 element={<Layout><ThreatsPage /></Layout>} />
+      <Route path="/community-forum"         element={<Layout><CommunityForum /></Layout>} />
 
       <Route path="/quiz"                    element={<QuizPage />} />
       <Route path="/courses"                 element={<Layout><CoursesPage /></Layout>} />

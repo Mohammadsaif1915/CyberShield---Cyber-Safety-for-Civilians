@@ -625,6 +625,13 @@ async function saveLevelScore(levelNum, score, wavesCompleted = 0, enemiesDefeat
           xp: data.totalScore,
         };
         localStorage.setItem("user", JSON.stringify(updated));
+        
+        // Custom event to force Dashboard to redraw
+        window.dispatchEvent(new Event('storage'));
+        if (window.parent && window.parent !== window) {
+           window.parent.dispatchEvent(new StorageEvent('storage', { key: 'user' }));
+        }
+
         console.log("💾 User data updated in localStorage");
       } catch (e) {
         console.error("Failed to update localStorage:", e);

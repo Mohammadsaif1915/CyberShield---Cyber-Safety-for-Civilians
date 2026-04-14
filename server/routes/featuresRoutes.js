@@ -4,10 +4,12 @@ import {
   getDashboardOverview,
   getSecurityScore,
   getUserStatistics,
+  generateTestData,
 } from '../controllers/dashboardController.js';
 import {
   createIncidentReport,
   getIncidentReports,
+  updateIncidentStatus,
   getRecentThreats,
   getAchievements,
   unlockAchievement,
@@ -22,10 +24,12 @@ const router = express.Router();
 router.get('/overview', protect, getDashboardOverview);
 router.get('/security-score', protect, getSecurityScore);
 router.get('/statistics', protect, getUserStatistics);
+router.post('/generate-test-data', protect, generateTestData); // For testing only
 
 // ── Incident Report Routes ─────────────────────────────────
 router.post('/incidents/report', protect, createIncidentReport);
 router.get('/incidents', protect, getIncidentReports);
+router.put('/incidents/:reportId/status', protect, updateIncidentStatus);
 router.get('/threats', getRecentThreats); // Public endpoint
 
 // ── Achievement Routes ─────────────────────────────────────
