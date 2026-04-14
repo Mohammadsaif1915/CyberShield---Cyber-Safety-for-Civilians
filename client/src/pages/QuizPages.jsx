@@ -40,7 +40,8 @@ export default function QuizPage() {
   const [timeLeft,   setTimeLeft]   = useState(TOTAL_TIME)
   const [current,    setCurrent]    = useState(0)
 
-  const timerRef = useRef(null)
+  const timerRef     = useRef(null)
+  const startTimeRef  = useRef(Date.now())
 
   useEffect(() => {
     const load = async () => {
@@ -109,7 +110,8 @@ export default function QuizPage() {
         // Map shuffled index back to original index for backend
         return q.originalOrder[selected]
       })
-      const { data } = await api.post(`/quiz/${id}/submit`, { answers: answerArray })
+      const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000)
+      const { data } = await api.post(`/quiz/${id}/submit`, { answers: answerArray, timeSpent })
       setResult(data)
       setSubmitted(true)
       if (data.passed) toast.success('🎉 Congratulations! You passed!')
@@ -246,21 +248,21 @@ export default function QuizPage() {
             ) : (
               <button
                 className="btn btn-accent btn-lg"
-                onClick={() => {
+                onClick={async () => {
+                  // Reset UI state
                   setSubmitted(false)
                   setResult(null)
                   setAnswers({})
                   setCurrent(0)
                   setTimeLeft(TOTAL_TIME)
-                  // Re-shuffle on retry
-                  setQuestions(prev => shuffleOptions(prev.map(q => ({
-                    ...q,
-                    // restore original options order first
-                    options: q.originalOrder.map(idx => {
-                      // we need original options — store them
-                      return q.options[q.answer] // fallback
-                    })
-                  }))))
+                  startTimeRef.current = Date.now()
+                  // Reload & re-shuffle fresh questions from server
+                  try {
+                    const { data } = await api.get(`/quiz/${id}`)
+                    setQuestions(shuffleOptions(data.questions))
+                  } catch (err) {
+                    toast.error('Could not reload quiz. Please refresh the page.')
+                  }
                 }}
               >
                 🔄 Retry Quiz

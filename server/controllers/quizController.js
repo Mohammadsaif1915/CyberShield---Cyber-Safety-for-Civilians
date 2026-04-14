@@ -32,7 +32,7 @@ export const getQuiz = async (req, res) => {
 export const submitQuiz = async (req, res) => {
   try {
     const userId      = getUserId(req)
-    const { answers } = req.body
+    const { answers, timeSpent = 0 } = req.body
 
     const course = await Course.findById(req.params.courseId)
     if (!course) return res.status(404).json({ success: false, message: 'Course not found' })

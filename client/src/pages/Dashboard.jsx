@@ -99,9 +99,25 @@ const computeStreak = (user) => {
 };
 
 const computeLevel = (score) => {
-  const xp = score || 0;
-  const level = Math.floor(xp / 500) + 1;
-  return { level, xp, xpInLevel: xp % 500, xpPct: Math.min(100, Math.round(((xp % 500) / 500) * 100)) };
+  let xp = score || 0;
+  let currentLevel = 1;
+  let requiredForNext = 300; // Level 1 -> 300 XP
+
+  while (xp >= requiredForNext) {
+    xp -= requiredForNext;
+    currentLevel++;
+    requiredForNext = 100 + (currentLevel * 200);
+  }
+
+  const xpPct = Math.min(100, Math.round((xp / requiredForNext) * 100));
+
+  return {
+    level: currentLevel,
+    xp: score || 0,
+    xpInLevel: xp,
+    levelXpLimit: requiredForNext,
+    xpPct
+  };
 };
 
 const SEV = {
@@ -877,7 +893,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
   const phCorrect = user?.phishingSimCorrect || 0;
   const phTotal = user?.phishingSimTotal || 0;
   const phishingAccuracy = phTotal > 0 ? Math.round((phCorrect / phTotal) * 100) : 0;
-  const { level, xp, xpInLevel, xpPct } = computeLevel(score);
+  const { level, xp, xpInLevel, levelXpLimit, xpPct } = computeLevel(score);
 
   const weekData = dashData?.weeklyProgress?.length > 0 ? dashData.weeklyProgress : (user?.weeklyActivity?.length > 0 ? user.weeklyActivity : []);
   const domainData = dashData?.domainScores || [
@@ -952,7 +968,7 @@ function OverviewPage({ user, setPage, navigate, dashData, dashLoading, liveActi
               <div style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(79,70,229,0.12)", borderRadius: 11, padding: "8px 14px", minWidth: 160, backdropFilter: "blur(4px)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: T.textDim, marginBottom: 6 }}>
                   <span>Level {level} Progress</span>
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", color: T.brand }}>{xpInLevel}/300 XP</span>
+                  <span style={{ fontFamily: "'JetBrains Mono',monospace", color: T.brand }}>{xpInLevel}/{levelXpLimit} XP</span>
                 </div>
                 <div style={{ height: 4, background: "rgba(79,70,229,0.12)", borderRadius: 99 }}>
                   <div style={{ height: 4, width: `${xpPct}%`, background: `linear-gradient(90deg,${T.brand},${T.violet})`, borderRadius: 99, transition: "width 1s ease" }} />
@@ -1126,36 +1142,36 @@ if (!_phishStyle) {
   `;
   document.head.appendChild(s);
 }
- 
+
 const PH = {
   serif: "'Instrument Serif', Georgia, serif",
-  sans:  "'DM Sans', system-ui, sans-serif",
-  mono:  "'JetBrains Mono', monospace",
+  sans: "'DM Sans', system-ui, sans-serif",
+  mono: "'JetBrains Mono', monospace",
 };
- 
+
 function PhishingPage({ user, onUserUpdate }) {
-  const [emails, setEmails]             = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [step, setStep]                 = useState(0);
-  const [result, setResult]             = useState(null);
-  const [results, setResults]           = useState([]);
-  const [showFinal, setShowFinal]       = useState(false);
+  const [emails, setEmails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [step, setStep] = useState(0);
+  const [result, setResult] = useState(null);
+  const [results, setResults] = useState([]);
+  const [showFinal, setShowFinal] = useState(false);
   const [sessionScore, setSessionScore] = useState(0);
   const [sessionTotal, setSessionTotal] = useState(0);
-  const [animating, setAnimating]       = useState(false);
- 
+  const [animating, setAnimating] = useState(false);
+
   useEffect(() => {
     API.get("/api/phishing/emails")
       .then(data => setEmails(Array.isArray(data) ? data : data.emails || []))
       .catch(() => setEmails([]))
       .finally(() => setLoading(false));
   }, []);
- 
-  const current    = emails[step];
-  const accuracy   = sessionTotal > 0 ? Math.round((sessionScore / sessionTotal) * 100) : 0;
+
+  const current = emails[step];
+  const accuracy = sessionTotal > 0 ? Math.round((sessionScore / sessionTotal) * 100) : 0;
   const overallAcc = user?.phishingSimTotal
     ? Math.round((user.phishingSimCorrect / user.phishingSimTotal) * 100) : null;
- 
+
   const handleAnswer = async (isPhish) => {
     if (animating || !current || result) return;
     const correct = isPhish === current.isPhishing;
@@ -1163,19 +1179,19 @@ function PhishingPage({ user, onUserUpdate }) {
     setSessionTotal(t => t + 1);
     setResult({ correct, isPhishing: current.isPhishing });
     setResults(prev => { const n = [...prev]; n[step] = correct; return n; });
- 
+
     try {
       await API.post("/api/phishing/result", { correct, emailSubject: current?.subject });
       await API.post("/api/activity", { type: "phishing", result: correct ? "pass" : "fail", score: correct ? 1 : 0, emailId: current._id });
     } catch (err) { console.error("Error saving phishing result:", err); }
- 
+
     if (onUserUpdate) {
       const prevCorrect = user?.phishingSimCorrect || 0;
-      const prevTotal   = user?.phishingSimTotal   || 0;
+      const prevTotal = user?.phishingSimTotal || 0;
       onUserUpdate({ phishingSimCorrect: prevCorrect + (correct ? 1 : 0), phishingSimTotal: prevTotal + 1 });
     }
   };
- 
+
   const next = () => {
     if (step < emails.length - 1) {
       setAnimating(true);
@@ -1184,245 +1200,245 @@ function PhishingPage({ user, onUserUpdate }) {
       setShowFinal(true);
     }
   };
- 
+
   const restart = () => {
     setStep(0); setResult(null); setResults([]);
     setSessionScore(0); setSessionTotal(0); setShowFinal(false);
   };
- 
+
   // ── Loading / Empty ────────────────────────────────────────────────────────
   if (loading) return (
-    <div style={{ display:"flex", justifyContent:"center", padding:60, color:T.textDim, gap:10, alignItems:"center", fontFamily:PH.sans }}>
+    <div style={{ display: "flex", justifyContent: "center", padding: 60, color: T.textDim, gap: 10, alignItems: "center", fontFamily: PH.sans }}>
       <Loader2 size={18} className="ph-spin" /> Loading simulations…
     </div>
   );
- 
+
   if (emails.length === 0) return (
     <EmptyState icon={Mail} title="No phishing emails available"
       desc="Check back later — the admin will add phishing simulation emails." color={T.amber} />
   );
- 
+
   // ── Final results screen ───────────────────────────────────────────────────
   if (showFinal) {
     const correct = results.filter(Boolean).length;
-    const pct     = Math.round((correct / emails.length) * 100);
+    const pct = Math.round((correct / emails.length) * 100);
     const { msg, col } =
-      pct === 100 ? { msg: "Flawless — you caught every single one.",           col: T.green } :
-      pct >= 80   ? { msg: "Sharp eye. A couple slipped through.",              col: T.teal || T.green } :
-      pct >= 60   ? { msg: "Decent instincts — phishers would catch you eventually.", col: T.amber } :
-                    { msg: "High risk. Review the indicators and try again.",   col: T.red };
- 
+      pct === 100 ? { msg: "Flawless — you caught every single one.", col: T.green } :
+        pct >= 80 ? { msg: "Sharp eye. A couple slipped through.", col: T.teal || T.green } :
+          pct >= 60 ? { msg: "Decent instincts — phishers would catch you eventually.", col: T.amber } :
+            { msg: "High risk. Review the indicators and try again.", col: T.red };
+
     return (
-      <div className="ph-up" style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:20, padding:"52px 32px", textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center", gap:18, boxShadow:T.sh }}>
-        <div style={{ fontSize:60, fontFamily:PH.serif, fontStyle:"italic", fontWeight:400, color:col, lineHeight:1 }}>
-          {pct}<span style={{ fontSize:30, opacity:.6 }}>%</span>
+      <div className="ph-up" style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "52px 32px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 18, boxShadow: T.sh }}>
+        <div style={{ fontSize: 60, fontFamily: PH.serif, fontStyle: "italic", fontWeight: 400, color: col, lineHeight: 1 }}>
+          {pct}<span style={{ fontSize: 30, opacity: .6 }}>%</span>
         </div>
         <div>
-          <div style={{ fontSize:13, color:T.textMd, fontFamily:PH.sans }}>{correct} of {emails.length} correct</div>
-          <div style={{ fontSize:16, fontFamily:PH.serif, fontStyle:"italic", color:T.text, marginTop:6, lineHeight:1.4 }}>{msg}</div>
+          <div style={{ fontSize: 13, color: T.textMd, fontFamily: PH.sans }}>{correct} of {emails.length} correct</div>
+          <div style={{ fontSize: 16, fontFamily: PH.serif, fontStyle: "italic", color: T.text, marginTop: 6, lineHeight: 1.4 }}>{msg}</div>
         </div>
-        <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center" }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
           {results.map((r, i) => (
             <div key={i} style={{
-              width:32, height:32, borderRadius:"50%",
+              width: 32, height: 32, borderRadius: "50%",
               background: r ? `${T.green}15` : `${T.red}15`,
-              border:`1px solid ${r ? T.green : T.red}40`,
-              display:"flex", alignItems:"center", justifyContent:"center",
+              border: `1px solid ${r ? T.green : T.red}40`,
+              display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              {r ? <CheckCircle size={13} style={{ color:T.green }} /> : <AlertTriangle size={13} style={{ color:T.red }} />}
+              {r ? <CheckCircle size={13} style={{ color: T.green }} /> : <AlertTriangle size={13} style={{ color: T.red }} />}
             </div>
           ))}
         </div>
         <button className="ph-nbtn" onClick={restart} style={{
-          marginTop:4, padding:"11px 28px", borderRadius:99,
-          border:`1px solid ${T.border}`, background:T.text,
-          color:"#fff", fontSize:13, fontWeight:500, cursor:"pointer", fontFamily:PH.sans,
+          marginTop: 4, padding: "11px 28px", borderRadius: 99,
+          border: `1px solid ${T.border}`, background: T.text,
+          color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: PH.sans,
         }}>
           ↺ Try again
         </button>
       </div>
     );
   }
- 
+
   // ── Main simulator ─────────────────────────────────────────────────────────
   const bodyLines = (current?.body || "").split("\n");
- 
+
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
- 
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
       {/* ── Header bar ── */}
-      <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18, padding:"14px 20px", display:"flex", alignItems:"center", gap:14, boxShadow:T.sh }}>
-        <div style={{ width:44, height:44, borderRadius:13, background:`${T.brand}12`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-          <Mail size={18} style={{ color:T.brand }} />
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: "14px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: T.sh }}>
+        <div style={{ width: 44, height: 44, borderRadius: 13, background: `${T.brand}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Mail size={18} style={{ color: T.brand }} />
         </div>
-        <div style={{ flex:1 }}>
-          <h2 style={{ fontSize:17, fontWeight:400, fontFamily:PH.serif, fontStyle:"italic", color:T.text, margin:"0 0 2px" }}>Phishing Simulator</h2>
-          <p style={{ fontSize:11, color:T.textMd, margin:0, fontFamily:PH.sans }}>Read each email carefully. Real or fake?</p>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 400, fontFamily: PH.serif, fontStyle: "italic", color: T.text, margin: "0 0 2px" }}>Phishing Simulator</h2>
+          <p style={{ fontSize: 11, color: T.textMd, margin: 0, fontFamily: PH.sans }}>Read each email carefully. Real or fake?</p>
         </div>
-        <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-          <div style={{ background:`${T.brand}08`, border:`1px solid ${T.brand}20`, borderRadius:10, padding:"6px 13px", textAlign:"center" }}>
-            <div style={{ fontSize:13, fontWeight:600, color:T.brand, fontFamily:PH.mono, lineHeight:1 }}>{sessionScore}/{sessionTotal}</div>
-            <div style={{ fontSize:9, color:T.textDim, fontFamily:PH.sans, marginTop:2, textTransform:"uppercase", letterSpacing:"0.05em" }}>Session</div>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <div style={{ background: `${T.brand}08`, border: `1px solid ${T.brand}20`, borderRadius: 10, padding: "6px 13px", textAlign: "center" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.brand, fontFamily: PH.mono, lineHeight: 1 }}>{sessionScore}/{sessionTotal}</div>
+            <div style={{ fontSize: 9, color: T.textDim, fontFamily: PH.sans, marginTop: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>Session</div>
           </div>
           {overallAcc !== null && (
-            <div style={{ background:`${T.teal || T.brand}08`, border:`1px solid ${T.teal || T.brand}20`, borderRadius:10, padding:"6px 13px", textAlign:"center" }}>
-              <div style={{ fontSize:13, fontWeight:600, color:T.teal || T.brand, fontFamily:PH.mono, lineHeight:1 }}>{overallAcc}%</div>
-              <div style={{ fontSize:9, color:T.textDim, fontFamily:PH.sans, marginTop:2, textTransform:"uppercase", letterSpacing:"0.05em" }}>All-time</div>
+            <div style={{ background: `${T.teal || T.brand}08`, border: `1px solid ${T.teal || T.brand}20`, borderRadius: 10, padding: "6px 13px", textAlign: "center" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.teal || T.brand, fontFamily: PH.mono, lineHeight: 1 }}>{overallAcc}%</div>
+              <div style={{ fontSize: 9, color: T.textDim, fontFamily: PH.sans, marginTop: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>All-time</div>
             </div>
           )}
         </div>
       </div>
- 
+
       {/* ── Progress dots + bar ── */}
-      <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:12, padding:"9px 16px", display:"flex", alignItems:"center", gap:12, boxShadow:T.sh }}>
-        <div style={{ display:"flex", gap:5, alignItems:"center" }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "9px 16px", display: "flex", alignItems: "center", gap: 12, boxShadow: T.sh }}>
+        <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
           {emails.map((_, i) => {
-            const done   = results[i] !== undefined;
+            const done = results[i] !== undefined;
             const active = i === step && !done;
-            const pass   = results[i] === true;
+            const pass = results[i] === true;
             return (
               <div key={i} style={{
-                width: active ? 18 : 7, height:7, borderRadius:99,
+                width: active ? 18 : 7, height: 7, borderRadius: 99,
                 background: done ? (pass ? T.green : T.red) : active ? T.brand : T.bg,
-                transition:"all .3s cubic-bezier(.22,1,.36,1)", opacity: done || active ? 1 : 0.4,
+                transition: "all .3s cubic-bezier(.22,1,.36,1)", opacity: done || active ? 1 : 0.4,
               }} />
             );
           })}
         </div>
-        <div style={{ flex:1, height:3, background:T.bg, borderRadius:99, overflow:"hidden" }}>
-          <div className="ph-prog" style={{ height:3, borderRadius:99, background:T.brand, width:`${((step+1)/emails.length)*100}%` }} />
+        <div style={{ flex: 1, height: 3, background: T.bg, borderRadius: 99, overflow: "hidden" }}>
+          <div className="ph-prog" style={{ height: 3, borderRadius: 99, background: T.brand, width: `${((step + 1) / emails.length) * 100}%` }} />
         </div>
-        <span style={{ fontSize:10, color:T.brand, fontWeight:700, fontFamily:PH.mono, flexShrink:0 }}>
-          {step+1}/{emails.length}
+        <span style={{ fontSize: 10, color: T.brand, fontWeight: 700, fontFamily: PH.mono, flexShrink: 0 }}>
+          {step + 1}/{emails.length}
         </span>
       </div>
- 
+
       {/* ── Email card ── */}
-      <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18, overflow:"hidden", boxShadow:T.sh, opacity:animating ? 0.5 : 1, transition:"opacity .18s ease" }}>
- 
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden", boxShadow: T.sh, opacity: animating ? 0.5 : 1, transition: "opacity .18s ease" }}>
+
         {/* macOS chrome */}
-        <div style={{ background:T.bg, borderBottom:`1px solid ${T.border}`, padding:"9px 14px", display:"flex", alignItems:"center", gap:6 }}>
-          {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width:9, height:9, borderRadius:"50%", background:c }} />)}
-          <span style={{ marginLeft:8, fontSize:10, color:T.textDim, fontFamily:PH.mono }}>Inbox — {emails.length} messages</span>
+        <div style={{ background: T.bg, borderBottom: `1px solid ${T.border}`, padding: "9px 14px", display: "flex", alignItems: "center", gap: 6 }}>
+          {["#FF5F57", "#FEBC2E", "#28C840"].map(c => <div key={c} style={{ width: 9, height: 9, borderRadius: "50%", background: c }} />)}
+          <span style={{ marginLeft: 8, fontSize: 10, color: T.textDim, fontFamily: PH.mono }}>Inbox — {emails.length} messages</span>
         </div>
- 
+
         {/* Sender row */}
-        <div style={{ padding:"16px 20px 12px", borderBottom:`1px solid ${T.border}` }}>
-          <div style={{ display:"flex", alignItems:"center", gap:11, marginBottom:10 }}>
-            <div style={{ width:38, height:38, borderRadius:"50%", background:`${T.brand}12`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:600, color:T.brand, flexShrink:0, fontFamily:PH.sans }}>
+        <div style={{ padding: "16px 20px 12px", borderBottom: `1px solid ${T.border}` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: "50%", background: `${T.brand}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: T.brand, flexShrink: 0, fontFamily: PH.sans }}>
               {(current?.from || "?").charAt(0).toUpperCase()}
             </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:13, fontWeight:600, color:T.text, fontFamily:PH.sans }}>{current?.from}</div>
-              <div style={{ fontSize:10, color:T.textDim, fontFamily:PH.mono, marginTop:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                {current?.email || current?.fromAddress || `${(current?.from||"sender").toLowerCase().replace(/\s/g,"")}@mail.com`}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: PH.sans }}>{current?.from}</div>
+              <div style={{ fontSize: 10, color: T.textDim, fontFamily: PH.mono, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {current?.email || current?.fromAddress || `${(current?.from || "sender").toLowerCase().replace(/\s/g, "")}@mail.com`}
               </div>
             </div>
-            <div style={{ fontSize:10, color:T.textDim, fontFamily:PH.mono, flexShrink:0 }}>
+            <div style={{ fontSize: 10, color: T.textDim, fontFamily: PH.mono, flexShrink: 0 }}>
               {current?.time || fmtTime?.(current?.createdAt) || ""}
             </div>
           </div>
-          <div style={{ fontSize:17, fontWeight:400, fontFamily:PH.serif, fontStyle:"italic", color:T.text, lineHeight:1.3 }}>
+          <div style={{ fontSize: 17, fontWeight: 400, fontFamily: PH.serif, fontStyle: "italic", color: T.text, lineHeight: 1.3 }}>
             {current?.subject}
           </div>
         </div>
- 
+
         {/* Body */}
-        <div style={{ padding:"16px 20px", minHeight:120 }}>
+        <div style={{ padding: "16px 20px", minHeight: 120 }}>
           {bodyLines.map((line, i) => {
             const isLink = line.startsWith("http");
             return (
-              <p key={i} style={{ fontSize: isLink ? 11 : 13, lineHeight:1.75, margin:"0 0 2px", color: isLink ? T.brand : T.textMd, fontFamily: isLink ? PH.mono : PH.sans, textDecoration: isLink ? "underline" : "none", wordBreak: isLink ? "break-all" : "normal" }}>
+              <p key={i} style={{ fontSize: isLink ? 11 : 13, lineHeight: 1.75, margin: "0 0 2px", color: isLink ? T.brand : T.textMd, fontFamily: isLink ? PH.mono : PH.sans, textDecoration: isLink ? "underline" : "none", wordBreak: isLink ? "break-all" : "normal" }}>
                 {line || "\u00A0"}
               </p>
             );
           })}
         </div>
- 
+
         {/* ── Verdict buttons ── */}
         {!result ? (
-          <div style={{ borderTop:`1px solid ${T.border}`, padding:"14px 20px", display:"flex", gap:10, background:T.card }}>
+          <div style={{ borderTop: `1px solid ${T.border}`, padding: "14px 20px", display: "flex", gap: 10, background: T.card }}>
             <button className="ph-vbtn" onClick={() => handleAnswer(false)} style={{
-              flex:1, padding:"13px 12px", borderRadius:13,
-              border:`1px solid ${T.green}30`, background:`${T.green}10`,
-              cursor:"pointer", fontFamily:PH.sans,
-              display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+              flex: 1, padding: "13px 12px", borderRadius: 13,
+              border: `1px solid ${T.green}30`, background: `${T.green}10`,
+              cursor: "pointer", fontFamily: PH.sans,
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
             }}>
-              <CheckCircle size={20} style={{ color:T.green }} />
-              <span style={{ fontSize:12, fontWeight:600, color:T.green }}>Looks legit</span>
-              <span style={{ fontSize:10, color:T.green, opacity:0.7 }}>Mark as safe</span>
+              <CheckCircle size={20} style={{ color: T.green }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: T.green }}>Looks legit</span>
+              <span style={{ fontSize: 10, color: T.green, opacity: 0.7 }}>Mark as safe</span>
             </button>
             <button className="ph-vbtn" onClick={() => handleAnswer(true)} style={{
-              flex:1, padding:"13px 12px", borderRadius:13,
-              border:`1px solid ${T.red}30`, background:`${T.red}10`,
-              cursor:"pointer", fontFamily:PH.sans,
-              display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+              flex: 1, padding: "13px 12px", borderRadius: 13,
+              border: `1px solid ${T.red}30`, background: `${T.red}10`,
+              cursor: "pointer", fontFamily: PH.sans,
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
             }}>
-              <AlertTriangle size={20} style={{ color:T.red }} />
-              <span style={{ fontSize:12, fontWeight:600, color:T.red }}>It's a phish</span>
-              <span style={{ fontSize:10, color:T.red, opacity:0.7 }}>Flag suspicious</span>
+              <AlertTriangle size={20} style={{ color: T.red }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: T.red }}>It's a phish</span>
+              <span style={{ fontSize: 10, color: T.red, opacity: 0.7 }}>Flag suspicious</span>
             </button>
           </div>
- 
+
         ) : (
           // ── Result reveal ──
-          <div className="ph-up" style={{ borderTop:`1px solid ${T.border}`, padding:"14px 20px", background:T.card }}>
- 
+          <div className="ph-up" style={{ borderTop: `1px solid ${T.border}`, padding: "14px 20px", background: T.card }}>
+
             {/* Banner */}
             <div style={{
-              display:"flex", alignItems:"center", gap:9, padding:"11px 14px", borderRadius:12, marginBottom:12,
+              display: "flex", alignItems: "center", gap: 9, padding: "11px 14px", borderRadius: 12, marginBottom: 12,
               background: result.correct ? `${T.green}12` : `${T.red}12`,
-              border:`1px solid ${result.correct ? T.green : T.red}30`,
+              border: `1px solid ${result.correct ? T.green : T.red}30`,
             }}>
               {result.correct
-                ? <CheckCircle size={17} style={{ color:T.green }} />
-                : <AlertTriangle size={17} style={{ color:T.red }} />}
+                ? <CheckCircle size={17} style={{ color: T.green }} />
+                : <AlertTriangle size={17} style={{ color: T.red }} />}
               <div>
-                <div style={{ fontSize:13, fontWeight:600, color: result.correct ? T.green : T.red, fontFamily:PH.sans }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: result.correct ? T.green : T.red, fontFamily: PH.sans }}>
                   {result.correct ? "Correct!" : "Missed it."}
                 </div>
-                <div style={{ fontSize:11, color: result.correct ? T.green : T.red, opacity:0.75, fontFamily:PH.sans, marginTop:1 }}>
+                <div style={{ fontSize: 11, color: result.correct ? T.green : T.red, opacity: 0.75, fontFamily: PH.sans, marginTop: 1 }}>
                   This was {result.isPhishing ? "a phishing email" : "a legitimate email"}.
                 </div>
               </div>
             </div>
- 
+
             {/* Clues */}
             {current?.clues?.length > 0 && (
-              <div style={{ marginBottom:12 }}>
-                <div style={{ fontSize:10, fontWeight:600, color:T.textDim, letterSpacing:"0.06em", textTransform:"uppercase", fontFamily:PH.sans, marginBottom:7 }}>
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: T.textDim, letterSpacing: "0.06em", textTransform: "uppercase", fontFamily: PH.sans, marginBottom: 7 }}>
                   Key indicators
                 </div>
                 {current.clues.map((clue, i) => (
-                  <div key={i} className="ph-in" style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"5px 0", borderBottom: i < current.clues.length-1 ? `1px solid ${T.border}` : "none", animationDelay:`${i*0.05}s` }}>
-                    <div style={{ width:15, height:15, borderRadius:"50%", background: current.isPhishing ? `${T.red}15` : `${T.green}15`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                  <div key={i} className="ph-in" style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "5px 0", borderBottom: i < current.clues.length - 1 ? `1px solid ${T.border}` : "none", animationDelay: `${i * 0.05}s` }}>
+                    <div style={{ width: 15, height: 15, borderRadius: "50%", background: current.isPhishing ? `${T.red}15` : `${T.green}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                       {current.isPhishing
-                        ? <AlertTriangle size={7} style={{ color:T.red }} />
-                        : <CheckCircle size={7} style={{ color:T.green }} />}
+                        ? <AlertTriangle size={7} style={{ color: T.red }} />
+                        : <CheckCircle size={7} style={{ color: T.green }} />}
                     </div>
-                    <span style={{ fontSize:11, color:T.textMd, lineHeight:1.55, fontFamily:PH.sans }}>{clue}</span>
+                    <span style={{ fontSize: 11, color: T.textMd, lineHeight: 1.55, fontFamily: PH.sans }}>{clue}</span>
                   </div>
                 ))}
               </div>
             )}
- 
+
             {/* Next button */}
             <button className="ph-nbtn" onClick={next} style={{
-              width:"100%", padding:"11px", borderRadius:11,
-              border:"none", background:T.text, color:"#fff",
-              fontSize:13, fontWeight:500, cursor:"pointer", fontFamily:PH.sans,
-              display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+              width: "100%", padding: "11px", borderRadius: 11,
+              border: "none", background: T.text, color: "#fff",
+              fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: PH.sans,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             }}>
               {step < emails.length - 1 ? "Next email →" : "See results"}
             </button>
           </div>
         )}
       </div>
- 
+
     </div>
   );
 }
- 
+
 // ─── PAGE: REPORTS ────────────────────────────────────────────────────────────
 function ReportsPage({ user, navigate, setPage }) {
   const [exporting, setExporting] = useState(null);
@@ -1554,13 +1570,13 @@ function ProfilePage({ user, onUserUpdate }) {
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("Avatar must be less than 5MB");
       return;
     }
-    
+
     // Validate file type
     if (!file.type.startsWith("image/")) {
       setError("Please upload a valid image file");
@@ -1590,7 +1606,7 @@ function ProfilePage({ user, onUserUpdate }) {
       formData.append("location", form.location);
       formData.append("role", form.role);
       formData.append("bio", form.bio);
-      
+
       // Add avatar file if selected
       if (avatarFile) {
         formData.append("avatar", avatarFile);
@@ -1617,7 +1633,7 @@ function ProfilePage({ user, onUserUpdate }) {
         if (data.user.avatar) {
           setAvatar(data.user.avatar);
         }
-        
+
         // Update localStorage immediately with new user data including avatar
         const updatedUser = {
           ...form,
@@ -1626,14 +1642,14 @@ function ProfilePage({ user, onUserUpdate }) {
           ...data.user,
         };
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        
+
         if (onUserUpdate) onUserUpdate(updatedUser);
       }
 
       setSaved(true);
       setEditMode(false);
       setAvatarFile(null);
-      
+
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error("Profile update error:", err);
@@ -1725,35 +1741,35 @@ function ProfilePage({ user, onUserUpdate }) {
             ].map((field) => (
               <div key={field.key} style={{ gridColumn: field.full ? "span 2" : "auto" }}>
                 <label style={{ fontSize: 9, fontWeight: 700, color: T.textDim, letterSpacing: "0.08em", display: "block", marginBottom: 5, fontFamily: "'JetBrains Mono',monospace" }}>{field.label.toUpperCase()}</label>
-                <div style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: 8, 
-                  background: editMode ? "#fff" : T.bg, 
-                  border: `2px solid ${editMode ? T.brand : T.border}`, 
-                  borderRadius: 10, 
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: editMode ? "#fff" : T.bg,
+                  border: `2px solid ${editMode ? T.brand : T.border}`,
+                  borderRadius: 10,
                   padding: "9px 12px",
                   transition: "all .2s",
                   boxShadow: editMode ? `0 0 0 3px ${T.brand}15` : "none"
                 }}>
                   <field.icon size={13} style={{ color: editMode ? T.brand : T.textDim, flexShrink: 0, transition: "color .2s" }} />
-                  <input 
-                    value={form[field.key] || ""} 
-                    readOnly={!editMode} 
-                    onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))} 
-                    type={field.type} 
-                    placeholder={editMode ? `Enter ${field.label.toLowerCase()}` : "Not set"} 
-                    style={{ 
-                      border: "none", 
-                      background: "transparent", 
-                      outline: "none", 
-                      fontSize: 12, 
-                      color: T.text, 
-                      width: "100%", 
-                      fontFamily: "'Nunito',sans-serif", 
+                  <input
+                    value={form[field.key] || ""}
+                    readOnly={!editMode}
+                    onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
+                    type={field.type}
+                    placeholder={editMode ? `Enter ${field.label.toLowerCase()}` : "Not set"}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      outline: "none",
+                      fontSize: 12,
+                      color: T.text,
+                      width: "100%",
+                      fontFamily: "'Nunito',sans-serif",
                       fontWeight: 500,
                       cursor: editMode ? "text" : "default"
-                    }} 
+                    }}
                   />
                 </div>
               </div>
@@ -1806,35 +1822,35 @@ function SettingsPage({ user, onUserUpdate }) {
   const strClr = [T.textDim, T.red, T.amber, "#65A30D", T.green];
 
   const handlePwChange = async () => {
-    if (!pw.current || !pw.newPw || !pw.confirm) { 
-      setPwStatus({ type: "error", msg: "All fields are required." }); 
-      return; 
+    if (!pw.current || !pw.newPw || !pw.confirm) {
+      setPwStatus({ type: "error", msg: "All fields are required." });
+      return;
     }
-    if (pw.newPw !== pw.confirm) { 
-      setPwStatus({ type: "error", msg: "Passwords do not match." }); 
-      return; 
+    if (pw.newPw !== pw.confirm) {
+      setPwStatus({ type: "error", msg: "Passwords do not match." });
+      return;
     }
-    if (str < 2) { 
-      setPwStatus({ type: "error", msg: "Password is too weak." }); 
-      return; 
+    if (str < 2) {
+      setPwStatus({ type: "error", msg: "Password is too weak." });
+      return;
     }
-    
+
     setPwStatus({ type: "loading" });
     try {
       const response = await fetch("/api/auth/password", {
         method: "PUT",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
-        body: JSON.stringify({ 
-          currentPassword: pw.current, 
-          newPassword: pw.newPw 
+        body: JSON.stringify({
+          currentPassword: pw.current,
+          newPassword: pw.newPw
         }),
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || "Failed to update password");
       }
@@ -1853,7 +1869,7 @@ function SettingsPage({ user, onUserUpdate }) {
     try {
       const response = await fetch("/api/auth/2fa", {
         method: "PUT",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
@@ -1861,7 +1877,7 @@ function SettingsPage({ user, onUserUpdate }) {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || "Failed to update 2FA settings");
       }
@@ -1881,29 +1897,29 @@ function SettingsPage({ user, onUserUpdate }) {
   };
 
   const Toggle = ({ checked, onChange, color = T.brand, disabled = false }) => (
-    <div 
-      onClick={() => !disabled && onChange(!checked)} 
-      style={{ 
-        width: 40, 
-        height: 20, 
-        borderRadius: 99, 
-        background: checked ? color : "#D1D5DB", 
-        cursor: disabled ? "not-allowed" : "pointer", 
-        transition: "background .2s", 
-        position: "relative", 
+    <div
+      onClick={() => !disabled && onChange(!checked)}
+      style={{
+        width: 40,
+        height: 20,
+        borderRadius: 99,
+        background: checked ? color : "#D1D5DB",
+        cursor: disabled ? "not-allowed" : "pointer",
+        transition: "background .2s",
+        position: "relative",
         flexShrink: 0,
         opacity: disabled ? 0.6 : 1
       }}>
-      <div style={{ 
-        width: 14, 
-        height: 14, 
-        borderRadius: "50%", 
-        background: "#fff", 
-        position: "absolute", 
-        top: 3, 
-        left: checked ? 23 : 3, 
-        transition: "left .2s", 
-        boxShadow: "0 1px 4px rgba(0,0,0,0.2)" 
+      <div style={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        background: "#fff",
+        position: "absolute",
+        top: 3,
+        left: checked ? 23 : 3,
+        transition: "left .2s",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.2)"
       }} />
     </div>
   );
@@ -1970,9 +1986,9 @@ function SettingsPage({ user, onUserUpdate }) {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   {twoFaLoading && <Loader2 size={13} style={{ color: T.brand }} className="spin" />}
-                  <Toggle 
-                    checked={twoFa} 
-                    color={T.green} 
+                  <Toggle
+                    checked={twoFa}
+                    color={T.green}
                     onChange={handleTwoFaToggle}
                     disabled={twoFaLoading}
                   />
@@ -2253,16 +2269,16 @@ export default function Dashboard() {
     if (!token) return;
 
     console.log("[Dashboard] Initializing - fetching user data and dashboard stats...");
-    
+
     // Initial fetch
     refreshUserData();
 
     const fetchDashboard = () => {
       API.get("/api/dashboard")
-        .then(data => { 
-          console.log("[Dashboard] Dashboard data loaded:", data); 
-          setDashData(data); 
-          setDashLoading(false); 
+        .then(data => {
+          console.log("[Dashboard] Dashboard data loaded:", data);
+          setDashData(data);
+          setDashLoading(false);
         })
         .catch(err => {
           console.error("[Dashboard] Error loading dashboard:", err.message);
@@ -2286,7 +2302,7 @@ export default function Dashboard() {
     const pollDash = setInterval(fetchDashboard, 30000);
     const pollActs = setInterval(fetchActivities, 15000);
     const pollUser = setInterval(refreshUserData, 5000);  // ← Refresh user data frequently
-    
+
     return () => { clearInterval(pollDash); clearInterval(pollActs); clearInterval(pollUser); };
   }, [refreshUserData]);
 
@@ -2335,7 +2351,7 @@ export default function Dashboard() {
               });
             }
           })
-          .catch((err) => { 
+          .catch((err) => {
             console.error("❌ Failed to refetch user data:", err);
           });
       }, 2000);

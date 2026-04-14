@@ -1,5 +1,5 @@
 import express from 'express';
-import { QuizProgress, ModuleProgress } from '../models/QuizProgress.js';
+import { QuizProgress, ModuleProgress } from '../models/Quizprogress.js';
 import QuizResult from '../models/QuizResult.js';
 import { protect } from '../middleware/auth.js';
 
@@ -11,9 +11,9 @@ router.post('/progress/section', async (req, res) => {
     const { userId, moduleId, sectionId, answers, score, timeSpent, completed } = req.body;
 
     if (!userId || !moduleId || !sectionId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'userId, moduleId, and sectionId are required' 
+      return res.status(400).json({
+        success: false,
+        message: 'userId, moduleId, and sectionId are required'
       });
     }
 
@@ -30,17 +30,17 @@ router.post('/progress/section', async (req, res) => {
       { upsert: true, new: true, runValidators: true }
     );
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Section progress saved successfully',
-      data: progress 
+      data: progress
     });
   } catch (error) {
     console.error('Error saving section progress:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to save section progress',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -50,30 +50,30 @@ router.get('/progress/section/:userId/:moduleId/:sectionId', async (req, res) =>
   try {
     const { userId, moduleId, sectionId } = req.params;
 
-    const progress = await QuizProgress.findOne({ 
-      userId, 
-      moduleId: parseInt(moduleId), 
-      sectionId: parseInt(sectionId) 
+    const progress = await QuizProgress.findOne({
+      userId,
+      moduleId: parseInt(moduleId),
+      sectionId: parseInt(sectionId)
     });
 
     if (!progress) {
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         data: null,
         message: 'No progress found for this section'
       });
     }
 
-    res.json({ 
-      success: true, 
-      data: progress 
+    res.json({
+      success: true,
+      data: progress
     });
   } catch (error) {
     console.error('Error fetching section progress:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to fetch section progress',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -83,21 +83,21 @@ router.get('/progress/module/:userId/:moduleId', async (req, res) => {
   try {
     const { userId, moduleId } = req.params;
 
-    const sections = await QuizProgress.find({ 
-      userId, 
-      moduleId: parseInt(moduleId) 
+    const sections = await QuizProgress.find({
+      userId,
+      moduleId: parseInt(moduleId)
     }).sort({ sectionId: 1 });
 
-    res.json({ 
-      success: true, 
-      data: sections 
+    res.json({
+      success: true,
+      data: sections
     });
   } catch (error) {
     console.error('Error fetching module progress:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to fetch module progress',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -110,9 +110,9 @@ router.post('/progress/module', async (req, res) => {
     const authenticatedUserId = req.user?._id;
 
     if (!userId || !moduleId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'userId and moduleId are required' 
+      return res.status(400).json({
+        success: false,
+        message: 'userId and moduleId are required'
       });
     }
 
@@ -142,23 +142,23 @@ router.post('/progress/module', async (req, res) => {
         grade: percentage >= 80 ? 'A' : percentage >= 70 ? 'B' : percentage >= 60 ? 'C' : 'F',
         timeSpent: Math.round(timeSpent / 1000) || 0,
       }).catch(err => console.error('[Quiz] Failed to save QuizResult:', err.message));
-      
+
       console.log('[Quiz] Module completed. QuizProgress User:', userId, '| Authenticated User:', authenticatedUserId, '| Module:', moduleId, '| Score:', totalScore, '| QuizResult saved');
     } else {
       console.log('[Quiz] Module progress saved. User:', userId, '| Completed:', completed, '| Authenticated:', !!authenticatedUserId);
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Module progress saved successfully',
-      data: moduleProgress 
+      data: moduleProgress
     });
   } catch (error) {
     console.error('Error saving module progress:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to save module progress',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -173,8 +173,8 @@ router.get('/progress/user/:userId', async (req, res) => {
       QuizProgress.find({ userId }).sort({ moduleId: 1, sectionId: 1 })
     ]);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       data: {
         modules: moduleProgress,
         sections: sectionProgress
@@ -182,10 +182,10 @@ router.get('/progress/user/:userId', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user progress:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to fetch user progress',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -206,8 +206,8 @@ router.get('/stats/:userId', async (req, res) => {
     const totalQuestions = moduleProgress.reduce((sum, mod) => sum + (mod.totalQuestions || 0), 0);
     const averageScore = totalQuestions > 0 ? Math.round((totalScore / totalQuestions) * 100) : 0;
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       data: {
         completedModules,
         completedSections,
@@ -219,10 +219,10 @@ router.get('/stats/:userId', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user stats:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to fetch user statistics',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -232,22 +232,22 @@ router.delete('/progress/section/:userId/:moduleId/:sectionId', async (req, res)
   try {
     const { userId, moduleId, sectionId } = req.params;
 
-    await QuizProgress.findOneAndDelete({ 
-      userId, 
-      moduleId: parseInt(moduleId), 
-      sectionId: parseInt(sectionId) 
+    await QuizProgress.findOneAndDelete({
+      userId,
+      moduleId: parseInt(moduleId),
+      sectionId: parseInt(sectionId)
     });
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Section progress deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting section progress:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to delete section progress',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -262,16 +262,16 @@ router.delete('/progress/user/:userId', async (req, res) => {
       ModuleProgress.deleteMany({ userId })
     ]);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'All user progress deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting user progress:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to delete user progress',
-      error: error.message 
+      error: error.message
     });
   }
 });
