@@ -9,21 +9,21 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
-import User            from './models/User.js';
+import User from './models/User.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/adminRoutes.js';
-import Contact         from './models/Contact.js';
-import Subscriber      from './models/Subscriber.js';
-import QuizResult      from './models/QuizResult.js';
-import courseRoutes      from './routes/courseRoutes.js';
-import progressRoutes    from './routes/progressRoutes.js';
+import Contact from './models/Contact.js';
+import Subscriber from './models/Subscriber.js';
+import QuizResult from './models/QuizResult.js';
+import courseRoutes from './routes/courseRoutes.js';
+import progressRoutes from './routes/progressRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
 import phishingRoutes from './routes/phishing.js';
 import activityRoutes from './routes/activity.js';
 import blogRoutes from './routes/blogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import quizSyncRoute   from './routes/quizSyncRoute.js';
+import quizSyncRoute from './routes/quizSyncRoute.js';
 import quizProgressRoutes from './routes/quiz.js';
 import quizRoutes from './routes/quizRoutes.js';
 import gameRoutes from './routes/game.js';
@@ -44,13 +44,13 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // ── Cloudinary Config ────────────────────────────────────────
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ── Multer — memory storage ──────────────────────────────────
 const storage = multer.memoryStorage();
-const upload  = multer({
+const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
@@ -98,24 +98,24 @@ const transporter = nodemailer.createTransport({
 const validateRegistration = ({ fullName, email, password, city, role }) => {
   const errors = {};
 
-  if (!fullName?.trim())                               errors.fullName = 'Full name is required';
-  else if (fullName.trim().length < 2)                 errors.fullName = 'At least 2 characters';
-  else if (!/^[a-zA-Z\s]+$/.test(fullName))            errors.fullName = 'Letters only';
+  if (!fullName?.trim()) errors.fullName = 'Full name is required';
+  else if (fullName.trim().length < 2) errors.fullName = 'At least 2 characters';
+  else if (!/^[a-zA-Z\s]+$/.test(fullName)) errors.fullName = 'Letters only';
 
-  if (!email)                                          errors.email = 'Email is required';
+  if (!email) errors.email = 'Email is required';
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Invalid email format';
 
-  if (!password)                                       errors.password = 'Password is required';
-  else if (password.length < 8)                        errors.password = 'Minimum 8 characters';
-  else if (!/(?=.*[a-z])(?=.*[A-Z])/.test(password))  errors.password = 'Upper & lowercase required';
-  else if (!/(?=.*\d)/.test(password))                 errors.password = 'At least one number';
+  if (!password) errors.password = 'Password is required';
+  else if (password.length < 8) errors.password = 'Minimum 8 characters';
+  else if (!/(?=.*[a-z])(?=.*[A-Z])/.test(password)) errors.password = 'Upper & lowercase required';
+  else if (!/(?=.*\d)/.test(password)) errors.password = 'At least one number';
 
-  if (!city?.trim())                                   errors.city = 'City is required';
-  else if (city.trim().length < 2)                     errors.city = 'Enter a valid city';
+  if (!city?.trim()) errors.city = 'City is required';
+  else if (city.trim().length < 2) errors.city = 'Enter a valid city';
 
   const validRoles = ['student', 'working_professional', 'senior_citizen'];
-  if (!role)                                           errors.role = 'Please select a role';
-  else if (!validRoles.includes(role))                 errors.role = 'Invalid role';
+  if (!role) errors.role = 'Please select a role';
+  else if (!validRoles.includes(role)) errors.role = 'Invalid role';
 
   return errors;
 };
@@ -243,7 +243,7 @@ app.post('/api/register', async (req, res) => {
     if (existing)
       return res.status(409).json({ success: false, errors: { email: 'This email is already registered' } });
 
-    const user  = await User.create({ fullName, email, password, city, role });
+    const user = await User.create({ fullName, email, password, city, role });
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
     return res.status(201).json({
@@ -287,7 +287,7 @@ app.post('/api/auth/google', async (req, res) => {
     const { credential } = req.body;
     if (!credential) return res.status(400).json({ success: false, message: 'No credential provided' });
 
-    const ticket  = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
     const payload = ticket.getPayload();
     const { email, name, sub: googleId } = payload;
 
@@ -324,6 +324,11 @@ app.get('/api/profile', protect, async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+app.use(express.static(path.join(__dirname, "../client/build")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../client/build/index.html"));
+});
 
 app.post('/api/forgot-password', async (req, res) => {
   try {
@@ -334,9 +339,9 @@ app.post('/api/forgot-password', async (req, res) => {
     if (!user)
       return res.status(200).json({ success: true, message: 'If this email is registered, a reset link has been sent.' });
 
-    const resetToken     = crypto.randomBytes(32).toString('hex');
+    const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordToken   = resetTokenHash;
+    user.resetPasswordToken = resetTokenHash;
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
@@ -370,7 +375,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
 app.post('/api/reset-password/:token', async (req, res) => {
   try {
-    const { token }    = req.params;
+    const { token } = req.params;
     const { password } = req.body;
 
     if (!password || password.length < 8)
@@ -381,12 +386,12 @@ app.post('/api/reset-password/:token', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Password must contain at least one number' });
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    const user      = await User.findOne({ resetPasswordToken: tokenHash, resetPasswordExpires: { $gt: Date.now() } });
+    const user = await User.findOne({ resetPasswordToken: tokenHash, resetPasswordExpires: { $gt: Date.now() } });
     if (!user)
       return res.status(400).json({ success: false, message: 'Reset link is invalid or has expired.' });
 
-    user.password             = password;
-    user.resetPasswordToken   = undefined;
+    user.password = password;
+    user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
 
@@ -540,9 +545,9 @@ app.put('/api/me', protect, async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
       {
-        ...(fullName   && { fullName }),
-        ...(phone      && { phone }),
-        ...(city       && { city }),
+        ...(fullName && { fullName }),
+        ...(phone && { phone }),
+        ...(city && { city }),
         ...(department && { department }),
       },
       { new: true, runValidators: true }
@@ -592,10 +597,10 @@ app.post('/api/upload-profile-image', protect, upload.single('image'), async (re
     if (!['avatar', 'cover'].includes(type))
       return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
 
-    const userId   = req.userId;
-    const folder   = type === 'avatar' ? 'cybershield/avatars' : 'cybershield/covers';
+    const userId = req.userId;
+    const folder = type === 'avatar' ? 'cybershield/avatars' : 'cybershield/covers';
     const publicId = `${userId}_${type}`;
-    const result   = await uploadToCloudinary(req.file.buffer, folder, publicId, type);
+    const result = await uploadToCloudinary(req.file.buffer, folder, publicId, type);
     const imageUrl = result.secure_url;
 
     const updateField = type === 'avatar' ? { avatar: imageUrl } : { coverImage: imageUrl };
@@ -618,9 +623,9 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
     if (!['avatar', 'cover'].includes(type))
       return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
 
-    const userId   = req.userId;
+    const userId = req.userId;
     const publicId = `cybershield/${type === 'avatar' ? 'avatars' : 'covers'}/${userId}_${type}`;
-    await cloudinary.uploader.destroy(publicId).catch(() => {});
+    await cloudinary.uploader.destroy(publicId).catch(() => { });
 
     const clearField = type === 'avatar' ? { avatar: null } : { coverImage: null };
     await User.findByIdAndUpdate(userId, clearField);
@@ -640,20 +645,20 @@ app.use('/api', dashboardRoutes);
 // ══════════════════════════════════════════════════════════════
 // ── COURSE / PROGRESS / CERTIFICATE / LEADERBOARD ROUTES ──────
 // ══════════════════════════════════════════════════════════════
-app.use('/api/auth',         authRoutes);
-app.use('/api/courses',      courseRoutes);
-app.use('/api/progress',     progressRoutes);
-app.use('/api/quiz',         quizRoutes);
-app.use('/api/certificate',  certificateRoutes);
-app.use('/api/leaderboard',  leaderboardRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/progress', progressRoutes);
+app.use('/api/quiz', quizRoutes);
+app.use('/api/certificate', certificateRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 // ══════════════════════════════════════════════════════════════
 // ── ADMIN ROUTES ──────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
-app.use('/api/admin',        adminRoutes);
+app.use('/api/admin', adminRoutes);
 // ═══════════════════════════════════════════════════════════════
 // ── FEATURES ROUTES ───────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
-app.use('/api/features',     featuresRoutes);
+app.use('/api/features', featuresRoutes);
 // ═══════════════════════════════════════════════════════════════
 // ── ACHIEVEMENTS ROUTES ───────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
