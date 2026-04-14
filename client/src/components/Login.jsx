@@ -3,6 +3,7 @@ import { Eye, EyeOff, AlertCircle, Loader2, Shield, Lock, Mail, ArrowRight } fro
 import ForgotPasswordPopup from "./ForgotPasswordPopup";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from 'react-router-dom';
+import LogoIcon from './common/LogoIcon';
 
 const API_URL = import.meta.env?.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:5000';
 
@@ -60,6 +61,7 @@ const css = `
     width: 28px; height: 28px; border-radius: 7px;
     background: #111;
     display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
   }
   .ln-topbar-link { font-size: 0.8rem; color: #888; }
   .ln-topbar-link a {
@@ -476,7 +478,13 @@ export default function Login() {
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard'); // ✅ FIXED: was '/dashboard'
+      
+      // Redirect based on user role
+      if (data.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch {
       setErrors(p => ({ ...p, submit: 'Could not connect to server.' }));
     } finally {
@@ -498,7 +506,13 @@ export default function Login() {
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard'); // ✅ FIXED: was './pages/Dashboard'
+      
+      // Redirect based on user role
+      if (data.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch {
       setErrors(p => ({ ...p, submit: 'Google login failed. Try again.' }));
     }
@@ -515,7 +529,9 @@ export default function Login() {
           {/* Topbar */}
           <div className="ln-topbar">
             <a href="/" className="ln-logo">
-              <div className="ln-logo-mark"><Shield size={14} color="#fff" /></div>
+              <div className="ln-logo-mark" style={{ background: 'transparent' }}>
+                <LogoIcon size={30} />
+              </div>
               CyberShield
             </a>
             <div className="ln-topbar-link">

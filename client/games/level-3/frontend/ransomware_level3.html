@@ -1,0 +1,1980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEVEL 3 – RANSOMWARE OFFICE ATTACK</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap');
+
+  :root {
+    --red: #ff0033;
+    --green: #00ff88;
+    --yellow: #ffcc00;
+    --cyan: #00eeff;
+    --dark: #020408;
+    --panel: rgba(0,10,20,0.92);
+    --border: rgba(0,238,255,0.3);
+    --danger: rgba(255,0,51,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--dark);
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--cyan);
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { position:fixed; inset:0; display:none; z-index:10; }
+  .screen.active { display:flex; }
+
+  /* TITLE SCREEN */
+  #titleScreen {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, #0a0015 0%, #000 70%);
+  }
+  #titleScreen::before {
+    content:'';
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,238,255,0.03) 2px, rgba(0,238,255,0.03) 4px);
+    pointer-events:none;
+  }
+  .title-glitch {
+    font-family:'Orbitron',sans-serif;
+    font-size: clamp(24px,4vw,52px);
+    font-weight:900;
+    color:#fff;
+    text-shadow: 0 0 20px var(--red), 0 0 40px var(--red);
+    letter-spacing:4px;
+    animation: titlePulse 2s ease-in-out infinite;
+    text-align:center;
+    padding:0 20px;
+  }
+  @keyframes titlePulse {
+    0%,100%{text-shadow:0 0 20px var(--red),0 0 40px var(--red);}
+    50%{text-shadow:0 0 40px var(--red),0 0 80px var(--red),0 0 120px #ff006680;}
+  }
+  .subtitle { color:var(--cyan); letter-spacing:8px; font-size:clamp(10px,1.5vw,14px); margin:12px 0 40px; opacity:.7; text-align:center; }
+  .diff-btn {
+    padding:14px 40px; margin:8px;
+    border: 1px solid var(--cyan);
+    background: transparent;
+    color: var(--cyan);
+    font-family:'Share Tech Mono',monospace;
+    font-size:16px; letter-spacing:3px;
+    cursor:pointer;
+    transition:all .2s;
+    position:relative;
+    overflow:hidden;
+  }
+  .diff-btn::before{content:'';position:absolute;inset:0;background:var(--cyan);transform:scaleX(0);transform-origin:left;transition:transform .2s;z-index:-1;}
+  .diff-btn:hover::before{transform:scaleX(1);}
+  .diff-btn:hover{color:var(--dark);}
+  .diff-btn.hard { border-color:var(--yellow); color:var(--yellow); }
+  .diff-btn.hard::before{ background:var(--yellow); }
+  .diff-btn.nightmare { border-color:var(--red); color:var(--red); }
+  .diff-btn.nightmare::before{ background:var(--red); }
+  .skull-anim { font-size:80px; margin-bottom:20px; animation: skullBob 1.5s ease-in-out infinite; }
+  @keyframes skullBob { 0%,100%{transform:translateY(0) rotate(-5deg);} 50%{transform:translateY(-10px) rotate(5deg);} }
+  .scanlines-overlay { position:fixed; inset:0; pointer-events:none; z-index:9999;
+    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px); }
+  .vignette { position:fixed; inset:0; pointer-events:none; z-index:9998;
+    background:radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%); }
+
+  /* GAME SCREEN */
+  #gameScreen {
+    flex-direction:column;
+    background: var(--dark);
+  }
+
+  /* HUD TOP */
+  #hud {
+    height:50px; background:rgba(0,5,15,0.95);
+    border-bottom: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 20px; flex-shrink:0;
+    position:relative; z-index:100;
+  }
+  #timerDisplay {
+    font-family:'Orbitron',monospace; font-size:22px; font-weight:700;
+    color:var(--green); text-shadow:0 0 10px var(--green);
+    transition:color .3s, text-shadow .3s;
+  }
+  #timerDisplay.warning{color:var(--yellow);text-shadow:0 0 10px var(--yellow);}
+  #timerDisplay.danger{color:var(--red);text-shadow:0 0 20px var(--red); animation:timerPulse .5s ease-in-out infinite;}
+  @keyframes timerPulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+  #scoreDisplay{ font-size:14px; color:var(--cyan); }
+  #phaseDisplay{ font-family:'Orbitron',sans-serif; font-size:11px; color:var(--yellow); letter-spacing:2px; }
+  #diffDisplay{ font-size:11px; opacity:.6; }
+
+  /* MAIN GAME AREA */
+  #gameArea {
+    flex:1; position:relative; overflow:hidden;
+    display:flex;
+  }
+
+  /* OFFICE CANVAS */
+  #officeCanvas {
+    flex:1;
+    background: #050d15;
+    cursor:crosshair;
+    display:block;
+  }
+
+  /* SIDE PANELS */
+  .side-panel {
+    width:220px; background:var(--panel);
+    border-left:1px solid var(--border);
+    display:flex; flex-direction:column;
+    overflow:hidden; flex-shrink:0;
+  }
+  .side-panel.left { border-left:none; border-right:1px solid var(--border); }
+  .panel-header {
+    padding:8px 12px;
+    background: rgba(0,238,255,0.05);
+    border-bottom:1px solid var(--border);
+    font-size:10px; letter-spacing:3px; color:var(--cyan); opacity:.8;
+  }
+  .panel-content { flex:1; overflow-y:auto; padding:8px; }
+  .panel-content::-webkit-scrollbar{width:3px;}
+  .panel-content::-webkit-scrollbar-thumb{background:var(--cyan);border-radius:2px;}
+
+  /* OBJECTIVES */
+  .obj-item {
+    padding:6px 8px; margin:3px 0;
+    border: 1px solid rgba(0,238,255,0.15);
+    border-radius:2px;
+    font-size:11px; line-height:1.4;
+    transition:all .3s;
+    cursor:default;
+  }
+  .obj-item.pending { color:rgba(255,255,255,0.5); }
+  .obj-item.active { color:var(--yellow); border-color:rgba(255,204,0,0.4); background:rgba(255,204,0,0.05); }
+  .obj-item.done { color:var(--green); border-color:rgba(0,255,136,0.3); text-decoration:line-through; opacity:.6; }
+  .obj-item.failed { color:var(--red); border-color:rgba(255,0,51,0.3); }
+  .obj-status { font-size:14px; margin-right:4px; }
+
+  /* SCAN LOG */
+  .log-entry {
+    padding:4px 6px; margin:2px 0;
+    font-size:10px; line-height:1.5;
+    border-left:2px solid transparent;
+    animation: logFade .3s ease;
+  }
+  @keyframes logFade{from{opacity:0;transform:translateX(-5px);}to{opacity:1;transform:translateX(0);}}
+  .log-entry.info{border-color:var(--cyan);color:rgba(0,238,255,0.8);}
+  .log-entry.warn{border-color:var(--yellow);color:var(--yellow);}
+  .log-entry.danger{border-color:var(--red);color:var(--red);}
+  .log-entry.success{border-color:var(--green);color:var(--green);}
+
+  /* MODAL */
+  #modal {
+    display:none; position:fixed; inset:0; z-index:500;
+    background:rgba(0,0,0,0.85);
+    align-items:center; justify-content:center;
+  }
+  #modal.active{ display:flex; }
+  #modalBox {
+    background: #030d1a;
+    border: 1px solid var(--cyan);
+    padding:30px; max-width:600px; width:90%;
+    position:relative; max-height:85vh; overflow-y:auto;
+    box-shadow: 0 0 60px rgba(0,238,255,0.2);
+  }
+  #modalBox::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+  #modalTitle{ font-family:'Orbitron',sans-serif; font-size:16px; color:var(--cyan); margin-bottom:16px; letter-spacing:2px; }
+  #modalContent{ font-size:12px; line-height:1.8; color:rgba(255,255,255,0.8); }
+  .modal-btn {
+    display:inline-block; margin:8px 6px 0;
+    padding:10px 24px; border:1px solid var(--cyan);
+    background:transparent; color:var(--cyan);
+    font-family:'Share Tech Mono',monospace; font-size:13px;
+    cursor:pointer; transition:all .2s; letter-spacing:1px;
+  }
+  .modal-btn:hover{background:var(--cyan);color:var(--dark);}
+  .modal-btn.danger-btn{border-color:var(--red);color:var(--red);}
+  .modal-btn.danger-btn:hover{background:var(--red);color:#fff;}
+  .modal-btn.success-btn{border-color:var(--green);color:var(--green);}
+  .modal-btn.success-btn:hover{background:var(--green);color:var(--dark);}
+
+  /* EMAIL UI */
+  .email-ui { font-size:11px; }
+  .email-field { padding:6px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; gap:8px; }
+  .email-label { color:var(--cyan); opacity:.6; width:60px; flex-shrink:0; }
+  .email-val { color:rgba(255,255,255,0.9); word-break:break-all; }
+  .email-body { padding:12px; color:rgba(255,255,255,0.7); line-height:1.7; margin-top:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); }
+  .suspicious { color:var(--red) !important; font-weight:bold; }
+
+  /* PUZZLE GRIDS */
+  .node-grid { display:grid; gap:8px; margin:12px 0; }
+  .node-cell {
+    padding:10px; border:1px solid rgba(0,238,255,0.2);
+    cursor:pointer; text-align:center; font-size:11px;
+    transition:all .2s; border-radius:2px;
+    background:rgba(0,238,255,0.03);
+  }
+  .node-cell:hover{background:rgba(0,238,255,0.1);border-color:var(--cyan);}
+  .node-cell.selected{background:rgba(0,255,136,0.15);border-color:var(--green);color:var(--green);}
+  .node-cell.wrong{background:rgba(255,0,51,0.15);border-color:var(--red);color:var(--red);}
+  .node-cell.infected{background:rgba(255,0,51,0.1);border-color:rgba(255,0,51,0.5);color:var(--red); animation:cellPulse 1s ease-in-out infinite;}
+  @keyframes cellPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+
+  /* PROGRESS BAR */
+  .prog-bar{ height:4px; background:rgba(255,255,255,0.1); border-radius:2px; margin:8px 0; overflow:hidden; }
+  .prog-fill{ height:100%; border-radius:2px; transition:width .5s; }
+  .prog-fill.red{background:var(--red); box-shadow:0 0 8px var(--red);}
+  .prog-fill.green{background:var(--green); box-shadow:0 0 8px var(--green);}
+  .prog-fill.yellow{background:var(--yellow); box-shadow:0 0 8px var(--yellow);}
+
+  /* GLITCH OVERLAY */
+  #glitchOverlay {
+    position:fixed; inset:0; z-index:800;
+    pointer-events:none; display:none;
+    background: rgba(255,0,0,0.08);
+    animation: glitchFlash .1s ease;
+  }
+  @keyframes glitchFlash{0%{opacity:0;}50%{opacity:1;}100%{opacity:0;}}
+
+  /* SCREEN SHAKE */
+  @keyframes shake {
+    0%,100%{transform:translate(0,0);}
+    10%{transform:translate(-5px,3px);}
+    20%{transform:translate(5px,-3px);}
+    30%{transform:translate(-3px,5px);}
+    40%{transform:translate(3px,-5px);}
+    50%{transform:translate(-5px,3px);}
+    60%{transform:translate(5px,-3px);}
+    70%{transform:translate(-3px,5px);}
+    80%{transform:translate(3px,-5px);}
+    90%{transform:translate(-5px,3px);}
+  }
+  body.shaking { animation:shake .4s ease; }
+
+  /* INFECTION PROGRESS */
+  #infectionBar{
+    position:fixed; bottom:0; left:0; right:0; height:4px; z-index:200;
+    background:rgba(0,0,0,0.5);
+  }
+  #infectionFill{height:100%;background:var(--red);box-shadow:0 0 10px var(--red);width:0%;transition:width 1s;}
+
+  /* ACHIEVEMENT POPUP */
+  #achievement {
+    position:fixed; top:60px; right:20px; z-index:600;
+    background:#030d1a; border:1px solid var(--yellow);
+    padding:12px 20px; min-width:220px;
+    transform:translateX(300px); transition:transform .4s;
+    box-shadow:0 0 30px rgba(255,204,0,0.3);
+  }
+  #achievement.show{transform:translateX(0);}
+  #achievement .ach-title{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--yellow);letter-spacing:2px;}
+  #achievement .ach-name{font-size:14px;color:#fff;margin-top:4px;}
+
+  /* END SCREEN */
+  #endScreen {
+    flex-direction:column; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.97);
+  }
+  .end-title{font-family:'Orbitron',sans-serif;font-size:clamp(28px,5vw,60px);font-weight:900;margin-bottom:20px;text-align:center;}
+  .end-gold{color:#ffd700;text-shadow:0 0 30px #ffd700;}
+  .end-silver{color:#c0c0c0;text-shadow:0 0 30px #c0c0c0;}
+  .end-fail{color:var(--red);text-shadow:0 0 30px var(--red);}
+  .end-stats{font-size:13px;line-height:2.2;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:30px;}
+  .end-stats span{color:var(--cyan);}
+
+  /* SCAN VISION */
+  #scanOverlay{
+    position:fixed; inset:0; z-index:300; pointer-events:none;
+    display:none;
+    background:rgba(0,238,255,0.04);
+    border:2px solid rgba(0,238,255,0.2);
+  }
+  #scanOverlay.active{display:block;}
+
+  /* TUTORIAL TOOLTIP */
+  #tooltip{
+    position:fixed; z-index:400; background:#030d1a;
+    border:1px solid var(--cyan); padding:8px 14px;
+    font-size:11px; pointer-events:none; display:none;
+    max-width:220px; line-height:1.6;
+    box-shadow:0 0 20px rgba(0,238,255,0.2);
+  }
+
+  /* RED ALERT SIREN */
+  #sirenBar{
+    position:fixed; top:0; left:0; right:0; height:3px; z-index:1000;
+    background:linear-gradient(90deg,var(--red),#ff6600,var(--red));
+    animation:sirenMove 1s linear infinite;
+  }
+  @keyframes sirenMove{0%{background-position:0%;}100%{background-position:100%;}}
+
+  /* CABLE DRAG VISUAL */
+  #cableCanvas{
+    position:absolute; inset:0; pointer-events:none; z-index:50;
+  }
+</style>
+</head>
+<body>
+<div class="scanlines-overlay"></div>
+<div class="vignette"></div>
+<div id="sirenBar"></div>
+<div id="glitchOverlay"></div>
+<div id="scanOverlay"></div>
+<div id="tooltip"></div>
+<div id="achievement"><div class="ach-title">🏆 ACHIEVEMENT UNLOCKED</div><div class="ach-name" id="achName"></div></div>
+<div id="infectionBar"><div id="infectionFill"></div></div>
+
+<!-- TITLE SCREEN -->
+<div class="screen active" id="titleScreen">
+  <div class="skull-anim">💀</div>
+  <div class="title-glitch">RANSOMWARE<br>OFFICE ATTACK</div>
+  <div class="subtitle">LEVEL 3 // CYBERSEC SIMULATOR</div>
+  <!-- USERNAME INPUT — sent to backend when game ends -->
+  <div style="margin-bottom:24px;text-align:center;">
+    <div style="font-size:10px;color:rgba(0,238,255,0.5);letter-spacing:3px;margin-bottom:8px;">AGENT IDENTIFIER</div>
+    <input
+      id="usernameInput"
+      type="text"
+      maxlength="30"
+      placeholder="Enter your username..."
+      style="
+        background:rgba(0,238,255,0.05);
+        border:1px solid rgba(0,238,255,0.4);
+        color:var(--cyan);
+        font-family:'Share Tech Mono',monospace;
+        font-size:14px;
+        padding:10px 16px;
+        width:260px;
+        letter-spacing:2px;
+        outline:none;
+        text-align:center;
+      "
+      onkeydown="if(event.key==='Enter')startGame('normal')"
+    />
+    <div id="usernameError" style="color:var(--red);font-size:10px;margin-top:6px;min-height:14px;"></div>
+  </div>
+
+  <div style="margin-bottom:20px;font-size:11px;color:rgba(0,238,255,0.5);letter-spacing:2px;">SELECT DIFFICULTY</div>
+  <button class="diff-btn" onclick="startGame('normal')">▶ NORMAL<br><span style="font-size:10px;opacity:.6">Guided Hints</span></button>
+  <button class="diff-btn hard" onclick="startGame('hard')">⚠ HARD<br><span style="font-size:10px;opacity:.6">Limited Hints</span></button>
+  <button class="diff-btn nightmare" onclick="startGame('nightmare')">☠ NIGHTMARE<br><span style="font-size:10px;opacity:.6">No Hints · Fast Spread</span></button>
+
+  <!-- LEADERBOARD button on title screen -->
+  <button class="diff-btn" onclick="showLeaderboard()" style="margin-top:20px;border-color:rgba(0,238,255,0.3);color:rgba(0,238,255,0.5);font-size:12px;padding:8px 24px;">
+    🏆 LEADERBOARD
+  </button>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen" id="gameScreen">
+  <!-- HUD -->
+  <div id="hud">
+    <div style="display:flex;align-items:center;gap:20px;">
+      <div id="timerDisplay">05:00</div>
+      <div id="phaseDisplay">PHASE 1 — EMAIL FORENSICS</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <!-- Username display in HUD -->
+      <div id="hudUsername" style="font-size:11px;color:rgba(0,238,255,0.5);letter-spacing:1px;"></div>
+      <div id="diffDisplay"></div>
+      <div id="scoreDisplay">SCORE: 0</div>
+      <!-- API save status indicator -->
+      <div id="saveStatus" style="font-size:10px;min-width:80px;"></div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div id="gameArea">
+    <!-- LEFT PANEL: OBJECTIVES -->
+    <div class="side-panel left" style="width:200px">
+      <div class="panel-header">◈ OBJECTIVES</div>
+      <div class="panel-content" id="objPanel"></div>
+      <div style="padding:8px;border-top:1px solid var(--border);">
+        <div style="font-size:9px;opacity:.5;margin-bottom:4px;">INFECTION LEVEL</div>
+        <div class="prog-bar"><div class="prog-fill red" id="infProgBar" style="width:0%"></div></div>
+        <div style="font-size:9px;color:var(--red)" id="infPercent">0% INFECTED</div>
+      </div>
+    </div>
+
+    <!-- CANVAS -->
+    <div style="flex:1;position:relative;">
+      <canvas id="officeCanvas"></canvas>
+      <canvas id="cableCanvas"></canvas>
+    </div>
+
+    <!-- RIGHT PANEL: SCAN LOG -->
+    <div class="side-panel" style="width:210px">
+      <div class="panel-header">◈ SCAN LOG</div>
+      <div class="panel-content" id="logPanel"></div>
+      <div style="padding:8px;border-top:1px solid var(--border);">
+        <div style="font-size:9px;opacity:.4;margin-bottom:6px;">CONTROLS</div>
+        <div style="font-size:9px;line-height:2;opacity:.5;">
+          WASD/↑↓←→ Move<br>
+          E / Click Interact<br>
+          SPACE Scan Mode<br>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- END SCREEN -->
+<div class="screen" id="endScreen">
+  <div class="end-title" id="endTitle"></div>
+  <div class="end-stats" id="endStats"></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;">
+    <button class="diff-btn" onclick="returnToTitle()">↩ PLAY AGAIN</button>
+    <button class="diff-btn" onclick="showPastRuns()" style="border-color:rgba(0,238,255,0.4);color:rgba(0,238,255,0.6);font-size:12px;">
+      📋 MY RUNS
+    </button>
+    <button class="diff-btn" onclick="showLeaderboard()" style="border-color:rgba(255,204,0,0.4);color:rgba(255,204,0,0.6);font-size:12px;">
+      🏆 LEADERBOARD
+    </button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div id="modalBox">
+    <div id="modalTitle"></div>
+    <div id="modalContent"></div>
+    <div id="modalBtns" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// BACKEND API CONFIGURATION
+// ============================================================
+// Change this URL if your backend runs on a different port/host
+const API_BASE_URL = 'http://localhost:5000/api';
+
+// ============================================================
+// API HELPER FUNCTIONS
+// ============================================================
+
+/**
+ * saveGameProgress — sends final game data to the backend
+ * Called at the end of every game session (win or lose)
+ */
+async function saveGameProgress({ levelCompleted, ransomwareChoice }) {
+  // Show a "saving..." indicator in the HUD
+  const saveEl = document.getElementById('saveStatus');
+  if (saveEl) {
+    saveEl.textContent = '⏳ SAVING...';
+    saveEl.style.color = 'var(--yellow)';
+  }
+
+  // Calculate how many seconds the player actually used
+  const timeTaken = Math.round((Date.now() - GS.startTime) / 1000);
+
+  // The data payload we send to POST /api/level3/save
+  const payload = {
+    username:        GS.username,
+    levelCompleted:  levelCompleted,
+    ransomwareChoice: ransomwareChoice,
+    attempts:        GS.wrongActions + 1,   // wrong actions = extra attempts
+    timeTaken:       timeTaken,
+    score:           GS.score,
+    difficulty:      GS.difficulty,
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/level3/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      if (saveEl) {
+        saveEl.textContent = '✓ SAVED';
+        saveEl.style.color = 'var(--green)';
+      }
+      addLog('📡 Progress saved to server', 'success');
+    } else {
+      throw new Error(result.message || 'Save failed');
+    }
+
+    // ALSO submit to main dashboard backend if authenticated
+    const token = localStorage.getItem('token');
+    if (token && levelCompleted) {
+      try {
+        console.log('📤 Submitting game score to main dashboard...', { score: GS.score, token: token.substring(0, 20) + '...' });
+        
+        const mainRes = await fetch('http://localhost:5000/api/game/score', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            score: GS.score,
+            level: 3,
+            wavesCompleted: GS.phaseComplete.filter(Boolean).length,
+            enemiesDefeated: 3,
+            timeSpent: timeTaken
+          }),
+        });
+
+        console.log('📨 Backend response status:', mainRes.status);
+
+        if (mainRes.ok) {
+          const mainData = await mainRes.json();
+          if (mainData.success) {
+            console.log('✅ Dashboard score updated:', mainData);
+            // Update localStorage immediately to trigger Dashboard refresh
+            try {
+              const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+              const updated = {
+                ...currentUser,
+                gameScore: mainData.gameScore || currentUser.gameScore,
+                gameHighScore: mainData.gameHighScore || currentUser.gameHighScore,
+                gamesPlayed: (currentUser.gamesPlayed || 0) + 1,
+                score: mainData.totalScore || currentUser.score,
+                level: mainData.level || currentUser.level,
+              };
+              localStorage.setItem('user', JSON.stringify(updated));
+              console.log('💾 User cache updated in localStorage:', updated);
+            } catch (e) {
+              console.warn('Could not update localStorage:', e);
+            }
+            // Set detailed completion flags for Dashboard to detect
+            localStorage.setItem('cybershield_just_completed', JSON.stringify({
+              level: 3,
+              score: Math.floor(finalScore || 0),
+              timestamp: Date.now(),
+              status: 'completed'
+            }));
+            // Dispatch storage event manually
+            window.dispatchEvent(new Event('storage'));
+          }
+        } else {
+          const errorData = await mainRes.json();
+          console.error('❌ Backend rejected submission:', errorData);
+        }
+      } catch (err) {
+        console.warn('Main backend sync failed:', err);
+      }
+    }
+
+  } catch (error) {
+    // Don't crash the game if the API is unreachable — just log it
+    console.error('API save error:', error.message);
+    if (saveEl) {
+      saveEl.textContent = '✗ SAVE FAILED';
+      saveEl.style.color = 'var(--red)';
+    }
+    addLog('⚠ Could not reach server — progress not saved', 'warn');
+  }
+}
+
+/**
+ * showLeaderboard — fetches and displays the top 10 fastest completions
+ */
+async function showLeaderboard() {
+  // Show the modal immediately with a loading state
+  showModal('🏆 LEADERBOARD — FASTEST COMPLETIONS', `
+    <div style="text-align:center;padding:20px;color:var(--cyan);">
+      ⏳ Loading leaderboard...
+    </div>
+  `, [{ label: 'CLOSE', fn: () => closeModal() }]);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/level3/leaderboard/top`);
+    const result = await response.json();
+
+    if (!result.success || result.data.length === 0) {
+      document.getElementById('modalContent').innerHTML = `
+        <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5);">
+          No completions yet — be the first!
+        </div>`;
+      return;
+    }
+
+    // Build the leaderboard table rows
+    const rows = result.data.map((entry, index) => {
+      const mins = Math.floor(entry.timeTaken / 60);
+      const secs = entry.timeTaken % 60;
+      const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+      const timeStr = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;
+          padding:6px 8px;border-bottom:1px solid rgba(0,238,255,0.1);font-size:11px;">
+          <span style="color:var(--yellow);width:32px;">${medal}</span>
+          <span style="flex:1;color:#fff;">${entry.username}</span>
+          <span style="color:var(--green);width:60px;text-align:center;">${timeStr}</span>
+          <span style="color:var(--cyan);width:70px;text-align:right;">${entry.score.toLocaleString()} pts</span>
+          <span style="color:rgba(0,238,255,0.4);width:70px;text-align:right;">${entry.difficulty.toUpperCase()}</span>
+        </div>`;
+    }).join('');
+
+    document.getElementById('modalContent').innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:9px;
+        color:rgba(0,238,255,0.4);padding:4px 8px;letter-spacing:2px;margin-bottom:4px;">
+        <span style="width:32px;">RANK</span>
+        <span style="flex:1;">AGENT</span>
+        <span style="width:60px;text-align:center;">TIME</span>
+        <span style="width:70px;text-align:right;">SCORE</span>
+        <span style="width:70px;text-align:right;">DIFF</span>
+      </div>
+      ${rows}`;
+
+  } catch (error) {
+    document.getElementById('modalContent').innerHTML = `
+      <div style="color:var(--red);padding:12px;">
+        ⚠ Could not load leaderboard — is the backend running?<br>
+        <span style="font-size:10px;opacity:.6">${error.message}</span>
+      </div>`;
+  }
+}
+
+/**
+ * showPastRuns — fetches this player's own run history
+ * Called from the end screen
+ */
+async function showPastRuns() {
+  if (!GS.username) return;
+
+  showModal(`📋 YOUR RUNS — ${GS.username}`, `
+    <div style="text-align:center;padding:20px;color:var(--cyan);">⏳ Loading...</div>
+  `, [{ label: 'CLOSE', fn: () => closeModal() }]);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/level3/${encodeURIComponent(GS.username)}`);
+    const result = await response.json();
+
+    if (!result.success) {
+      document.getElementById('modalContent').innerHTML = `
+        <div style="color:rgba(255,255,255,0.5);padding:12px;">No previous runs found.</div>`;
+      return;
+    }
+
+    const rows = result.data.map(r => {
+      const mins = Math.floor(r.timeTaken / 60);
+      const secs = r.timeTaken % 60;
+      const date = new Date(r.createdAt).toLocaleDateString();
+      const status = r.levelCompleted
+        ? `<span style="color:var(--green)">✓ WIN</span>`
+        : `<span style="color:var(--red)">✗ LOSS</span>`;
+      return `
+        <div style="display:flex;justify-content:space-between;
+          padding:6px 8px;border-bottom:1px solid rgba(0,238,255,0.1);font-size:10px;">
+          <span>${date}</span>
+          <span>${status}</span>
+          <span style="color:var(--cyan)">${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}</span>
+          <span style="color:var(--yellow)">${r.score.toLocaleString()} pts</span>
+          <span style="opacity:.5">${r.difficulty}</span>
+        </div>`;
+    }).join('');
+
+    document.getElementById('modalContent').innerHTML = `
+      <div style="font-size:10px;opacity:.5;padding:4px 8px;margin-bottom:4px;">
+        ${result.count} run(s) found
+      </div>
+      ${rows}`;
+
+  } catch (error) {
+    document.getElementById('modalContent').innerHTML = `
+      <div style="color:var(--red);padding:12px;">
+        ⚠ Could not reach server — ${error.message}
+      </div>`;
+  }
+}
+
+// ============================================================
+// GAME ENGINE
+// ============================================================
+const canvas = document.getElementById('officeCanvas');
+const ctx = canvas.getContext('2d');
+const cableCanvas = document.getElementById('cableCanvas');
+const cableCtx = cableCanvas.getContext('2d');
+
+// Game State
+const GS = {
+  running: false,
+  difficulty: 'normal',
+  phase: 0, // 0=email,1=printer,2=server,3=boss
+  timer: 300,
+  score: 0,
+  infectionLevel: 0, // 0-100
+  infectionRate: 0.3,
+  player: { x: 400, y: 300, speed: 3 },
+  keys: {},
+  scanMode: false,
+  objectives: [],
+  completed: [],
+  achievements: [],
+  username: 'AGENT',       // ← set from the title screen input
+  ransomwareChoice: 'incomplete',  // ← tracked as player makes decisions
+  // randomized each run
+  infectedPC: null,
+  emailSender: '',
+  usbDesk: null,
+  insiderEmployee: null,
+  phaseComplete: [false,false,false,false],
+  wrongActions: 0,
+  correctActions: 0,
+  startTime: 0,
+  cablesPlaced: {},
+  bossAttempts: 0,
+  bossPattern: [],
+  bossInput: [],
+  usbScanned: false,
+  printerFixed: false,
+  serverRestored: false,
+  firewallOpen: false,
+};
+
+// Office Layout
+let ROOMS = [];
+let NODES = [];  // network nodes
+let EMPLOYEES = [];
+let ITEMS = [];  // interactive items
+
+// Random seed system
+function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function rndInt(a,b) { return Math.floor(Math.random()*(b-a+1))+a; }
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+function startGame(diff) {
+  // ── USERNAME VALIDATION ──────────────────────────────────
+  const usernameInput = document.getElementById('usernameInput');
+  const usernameError = document.getElementById('usernameError');
+  const rawUsername = usernameInput ? usernameInput.value.trim() : '';
+
+  if (!rawUsername) {
+    if (usernameError) {
+      usernameError.textContent = '⚠ Please enter your username before starting.';
+    }
+    if (usernameInput) usernameInput.focus();
+    return; // Stop — don't let game start without a username
+  }
+
+  // Store username in GS so it's available when saving
+  GS.username = rawUsername;
+  if (usernameError) usernameError.textContent = '';
+
+  // Update the HUD username display
+  const hudUsername = document.getElementById('hudUsername');
+  if (hudUsername) hudUsername.textContent = `👤 ${GS.username}`;
+
+  // ── RESET GAME STATE ────────────────────────────────────
+  GS.difficulty = diff;
+  GS.timer = diff === 'nightmare' ? 240 : 300;
+  GS.infectionRate = diff === 'nightmare' ? 0.6 : diff === 'hard' ? 0.45 : 0.3;
+  GS.score = 0;
+  GS.phase = 0;
+  GS.infectionLevel = 5;
+  GS.phaseComplete = [false,false,false,false];
+  GS.wrongActions = 0;
+  GS.correctActions = 0;
+  GS.startTime = Date.now();
+  GS.usbScanned = false;
+  GS.printerFixed = false;
+  GS.serverRestored = false;
+  GS.firewallOpen = false;
+  GS.bossAttempts = 0;
+  GS.cablesPlaced = {};
+  GS.achievements = [];
+  GS.ransomwareChoice = 'incomplete'; // reset choice tracker
+
+  // Clear the save status from any previous run
+  const saveStatus = document.getElementById('saveStatus');
+  if (saveStatus) { saveStatus.textContent = ''; }
+
+  document.getElementById('titleScreen').classList.remove('active');
+  document.getElementById('endScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+  document.getElementById('diffDisplay').textContent = diff.toUpperCase();
+
+  resizeCanvas();
+  buildOffice();
+  randomizeRun();
+  setupObjectives();
+  setupControls();
+  GS.running = true;
+  addLog('⚡ RANSOMWARE DETECTED — SYSTEMS COMPROMISED', 'danger');
+  addLog('Investigate CEO laptop immediately', 'warn');
+  gameLoop();
+  setTimeout(()=>showPhaseIntro(0), 500);
+}
+
+function resizeCanvas() {
+  const area = document.getElementById('gameArea');
+  const w = area.clientWidth - 410;
+  const h = area.clientHeight;
+  canvas.width = w; canvas.height = h;
+  cableCanvas.width = w; cableCanvas.height = h;
+  canvas.style.width = cableCanvas.style.width = w+'px';
+  canvas.style.height = cableCanvas.style.height = h+'px';
+  GS.player.x = w/2; GS.player.y = h/2;
+}
+
+function buildOffice() {
+  const W = canvas.width, H = canvas.height;
+
+  ROOMS = [
+    { id:'ceo', label:'CEO CABIN', x:W*.05, y:H*.05, w:W*.22, h:H*.3, color:'rgba(0,100,150,0.15)', border:'rgba(0,238,255,0.4)' },
+    { id:'cubicles', label:'CUBICLES', x:W*.3, y:H*.05, w:W*.45, h:H*.55, color:'rgba(20,20,40,0.5)', border:'rgba(0,238,255,0.2)' },
+    { id:'server', label:'SERVER ROOM', x:W*.78, y:H*.05, w:W*.2, h:H*.45, color:'rgba(0,0,50,0.3)', border:'rgba(255,0,51,0.4)' },
+    { id:'printer', label:'PRINTER STATION', x:W*.05, y:H*.42, w:W*.22, h:H*.25, color:'rgba(30,10,0,0.3)', border:'rgba(255,102,0,0.3)' },
+    { id:'cctv', label:'CCTV DESK', x:W*.05, y:H*.7, w:W*.15, h:H*.22, color:'rgba(0,30,0,0.3)', border:'rgba(0,255,136,0.3)' },
+    { id:'nas', label:'BACKUP NAS', x:W*.78, y:H*.53, w:W*.2, h:H*.2, color:'rgba(0,10,40,0.3)', border:'rgba(0,136,255,0.3)' },
+    { id:'firewall', label:'FIREWALL CTRL', x:W*.3, y:H*.67, w:W*.45, h:H*.28, color:'rgba(40,0,0,0.3)', border:'rgba(255,0,51,0.2)', locked:true },
+  ];
+
+  // Generate cubicle desks
+  const cubR = ROOMS[1];
+  NODES = [];
+  for (let col=0; col<3; col++) {
+    for (let row=0; row<3; row++) {
+      NODES.push({
+        id: `pc_${col}_${row}`,
+        x: cubR.x + 40 + col*(cubR.w/3.2),
+        y: cubR.y + 40 + row*(cubR.h/3.5),
+        w: 55, h: 40,
+        label: `PC-${col+1}${row+1}`,
+        infected: false,
+        isolated: false,
+        room: 'cubicles',
+        type: 'pc'
+      });
+    }
+  }
+  // CEO laptop
+  const ceoR = ROOMS[0];
+  NODES.push({ id:'ceo_laptop', x:ceoR.x+ceoR.w/2-25, y:ceoR.y+ceoR.h/2, w:55,h:35, label:'CEO LAPTOP', infected:true, isolated:false, room:'ceo', type:'laptop' });
+  // Server nodes
+  const srvR = ROOMS[2];
+  for(let i=0;i<4;i++) {
+    NODES.push({ id:`srv_${i}`, x:srvR.x+15+i*15, y:srvR.y+30+i*50, w:60, h:30, label:`SRV-${i+1}`, infected:i===0, isolated:false, room:'server', type:'server' });
+  }
+  // Printer
+  const prtR = ROOMS[3];
+  NODES.push({ id:'printer', x:prtR.x+prtR.w/2-30, y:prtR.y+prtR.h/2-15, w:65,h:40, label:'PRINTER', infected:false, isolated:false, room:'printer', type:'printer' });
+  // NAS
+  const nasR = ROOMS[5];
+  NODES.push({ id:'nas', x:nasR.x+nasR.w/2-30, y:nasR.y+20, w:65,h:40, label:'NAS BACKUP', infected:false, isolated:false, room:'nas', type:'nas' });
+  // CCTV
+  const cctvR = ROOMS[4];
+  NODES.push({ id:'cctv', x:cctvR.x+20, y:cctvR.y+20, w:65,h:40, label:'CCTV SYS', infected:false, isolated:false, room:'cctv', type:'cctv' });
+  // Firewall terminal
+  const fwR = ROOMS[6];
+  NODES.push({ id:'firewall', x:fwR.x+fwR.w/2-35, y:fwR.y+30, w:75,h:50, label:'FIREWALL TERM', infected:false, isolated:false, room:'firewall', type:'firewall', locked:true });
+
+  // Employees
+  EMPLOYEES = [];
+  const empNames = ['ALEX','SARAH','MARCUS','DIANA','CHEN','RYAN','PRIYA'];
+  NODES.filter(n=>n.room==='cubicles').forEach((node,i)=>{
+    EMPLOYEES.push({ name:empNames[i]||`EMP-${i}`, x:node.x+node.w+12, y:node.y+5, node:node.id, panicking:false });
+  });
+
+  // Items
+  ITEMS = [
+    { id:'usb_real', type:'usb', label:'USB: SALARY_DATA', x:0, y:0, color:'#ffcc00', scanned:false },
+    { id:'usb_fake', type:'usb', label:'USB: BACKUP', x:0, y:0, color:'#888', fake:true },
+    { id:'ransom_note', type:'paper', label:'RANSOM NOTE', x:prtR.x+30, y:prtR.y+prtR.h-30 },
+    { id:'network_switch', type:'switch', label:'NET SWITCH', x:cubR.x+cubR.w-30, y:cubR.y+cubR.h-30 },
+  ];
+}
+
+function randomizeRun() {
+  // Random infected PC
+  const pcs = NODES.filter(n=>n.type==='pc');
+  GS.infectedPC = rnd(pcs);
+  GS.infectedPC.infected = true;
+
+  // Random email sender
+  const senders = [
+    { addr:'invoice@paypa1.com', name:'PayPal Billing <invoice@paypa1.com>' },
+    { addr:'cfo@acme-corp.net', name:'CFO Office <cfo@acme-corp.net>' },
+    { addr:'hr@company-inc.co', name:'HR Department <hr@company-inc.co>' },
+    { addr:'security@micros0ft.com', name:'Microsoft Security <security@micros0ft.com>' },
+    { addr:'accounts@bankofamerica-verify.ru', name:'Bank of America <accounts@bankofamerica-verify.ru>' },
+  ];
+  GS.emailSender = rnd(senders);
+
+  // Random USB desk
+  const desks = NODES.filter(n=>n.type==='pc');
+  const usbDesk = rnd(desks.filter(d=>d.id!==GS.infectedPC.id));
+  const W=canvas.width;
+  ITEMS[0].x = usbDesk.x + 60;
+  ITEMS[0].y = usbDesk.y + 5;
+  ITEMS[1].x = usbDesk.x + 60;
+  ITEMS[1].y = usbDesk.y + 20;
+  GS.usbDesk = usbDesk;
+
+  // Random insider
+  GS.insiderEmployee = rnd(EMPLOYEES);
+
+  // Boss pattern
+  const ips = ['192.168.1.'+rndInt(1,50), '10.0.0.'+rndInt(1,30), '172.16.'+rndInt(0,5)+'.'+rndInt(1,100), '45.33.32.'+rndInt(1,99), '198.51.100.'+rndInt(1,50)];
+  GS.bossPattern = ips.sort(()=>Math.random()-.5).slice(0,4);
+
+  // Make printer infected sometimes
+  if(Math.random()>.5) NODES.find(n=>n.id==='printer').infected=true;
+
+  addLog(`📍 Infection origin: ${GS.infectedPC.label}`, 'warn');
+}
+
+function setupObjectives() {
+  GS.objectives = [
+    { id:'email', label:'Investigate CEO laptop email', phase:0, done:false },
+    { id:'trace', label:'Trace infection to source PC', phase:0, done:false },
+    { id:'isolate_pc', label:'Isolate infected workstation', phase:0, done:false },
+    { id:'printer_log', label:'Check printer logs', phase:1, done:false },
+    { id:'printer_fix', label:'Disable print spooler', phase:1, done:false },
+    { id:'usb_check', label:'Investigate USB threat', phase:1, done:false },
+    { id:'firewall_open', label:'Access firewall controls', phase:2, done:false },
+    { id:'backup_select', label:'Select clean backup snapshot', phase:2, done:false },
+    { id:'restore', label:'Initiate system restore', phase:2, done:false },
+    { id:'boss', label:'Neutralize ransomware core', phase:3, done:false },
+  ];
+  renderObjectives();
+}
+
+function renderObjectives() {
+  const panel = document.getElementById('objPanel');
+  panel.innerHTML = GS.objectives.map(obj => {
+    let cls='pending', icon='○';
+    if(obj.done){ cls='done'; icon='✓'; }
+    else if(obj.phase===GS.phase){ cls='active'; icon='►'; }
+    else if(obj.phase<GS.phase){ cls='failed'; icon='✗'; }
+    return `<div class="obj-item ${cls}"><span class="obj-status">${icon}</span>${obj.label}</div>`;
+  }).join('');
+}
+
+function setupControls() {
+  document.removeEventListener('keydown', onKeyDown);
+  document.removeEventListener('keyup', onKeyUp);
+  canvas.removeEventListener('click', onCanvasClick);
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('keyup', onKeyUp);
+  canvas.addEventListener('click', onCanvasClick);
+}
+
+function onKeyDown(e) {
+  GS.keys[e.key] = true;
+  if(e.key===' ') { GS.scanMode=true; document.getElementById('scanOverlay').classList.add('active'); e.preventDefault(); }
+  if((e.key==='e'||e.key==='E') && !document.getElementById('modal').classList.contains('active')) {
+    tryInteract();
+  }
+}
+function onKeyUp(e) {
+  GS.keys[e.key] = false;
+  if(e.key===' ') { GS.scanMode=false; document.getElementById('scanOverlay').classList.remove('active'); }
+}
+
+function onCanvasClick(e) {
+  if(document.getElementById('modal').classList.contains('active')) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  // Check if clicked on a node
+  for(const node of NODES) {
+    if(mx>=node.x && mx<=node.x+node.w && my>=node.y && my<=node.y+node.h) {
+      interactWithNode(node);
+      return;
+    }
+  }
+  for(const item of ITEMS) {
+    if(item.x && Math.abs(mx-item.x)<20 && Math.abs(my-item.y)<20) {
+      interactWithItem(item);
+      return;
+    }
+  }
+}
+
+function tryInteract() {
+  const px = GS.player.x, py = GS.player.y;
+  for(const node of NODES) {
+    if(Math.abs(px-node.x-node.w/2)<50 && Math.abs(py-node.y-node.h/2)<50) {
+      interactWithNode(node); return;
+    }
+  }
+  for(const item of ITEMS) {
+    if(item.x && Math.abs(px-item.x)<40 && Math.abs(py-item.y)<40) {
+      interactWithItem(item); return;
+    }
+  }
+}
+
+// ============================================================
+// INTERACTION
+// ============================================================
+function interactWithNode(node) {
+  if(node.locked && node.id!=='firewall') { addLog('⚠ ACCESS DENIED — Requires clearance', 'warn'); return; }
+  if(node.id==='ceo_laptop') showEmailModal();
+  else if(node.type==='pc') showPCModal(node);
+  else if(node.type==='printer') showPrinterModal();
+  else if(node.type==='server') showServerModal(node);
+  else if(node.type==='nas') showNASModal();
+  else if(node.type==='cctv') showCCTVModal();
+  else if(node.type==='firewall') { if(GS.phase>=2||GS.phaseComplete[1]) showFirewallModal(); else addLog('⚠ Firewall locked — Stabilize other systems first','warn'); }
+}
+
+function interactWithItem(item) {
+  if(item.type==='usb') {
+    if(!item.fake) {
+      if(GS.usbScanned) {
+        addLog('✓ USB evidence collected safely', 'success');
+        completeObjective('usb_check');
+        item.x = null;
+      } else {
+        // Plug without scanning = penalty
+        screenShake();
+        triggerGlitch();
+        GS.timer -= 60;
+        GS.infectionLevel = Math.min(100, GS.infectionLevel+20);
+        addLog('☠ USB AUTORUN EXECUTED — ransomware spreading!', 'danger');
+        showModal('⚠ USB THREAT ACTIVATED', `<div class="email-body" style="color:var(--red)">
+          You plugged in the USB without scanning it.<br><br>
+          The USB contained <b>autorun.inf malware</b>.<br>
+          Ransomware is now spreading faster.<br><br>
+          <b>-60 seconds | +20% infection</b>
+        </div>`, [{label:'ACKNOWLEDGE',cls:'danger-btn',fn:()=>closeModal()}]);
+      }
+    }
+    if(item.fake) { addLog('USB appears clean — no threat detected', 'info'); }
+  }
+  if(item.type==='paper') {
+    showModal('📄 RANSOM NOTE', `<div class="email-body">
+      <span style="color:var(--red);font-size:16px">YOUR FILES HAVE BEEN ENCRYPTED</span><br><br>
+      All your company data has been encrypted with <b>AES-256</b>.<br><br>
+      To recover your files, send <span style="color:var(--yellow)">50 BTC</span> to:<br>
+      <span style="color:var(--cyan);font-size:10px">3FZbgi29cpjq2GjdwV8eyHuJJnkLtktZc5</span><br><br>
+      You have <span style="color:var(--red)">72 hours</span> before key deletion.<br><br>
+      <i style="opacity:.5">This is what happens when you don't update your systems.</i>
+    </div>`, [
+      {label:'PAY RANSOM (bad idea)',cls:'danger-btn',fn:()=>{
+        GS.ransomwareChoice = 'paid'; // ← player chose to pay
+        GS.score = Math.max(0, GS.score - 200);
+        GS.timer -= 30;
+        addLog('💸 Ransom paid — BTC transferred. This rarely works! (-30 sec)', 'danger');
+        completeObjective('printer_log');
+        closeModal();
+      }},
+      {label:'CLOSE',fn:()=>{
+        completeObjective('printer_log');
+        closeModal();
+      }}
+    ]);
+}
+
+// ============================================================
+// MODAL INTERACTIONS
+// ============================================================
+function showEmailModal() {
+  const s = GS.emailSender;
+  const attachments = ['Invoice_Q4_2024.docm','Salary_Review.xlsm','Contract_Draft.pdf.exe','Security_Update.bat'];
+  const attach = rnd(attachments);
+  const isSuspicious = s.addr.match(/[0-9]|\.ru|\.co\b/i);
+  const bodies = [
+    `Dear CEO,\n\nPlease find attached the quarterly invoice for review.\nKindly approve the payment by EOD.\n\nBest regards,\nFinance Team`,
+    `Hello,\n\nYour Microsoft account requires immediate verification.\nPlease open the attachment to proceed.\n\nMicrosoft Security Team`,
+    `Hi,\n\nI've prepared the updated salary data as requested.\nPlease review and respond ASAP.\n\nHR Department`,
+  ];
+  const body = rnd(bodies);
+  showModal('📧 CEO LAPTOP — EMAIL CLIENT', `
+    <div class="email-ui">
+      <div class="email-field"><span class="email-label">FROM:</span><span class="email-val ${isSuspicious?'suspicious':''}">${s.name}</span></div>
+      <div class="email-field"><span class="email-label">TO:</span><span class="email-val">ceo@company.com</span></div>
+      <div class="email-field"><span class="email-label">SUBJECT:</span><span class="email-val">Urgent: Action Required</span></div>
+      <div class="email-field"><span class="email-label">ATTACH:</span><span class="email-val ${attach.match(/\.exe|\.bat|\.docm|\.xlsm/)?'suspicious':''}">${attach}</span></div>
+      <div class="email-body">${body.replace(/\n/g,'<br>')}</div>
+      <div style="margin-top:12px;padding:8px;background:rgba(255,0,51,0.08);border:1px solid rgba(255,0,51,0.2);font-size:10px;">
+        ${GS.difficulty!=='nightmare'?'⚠ HINT: Check sender domain and attachment extension carefully':''}
+      </div>
+    </div>
+  `, [
+    {label:'MARK AS MALICIOUS',cls:'danger-btn',fn:()=>{
+      completeObjective('email');
+      GS.ransomwareChoice = 'reported'; // ← player chose to report/act on the threat
+      addLog(`🎯 Malicious email identified: ${s.addr}`, 'success');
+      GS.score+=100;
+      GS.timer+=10;
+      addLog('+10 seconds for correct identification','success');
+      closeModal();
+      setTimeout(()=>showInfectionTrace(),500);
+    }},
+    {label:'MARK AS SAFE',fn:()=>{
+      GS.timer-=20;
+      GS.wrongActions++;
+      GS.ransomwareChoice = 'ignored'; // ← player ignored the threat
+      addLog('✗ Incorrect — this email IS malicious (-20 sec)','danger');
+      screenShake();
+      closeModal();
+    }},
+    {label:'CLOSE',fn:()=>closeModal()}
+  ]);
+}
+
+function showInfectionTrace() {
+  const allPCs = NODES.filter(n=>n.type==='pc');
+  const infected = NODES.filter(n=>n.infected && n.type==='pc');
+  const nodeRows = allPCs.map(n=>`
+    <div class="node-cell ${n.infected?'infected':''}" onclick="selectTraceNode('${n.id}')">
+      ${n.label}<br><span style="font-size:9px">${n.infected?'▶ INFECTED':'○ CLEAN'}</span>
+    </div>
+  `).join('');
+  showModal('🔍 NETWORK TRACE — LOCATE PATIENT ZERO', `
+    <div style="font-size:11px;margin-bottom:12px;color:var(--yellow)">
+      Select the PRIMARY infection source workstation:
+    </div>
+    <div class="node-grid" style="grid-template-columns:repeat(3,1fr)">${nodeRows}</div>
+    <div style="font-size:10px;opacity:.5;margin-top:8px">
+      ${GS.difficulty==='normal'?'HINT: Infected nodes pulse red on the office map':''}
+    </div>
+  `, [{label:'CANCEL',fn:()=>closeModal()}]);
+}
+
+window.selectTraceNode = function(id) {
+  if(id===GS.infectedPC.id) {
+    completeObjective('trace');
+    addLog(`✓ Patient zero identified: ${GS.infectedPC.label}`, 'success');
+    GS.score+=150;
+    GS.timer+=10;
+    closeModal();
+    setTimeout(()=>showIsolateModal(),300);
+  } else {
+    GS.timer-=20;
+    GS.wrongActions++;
+    addLog('✗ Wrong workstation — penalty applied', 'danger');
+    screenShake();
+    document.querySelectorAll('.node-cell').forEach(el=>{
+      if(el.onclick&&el.onclick.toString().includes(id)) el.classList.add('wrong');
+    });
+  }
+};
+
+function showIsolateModal() {
+  showModal('🔌 ISOLATE WORKSTATION', `
+    <div style="font-size:12px;margin-bottom:16px;">
+      Physically disconnect <span style="color:var(--red)">${GS.infectedPC.label}</span> from the network.<br><br>
+      Drag the LAN cable to the disconnect port:
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin:20px 0;">
+      <div style="padding:16px;border:1px solid var(--red);color:var(--red);font-size:12px;border-radius:4px;cursor:pointer;animation:cellPulse 1s infinite" id="cableEnd"
+        ondragstart="event.dataTransfer.setData('text','cable')" draggable="true">
+        🔌 LAN CABLE
+      </div>
+      <div style="font-size:20px;opacity:.3">→→→→→</div>
+      <div style="padding:16px;border:2px dashed var(--green);color:var(--green);font-size:12px;border-radius:4px;"
+        ondragover="event.preventDefault()" ondrop="onCableDrop(event)">
+        ⊠ DISCONNECT PORT
+      </div>
+    </div>
+    <div style="font-size:10px;opacity:.4">Or click "FORCE DISCONNECT" button below</div>
+  `, [
+    {label:'FORCE DISCONNECT',cls:'danger-btn',fn:()=>{
+      isolatePC();
+      closeModal();
+    }},
+    {label:'CANCEL',fn:()=>closeModal()}
+  ]);
+}
+
+window.onCableDrop = function(e) {
+  e.preventDefault();
+  isolatePC();
+  closeModal();
+};
+
+function isolatePC() {
+  GS.infectedPC.isolated = true;
+  GS.infectedPC.infected = false;
+  completeObjective('isolate_pc');
+  addLog(`✓ ${GS.infectedPC.label} isolated from network`, 'success');
+  GS.score+=200;
+  GS.timer+=10;
+  GS.infectionLevel = Math.max(0, GS.infectionLevel-15);
+  if(!GS.phaseComplete[0]) {
+    GS.phaseComplete[0]=true;
+    setTimeout(()=>advancePhase(1),1000);
+  }
+}
+
+function showPCModal(node) {
+  if(GS.phase===0 && !GS.objectives.find(o=>o.id==='trace').done) {
+    showModal(`💻 ${node.label}`, `<div class="email-body">
+      ${node.infected?`<span style="color:var(--red)">⚠ CRITICAL: Ransomware activity detected<br>Files being encrypted...</span><br><br>User: EMPLOYEE<br>Status: <span style="color:var(--red)">COMPROMISED</span>`:
+      `Status: <span style="color:var(--green)">CLEAN</span><br>User: EMPLOYEE<br>Last login: 09:42 AM`}
+    </div>`, [{label:'CLOSE',fn:()=>closeModal()}]);
+    return;
+  }
+  if(node.infected && !node.isolated) {
+    showModal(`⚠ ${node.label} — INFECTED`, `<div class="email-body" style="color:var(--red)">
+      This workstation is actively spreading ransomware.<br>Files encrypted: ${rndInt(1200,8000)}<br><br>
+      Isolate this machine immediately.
+    </div>`, [
+      {label:'ISOLATE',cls:'danger-btn',fn:()=>{ node.isolated=true;node.infected=false; addLog(`✓ ${node.label} isolated`,'success'); GS.score+=50; closeModal(); }},
+      {label:'CANCEL',fn:()=>closeModal()}
+    ]);
+  }
+}
+
+function showPrinterModal() {
+  if(!GS.objectives.find(o=>o.id==='printer_log').done) {
+    addLog('⚠ View ransom note first (paper on printer station)', 'warn');
+    return;
+  }
+  const fakeUSBEvent = Math.random()>.5;
+  showModal('🖨 PRINTER STATION — CONTROL PANEL', `
+    <div style="font-size:11px;">
+      <div style="color:var(--red);margin-bottom:12px;">STATUS: COMPROMISED — Printing 847 ransom notes</div>
+      <div class="email-field"><span class="email-label">SPOOLER:</span><span class="email-val" style="color:var(--red)">RUNNING (PID 4821)</span></div>
+      <div class="email-field"><span class="email-label">JOBS:</span><span class="email-val">1,247 queued</span></div>
+      <div class="email-field"><span class="email-label">USB:</span><span class="email-val ${fakeUSBEvent?'':'suspicious'}">${fakeUSBEvent?'No device':'Unknown device detected — autorun.inf'}</span></div>
+      <div style="margin-top:12px">
+        <div style="font-size:10px;color:var(--yellow);margin-bottom:8px">SELECT ACTION:</div>
+      </div>
+    </div>
+  `, [
+    {label:'KILL PRINT SPOOLER',cls:'danger-btn',fn:()=>{
+      completeObjective('printer_fix');
+      GS.printerFixed=true;
+      addLog('✓ Print spooler service terminated', 'success');
+      GS.score+=150;
+      GS.timer+=10;
+      NODES.find(n=>n.id==='printer').infected=false;
+      closeModal();
+      if(!GS.objectives.find(o=>o.id==='usb_check').done) addLog('⚠ Still need to investigate USB threat','warn');
+      checkPhase1Complete();
+    }},
+    {label:'VIEW PRINT LOG',fn:()=>{
+      closeModal();
+      setTimeout(()=>showModal('📋 PRINT LOG', `<div class="email-body">
+        09:14:02 — ransom_note.txt × 1<br>
+        09:14:05 — ransom_note.txt × 1<br>
+        09:14:08 — ransom_note.txt × 1<br>
+        <span style="color:var(--red)">...(repeating 1,244 more times)</span><br><br>
+        Origin: <span style="color:var(--red)">\\\\PRINTSERV\\spooler → WORM.PRINT.v2</span>
+      </div>`,
+      [{label:'BACK',fn:()=>closeModal()}]),300);
+    }},
+    {label:'CANCEL',fn:()=>closeModal()}
+  ]);
+}
+
+function checkPhase1Complete() {
+  if(GS.printerFixed && GS.objectives.find(o=>o.id==='usb_check').done) {
+    if(!GS.phaseComplete[1]) {
+      GS.phaseComplete[1]=true;
+      setTimeout(()=>advancePhase(2),1000);
+    }
+  }
+}
+
+function showCCTVModal() {
+  showModal('📹 CCTV SURVEILLANCE SYSTEM', `
+    <div style="font-size:11px;margin-bottom:12px;">Live feed analysis — Scanning for insider threat...</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;">
+      ${EMPLOYEES.map((emp,i)=>`
+        <div style="padding:8px;border:1px solid rgba(0,238,255,0.2);cursor:pointer;transition:all .2s"
+          onclick="cctvFocus('${emp.name}',${emp===GS.insiderEmployee})"
+          onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='rgba(0,238,255,0.2)'">
+          👤 ${emp.name}<br>
+          <span style="font-size:9px;opacity:.5">Desk: ${emp.node} | ${emp===GS.insiderEmployee&&GS.scanMode?'⚠ SUSPICIOUS':'Status OK'}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div style="font-size:10px;opacity:.4">${GS.difficulty!=='nightmare'?'HINT: Hold SPACE for scan mode to highlight suspects':''}</div>
+  `, [{label:'CLOSE',fn:()=>closeModal()}]);
+}
+
+window.cctvFocus = function(name, isInsider) {
+  if(isInsider) {
+    GS.usbScanned=true;
+    completeObjective('usb_check');
+    addLog(`🎯 Insider threat identified: ${name}`, 'success');
+    GS.score+=300;
+    GS.timer+=10;
+    GS.infectionRate*=0.6;
+    unlockAchievement('INSIDE JOB — Identified the insider threat');
+    closeModal();
+    checkPhase1Complete();
+  } else {
+    addLog(`${name} appears clean`, 'info');
+  }
+};
+
+function showServerModal(node) {
+  if(GS.phase<2) { addLog('⚠ Secure other systems first','warn'); return; }
+  if(node.id==='srv_0') {
+    showFirewallUnlock();
+    return;
+  }
+  showModal(`🖥 ${node.label}`, `<div class="email-body">
+    Status: ${node.infected?`<span style="color:var(--red)">COMPROMISED</span>`:`<span style="color:var(--green)">OPERATIONAL</span>`}<br>
+    Load: ${rndInt(60,99)}%<br>
+    Temp: ${rndInt(70,95)}°C ${node.infected?'⚠ OVERHEATING':''}
+  </div>`, [{label:'CLOSE',fn:()=>closeModal()}]);
+}
+
+function showFirewallUnlock() {
+  const puzzle = [
+    { q:`What does 'isolating a network segment' mean?`, correct:'Cutting it off from other subnets' },
+    { q:`What is a firewall?`, correct:'A system that filters network traffic' },
+    { q:`What should you do first in a ransomware attack?`, correct:'Isolate infected systems' },
+  ];
+  const p = rnd(puzzle);
+  const opts = [p.correct, 'Restart the computer', 'Pay the ransom', 'Ignore the alert'].sort(()=>Math.random()-.5);
+  showModal('🔐 FIREWALL — AUTHENTICATION REQUIRED', `
+    <div style="font-size:11px;margin-bottom:16px;color:var(--yellow)">Security clearance quiz:</div>
+    <div style="font-size:13px;margin-bottom:16px;">${p.q}</div>
+    <div style="display:grid;gap:8px;">
+      ${opts.map(o=>`<div class="node-cell" onclick="checkFirewallAnswer('${o}','${p.correct}')">${o}</div>`).join('')}
+    </div>
+  `, [{label:'CANCEL',fn:()=>closeModal()}]);
+}
+
+window.checkFirewallAnswer = function(selected, correct) {
+  if(selected===correct) {
+    GS.firewallOpen=true;
+    NODES.find(n=>n.id==='firewall').locked=false;
+    completeObjective('firewall_open');
+    addLog('✓ Firewall control room unlocked!', 'success');
+    GS.score+=200;
+    closeModal();
+  } else {
+    GS.timer-=20;
+    addLog('✗ Wrong answer — access denied (-20 sec)', 'danger');
+    screenShake();
+    document.querySelectorAll('.node-cell').forEach(el=>{if(el.textContent===selected)el.classList.add('wrong');});
+  }
+};
+
+function showNASModal() {
+  if(GS.phase<2) { addLog('⚠ Access server room first','warn'); return; }
+  const snapshots = [
+    { label:'Snapshot — Today 02:30 AM', infected:true, id:'snap1' },
+    { label:'Snapshot — Yesterday 11:45 PM', infected:false, id:'snap2' },
+    { label:'Snapshot — 3 days ago 06:00 AM', infected:false, id:'snap3' },
+    { label:'Snapshot — 1 week ago', infected:false, id:'snap4' },
+  ].sort(()=>Math.random()-.5);
+  const hint = GS.difficulty==='normal'?'<div style="font-size:10px;color:var(--yellow);margin-top:8px">⚠ HINT: Avoid snapshots created AFTER infection started (today)</div>':'';
+  showModal('💾 NAS BACKUP — RESTORE POINT SELECTION', `
+    <div style="font-size:11px;margin-bottom:12px;color:var(--cyan)">Select a clean backup snapshot to restore:</div>
+    <div style="display:grid;gap:8px;">
+      ${snapshots.map(s=>`
+        <div class="node-cell" onclick="selectSnapshot('${s.id}',${s.infected})">
+          ${s.label}<br>
+          <span style="font-size:9px;opacity:.4">Size: ${rndInt(20,80)}GB | Checksum: OK</span>
+        </div>
+      `).join('')}
+    </div>
+    ${hint}
+  `, [{label:'CANCEL',fn:()=>closeModal()}]);
+}
+
+window.selectSnapshot = function(id, infected) {
+  if(!GS.firewallOpen) { addLog('⚠ Open firewall controls first','warn'); closeModal(); return; }
+  if(!infected) {
+    completeObjective('backup_select');
+    addLog('✓ Clean backup snapshot selected', 'success');
+    GS.score+=250;
+    closeModal();
+    setTimeout(()=>showRestoreModal(),500);
+  } else {
+    GS.timer-=20;
+    GS.wrongActions++;
+    addLog('✗ This snapshot is INFECTED — restoring would spread ransomware (-20 sec)', 'danger');
+    screenShake();
+  }
+};
+
+function showRestoreModal() {
+  let progress=0;
+  showModal('⚙ SYSTEM RESTORE IN PROGRESS', `
+    <div style="text-align:center;">
+      <div style="font-size:30px;margin:10px;animation:skullBob 1s infinite">🔄</div>
+      <div style="font-size:12px;margin-bottom:12px">Restoring clean backup...</div>
+      <div class="prog-bar" style="height:8px;"><div class="prog-fill green" id="restoreBar" style="width:0%"></div></div>
+      <div id="restorePercent" style="font-size:11px;margin-top:8px;color:var(--green)">0%</div>
+    </div>
+  `, []);
+  const interval=setInterval(()=>{
+    progress+=rndInt(5,15);
+    if(progress>=100){progress=100;clearInterval(interval);
+      setTimeout(()=>{
+        completeObjective('restore');
+        GS.serverRestored=true;
+        addLog('✓ System restore complete — data recovered!', 'success');
+        GS.score+=300;
+        GS.timer+=15;
+        GS.infectionLevel=Math.max(20,GS.infectionLevel-30);
+        closeModal();
+        if(!GS.phaseComplete[2]){
+          GS.phaseComplete[2]=true;
+          setTimeout(()=>advancePhase(3),1000);
+        }
+      },500);
+    }
+    const bar=document.getElementById('restoreBar');
+    const pct=document.getElementById('restorePercent');
+    if(bar){bar.style.width=progress+'%';}
+    if(pct){pct.textContent=progress+'%';}
+  },300);
+}
+
+function showFirewallModal() {
+  if(!GS.serverRestored && GS.phase>=3) {
+    showBossModal();
+    return;
+  }
+  showModal('🔐 FIREWALL CONTROL ROOM', `
+    <div style="font-size:11px;">
+      <div style="color:var(--red);margin-bottom:16px">⚠ Active attack in progress — Firewall breach detected</div>
+      <div class="email-field"><span class="email-label">STATUS:</span><span class="email-val" style="color:var(--red)">BREACHED</span></div>
+      <div class="email-field"><span class="email-label">RULES:</span><span class="email-val">${rndInt(2,5)} malicious rules detected</span></div>
+      <div class="email-field"><span class="email-label">PACKETS:</span><span class="email-val" style="color:var(--red)">${rndInt(50000,200000)}/sec outbound</span></div>
+      <div style="margin-top:16px;font-size:10px;color:var(--cyan)">→ Restore backup first, then engage boss terminal</div>
+    </div>
+  `, [{label:'CLOSE',fn:()=>closeModal()}]);
+}
+
+function showBossModal() {
+  const ips = [...GS.bossPattern, '192.168.1.'+rndInt(50,255), '10.0.0.'+rndInt(50,100), '172.16.'+rndInt(6,15)+'.'+rndInt(1,100)];
+  const shuffled = ips.sort(()=>Math.random()-.5);
+  GS.bossInput=[];
+  showModal('☠ RANSOMWARE CORE — KILL SWITCH SEQUENCE', `
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:40px;animation:skullBob 1s infinite;color:var(--red)">💀</div>
+      <div style="font-family:'Orbitron';color:var(--red);letter-spacing:2px;font-size:13px">RANSOMWARE NUCLEUS ACTIVE</div>
+    </div>
+    <div style="font-size:11px;margin-bottom:12px;color:var(--yellow)">
+      Identify and select the ${GS.bossPattern.length} ATTACK SOURCE IPs in correct order:<br>
+      <span style="font-size:9px;opacity:.5">${GS.difficulty!=='nightmare'?'HINT: Attack IPs follow the foreign/unusual subnet pattern':''}</span>
+    </div>
+    <div id="bossSelection" style="font-size:11px;color:var(--cyan);min-height:24px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:8px;">
+      Selected: (none)
+    </div>
+    <div class="node-grid" style="grid-template-columns:repeat(3,1fr)">
+      ${shuffled.map(ip=>`<div class="node-cell" onclick="bossPick('${ip}')" id="boss_${ip.replace(/\./g,'_')}">${ip}</div>`).join('')}
+    </div>
+  `, [
+    {label:'ACTIVATE KILL SWITCH',cls:'success-btn',fn:()=>validateBoss()},
+    {label:'RESET',fn:()=>{GS.bossInput=[];document.getElementById('bossSelection').textContent='Selected: (none)';document.querySelectorAll('.node-cell').forEach(el=>{el.classList.remove('selected','wrong');});}},
+    {label:'CANCEL',fn:()=>closeModal()}
+  ]);
+}
+
+window.bossPick = function(ip) {
+  if(GS.bossInput.includes(ip)){
+    GS.bossInput=GS.bossInput.filter(i=>i!==ip);
+    const el=document.getElementById('boss_'+ip.replace(/\./g,'_'));
+    if(el)el.classList.remove('selected');
+  } else {
+    GS.bossInput.push(ip);
+    const el=document.getElementById('boss_'+ip.replace(/\./g,'_'));
+    if(el)el.classList.add('selected');
+  }
+  const sel=document.getElementById('bossSelection');
+  if(sel) sel.textContent='Selected: '+(GS.bossInput.length?GS.bossInput.join(', '):'(none)');
+};
+
+function validateBoss() {
+  const correct = GS.bossPattern.sort().join(',');
+  const given = [...GS.bossInput].sort().join(',');
+  if(given===correct) {
+    completeObjective('boss');
+    GS.score+=500;
+    addLog('☠ RANSOMWARE CORE NEUTRALIZED!', 'success');
+    closeModal();
+    triggerVictory();
+  } else {
+    GS.bossAttempts++;
+    GS.timer-=20;
+    GS.wrongActions++;
+    screenShake();
+    addLog(`✗ Wrong IPs selected — puzzle partially reset (-20 sec)`, 'danger');
+    // remove one wrong selection
+    const wrongOnes = GS.bossInput.filter(ip=>!GS.bossPattern.includes(ip));
+    if(wrongOnes.length) {
+      const toRemove = wrongOnes[0];
+      GS.bossInput = GS.bossInput.filter(i=>i!==toRemove);
+      const el=document.getElementById('boss_'+toRemove.replace(/\./g,'_'));
+      if(el){el.classList.remove('selected');el.classList.add('wrong');setTimeout(()=>el.classList.remove('wrong'),1000);}
+      const sel=document.getElementById('bossSelection');
+      if(sel) sel.textContent='Selected: '+(GS.bossInput.length?GS.bossInput.join(', '):'(none)');
+    }
+  }
+}
+
+// ============================================================
+// PHASE MANAGEMENT
+// ============================================================
+function advancePhase(phase) {
+  GS.phase=phase;
+  const labels=['PHASE 1 — EMAIL FORENSICS','PHASE 2 — PRINTER CHAOS','PHASE 3 — SERVER DEFENSE','PHASE 4 — BOSS TERMINAL'];
+  document.getElementById('phaseDisplay').textContent=labels[phase]||'';
+  renderObjectives();
+  showPhaseIntro(phase);
+  triggerGlitch();
+}
+
+function showPhaseIntro(phase) {
+  if(GS.difficulty==='nightmare') return;
+  const intros=[
+    {title:'PHASE 1 — EMAIL FORENSICS',body:'Investigate the CEO\'s laptop.<br>Find the malicious email and trace the infection to its source workstation.<br><span style="color:var(--yellow)">Click the CEO laptop to begin.</span>'},
+    {title:'PHASE 2 — PRINTER WORM',body:'The printer is spewing ransom notes — a worm has infected the print server.<br>Find the USB threat and shut down the spooler.<br><span style="color:var(--yellow)">Check the printer station and CCTV desk.</span>'},
+    {title:'PHASE 3 — SERVER DEFENSE',body:'Ransomware is targeting the backup NAS.<br>Open the firewall controls, then select a clean restore point.<br><span style="color:var(--yellow)">Access server room systems.</span>'},
+    {title:'PHASE 4 — BOSS TERMINAL',body:'One final battle — the ransomware nucleus is still active.<br>Identify attack source IPs and activate the kill switch.<br><span style="color:var(--red)">FINAL CHANCE — Choose carefully.</span>'},
+  ];
+  const intro=intros[phase];
+  if(!intro) return;
+  showModal(intro.title, `<div style="line-height:1.8;font-size:12px;">${intro.body}</div>`, [{label:'BEGIN',fn:()=>closeModal()}]);
+}
+
+function completeObjective(id) {
+  const obj=GS.objectives.find(o=>o.id===id);
+  if(obj&&!obj.done){ obj.done=true; renderObjectives(); }
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+let lastTime=0;
+let deltaAcc=0;
+
+function gameLoop(ts=0) {
+  if(!GS.running) return;
+  const dt=Math.min(ts-lastTime,50)/1000;
+  lastTime=ts;
+
+  update(dt);
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+function update(dt) {
+  // Player movement
+  const sp=GS.player.speed;
+  if(GS.keys['ArrowLeft']||GS.keys['a']||GS.keys['A']) GS.player.x=Math.max(10,GS.player.x-sp*60*dt);
+  if(GS.keys['ArrowRight']||GS.keys['d']||GS.keys['D']) GS.player.x=Math.min(canvas.width-10,GS.player.x+sp*60*dt);
+  if(GS.keys['ArrowUp']||GS.keys['w']||GS.keys['W']) GS.player.y=Math.max(10,GS.player.y-sp*60*dt);
+  if(GS.keys['ArrowDown']||GS.keys['s']||GS.keys['S']) GS.player.y=Math.min(canvas.height-10,GS.player.y+sp*60*dt);
+
+  // Timer
+  deltaAcc+=dt;
+  if(deltaAcc>=1) {
+    deltaAcc=0;
+    GS.timer--;
+    updateTimerDisplay();
+    // Infection spread
+    GS.infectionLevel=Math.min(100,GS.infectionLevel+GS.infectionRate);
+    updateInfectionDisplay();
+    // Spread to neighboring PCs
+    if(Math.random()<0.05*GS.infectionRate) spreadInfection();
+    // Random events
+    if(Math.random()<0.02) triggerRandomEvent();
+  }
+  if(GS.timer<=0) triggerGameOver();
+  updateScore();
+}
+
+function updateTimerDisplay() {
+  const m=Math.floor(GS.timer/60), s=GS.timer%60;
+  const disp=document.getElementById('timerDisplay');
+  disp.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  disp.className='';
+  if(GS.timer<60) disp.classList.add('danger');
+  else if(GS.timer<120) disp.classList.add('warning');
+}
+
+function updateInfectionDisplay() {
+  const pct=Math.round(GS.infectionLevel);
+  document.getElementById('infectionFill').style.width=pct+'%';
+  document.getElementById('infProgBar').style.width=pct+'%';
+  document.getElementById('infPercent').textContent=pct+'% INFECTED';
+}
+
+function updateScore() {
+  document.getElementById('scoreDisplay').textContent=`SCORE: ${GS.score}`;
+}
+
+function spreadInfection() {
+  const uninfected=NODES.filter(n=>!n.infected&&!n.isolated&&n.type==='pc');
+  const infected=NODES.filter(n=>n.infected&&n.type==='pc');
+  if(uninfected.length && infected.length) {
+    const target=rnd(uninfected);
+    target.infected=true;
+    addLog(`⚠ ${target.label} infected!`,'danger');
+  }
+}
+
+function triggerRandomEvent() {
+  const events=[
+    ()=>addLog('🖨 Printer jammed — paper overflow detected','warn'),
+    ()=>addLog('🌡 SRV-3 temperature critical: 94°C','danger'),
+    ()=>{ addLog('🔒 Employee locked workstation — access delayed','warn'); GS.timer-=5; },
+    ()=>addLog('📡 Network switch restarting...','warn'),
+    ()=>addLog('💾 Backup NAS: write speed degraded','warn'),
+  ];
+  rnd(events)();
+}
+
+// ============================================================
+// RENDER ENGINE
+// ============================================================
+function render() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const t=Date.now()/1000;
+
+  // Background grid
+  ctx.strokeStyle='rgba(0,238,255,0.04)';
+  ctx.lineWidth=1;
+  for(let x=0;x<canvas.width;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+  for(let y=0;y<canvas.height;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+
+  // Draw rooms
+  ROOMS.forEach(r=>{
+    // Room fill
+    ctx.fillStyle=r.color;
+    ctx.fillRect(r.x,r.y,r.w,r.h);
+    // Border
+    ctx.strokeStyle=r.border;
+    ctx.lineWidth=1.5;
+    ctx.strokeRect(r.x,r.y,r.w,r.h);
+    // Label
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    ctx.font='9px Share Tech Mono';
+    ctx.fillText(r.label,r.x+6,r.y+14);
+    // Locked overlay
+    if(r.locked && r.id==='firewall' && !GS.firewallOpen) {
+      ctx.fillStyle='rgba(255,0,51,0.05)';
+      ctx.fillRect(r.x,r.y,r.w,r.h);
+      ctx.fillStyle='rgba(255,0,51,0.5)';
+      ctx.font='bold 24px Share Tech Mono';
+      ctx.textAlign='center';
+      ctx.fillText('🔒',r.x+r.w/2,r.y+r.h/2+8);
+      ctx.textAlign='left';
+    }
+  });
+
+  // Network connection lines (between infected nodes)
+  const infNodes=NODES.filter(n=>n.infected&&!n.isolated);
+  if(infNodes.length>1) {
+    ctx.save();
+    ctx.strokeStyle=`rgba(255,0,51,${0.3+0.2*Math.sin(t*3)})`;
+    ctx.lineWidth=1;
+    ctx.setLineDash([4,4]);
+    ctx.lineDashOffset=-t*20;
+    for(let i=0;i<infNodes.length-1;i++) {
+      const a=infNodes[i], b=infNodes[i+1];
+      ctx.beginPath();
+      ctx.moveTo(a.x+a.w/2,a.y+a.h/2);
+      ctx.lineTo(b.x+b.w/2,b.y+b.h/2);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  // Draw nodes
+  NODES.forEach(node=>{
+    const isInfected=node.infected&&!node.isolated;
+    const isIsolated=node.isolated;
+    const pulse=0.7+0.3*Math.sin(t*4);
+
+    // Node fill
+    if(isIsolated) ctx.fillStyle='rgba(0,136,255,0.15)';
+    else if(isInfected) ctx.fillStyle=`rgba(255,0,51,${0.1+0.1*pulse})`;
+    else ctx.fillStyle='rgba(0,238,255,0.08)';
+    ctx.fillRect(node.x,node.y,node.w,node.h);
+
+    // Node border
+    if(isIsolated) ctx.strokeStyle='rgba(0,136,255,0.6)';
+    else if(isInfected) ctx.strokeStyle=`rgba(255,0,51,${pulse})`;
+    else ctx.strokeStyle='rgba(0,238,255,0.3)';
+    ctx.lineWidth=1.5;
+    ctx.strokeRect(node.x,node.y,node.w,node.h);
+
+    // Node icon
+    const icons={pc:'💻',laptop:'🖥',server:'⚙',printer:'🖨',nas:'💾',cctv:'📷',firewall:'🔐'};
+    ctx.font='13px serif';
+    ctx.fillText(icons[node.type]||'📦',node.x+4,node.y+16);
+
+    // Node label
+    ctx.fillStyle=isInfected?`rgba(255,100,100,${pulse})`:isIsolated?'rgba(0,136,255,0.8)':'rgba(200,240,255,0.7)';
+    ctx.font='8px Share Tech Mono';
+    ctx.fillText(node.label,node.x+3,node.y+node.h-4);
+
+    // Infection indicator
+    if(isInfected) {
+      ctx.fillStyle=`rgba(255,0,51,${pulse})`;
+      ctx.font='bold 10px Share Tech Mono';
+      ctx.fillText('⚠',node.x+node.w-14,node.y+12);
+    }
+
+    // Scan mode glow
+    if(GS.scanMode) {
+      const px=GS.player.x, py=GS.player.y;
+      const dist=Math.hypot(px-node.x-node.w/2,py-node.y-node.h/2);
+      if(dist<120) {
+        ctx.strokeStyle=isInfected?'rgba(255,0,51,0.8)':'rgba(0,255,136,0.5)';
+        ctx.lineWidth=2;
+        ctx.strokeRect(node.x-3,node.y-3,node.w+6,node.h+6);
+      }
+    }
+  });
+
+  // Draw items
+  ITEMS.forEach(item=>{
+    if(!item.x) return;
+    ctx.fillStyle=item.color||'rgba(255,204,0,0.8)';
+    ctx.font='14px serif';
+    if(item.type==='usb') ctx.fillText('🔌',item.x-8,item.y+10);
+    if(item.type==='paper') { ctx.fillText('📄',item.x-8,item.y); ctx.fillText('📄',item.x,item.y-8); ctx.fillText('📄',item.x-4,item.y-16); }
+    if(item.type==='switch') ctx.fillText('🔀',item.x-8,item.y+10);
+    if(GS.scanMode) {
+      ctx.fillStyle='rgba(255,204,0,0.3)';
+      ctx.strokeStyle=item.type==='usb'?'rgba(255,204,0,0.8)':'rgba(0,238,255,0.5)';
+      ctx.lineWidth=1;
+      ctx.strokeRect(item.x-12,item.y-18,28,26);
+    }
+  });
+
+  // Draw employees
+  EMPLOYEES.forEach(emp=>{
+    const isInsider=emp===GS.insiderEmployee;
+    ctx.font='14px serif';
+    ctx.fillText('🧑‍💻',emp.x,emp.y);
+    if(GS.scanMode&&isInsider) {
+      ctx.strokeStyle='rgba(255,0,51,0.7)';
+      ctx.lineWidth=2;
+      ctx.strokeRect(emp.x-4,emp.y-14,22,20);
+      ctx.fillStyle='rgba(255,0,51,0.9)';
+      ctx.font='8px Share Tech Mono';
+      ctx.fillText('!',emp.x+8,emp.y-4);
+    }
+  });
+
+  // Draw player
+  const px=GS.player.x, py=GS.player.y;
+  ctx.save();
+  // Player glow
+  const grad=ctx.createRadialGradient(px,py,0,px,py,20);
+  grad.addColorStop(0,'rgba(0,238,255,0.3)');
+  grad.addColorStop(1,'transparent');
+  ctx.fillStyle=grad;
+  ctx.beginPath(); ctx.arc(px,py,20,0,Math.PI*2); ctx.fill();
+  // Player icon
+  ctx.font='18px serif';
+  ctx.textAlign='center';
+  ctx.fillText('🕵️',px,py+6);
+  ctx.textAlign='left';
+  // Scan radius
+  if(GS.scanMode) {
+    ctx.strokeStyle='rgba(0,238,255,0.3)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.arc(px,py,120,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+
+  // Infection glow on walls
+  if(GS.infectionLevel>50) {
+    ctx.fillStyle=`rgba(255,0,51,${(GS.infectionLevel-50)/500+0.03*Math.sin(t*2)})`;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+
+  // Encrypted text overlay (random positions)
+  if(GS.infectionLevel>30) {
+    ctx.fillStyle=`rgba(255,0,51,${0.15*Math.sin(t*10)})`;
+    ctx.font='8px Share Tech Mono';
+    for(let i=0;i<5;i++) {
+      const chars='01ABCDEFα∑∫∂Ω†‡※';
+      const str=Array.from({length:8},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+      ctx.fillText(str,Math.random()*canvas.width,Math.random()*canvas.height);
+    }
+  }
+
+  // Phase progress indicator
+  ctx.fillStyle='rgba(0,238,255,0.3)';
+  ctx.font='10px Share Tech Mono';
+  const phases=['PH1','PH2','PH3','PH4'];
+  phases.forEach((p,i)=>{
+    const done=GS.phaseComplete[i];
+    const active=GS.phase===i;
+    ctx.fillStyle=done?'rgba(0,255,136,0.5)':active?'rgba(255,204,0,0.6)':'rgba(0,238,255,0.2)';
+    ctx.fillText(`${done?'✓':active?'▶':'○'} ${p}`,10,canvas.height-30+i*0);
+  });
+}
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+function addLog(msg, type='info') {
+  const panel=document.getElementById('logPanel');
+  const div=document.createElement('div');
+  div.className=`log-entry ${type}`;
+  div.textContent=`${new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})} ${msg}`;
+  panel.appendChild(div);
+  panel.scrollTop=panel.scrollHeight;
+  if(panel.children.length>50) panel.removeChild(panel.firstChild);
+}
+
+function showModal(title, content, buttons=[]) {
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalContent').innerHTML=content;
+  document.getElementById('modalBtns').innerHTML=buttons.map((b,i)=>
+    `<button class="modal-btn ${b.cls||''}" onclick="modalBtnClick(${i})">${b.label}</button>`
+  ).join('');
+  window._modalBtns=buttons;
+  document.getElementById('modal').classList.add('active');
+}
+window.modalBtnClick=function(i){if(window._modalBtns&&window._modalBtns[i])window._modalBtns[i].fn();};
+function closeModal(){document.getElementById('modal').classList.remove('active');}
+
+function screenShake() {
+  document.body.classList.remove('shaking');
+  void document.body.offsetWidth;
+  document.body.classList.add('shaking');
+  setTimeout(()=>document.body.classList.remove('shaking'),400);
+}
+
+function triggerGlitch() {
+  const ov=document.getElementById('glitchOverlay');
+  ov.style.display='block';
+  setTimeout(()=>ov.style.display='none',150);
+}
+
+function unlockAchievement(name) {
+  if(GS.achievements.includes(name)) return;
+  GS.achievements.push(name);
+  document.getElementById('achName').textContent=name;
+  const ach=document.getElementById('achievement');
+  ach.classList.add('show');
+  setTimeout(()=>ach.classList.remove('show'),3500);
+}
+
+// ============================================================
+// VICTORY / DEFEAT
+// ============================================================
+function triggerVictory() {
+  GS.running=false;
+  const doneCount=GS.objectives.filter(o=>o.done).length;
+  const total=GS.objectives.length;
+  const elapsed=Math.round((Date.now()-GS.startTime)/1000);
+  const bonus=GS.timer*5;
+  GS.score+=bonus;
+  const pct=Math.round(doneCount/total*100);
+
+  let tier='PARTIAL SAVE', cls='end-silver', medals='🥈';
+  if(pct>=90&&GS.wrongActions<=2){tier='PERFECT SAVE';cls='end-gold';medals='🥇';}
+  if(pct<60){tier='SYSTEM FAILURE';cls='end-fail';medals='☠';}
+
+  // If ransomwareChoice was never set to paid/ignored, they reported correctly
+  if(GS.ransomwareChoice === 'incomplete') GS.ransomwareChoice = 'reported';
+
+  document.getElementById('endTitle').innerHTML=`<span class="${cls}">${medals} ${tier}</span>`;
+  document.getElementById('endStats').innerHTML=`
+    <span>Objectives:</span> <span>${doneCount}/${total} (${pct}%)</span><br>
+    <span>Score:</span> <span>${GS.score.toLocaleString()}</span><br>
+    <span>Time:</span> <span>${Math.floor(elapsed/60)}m ${elapsed%60}s</span><br>
+    <span>Wrong Actions:</span> <span>${GS.wrongActions}</span><br>
+    <span>Achievements:</span> <span>${GS.achievements.length}</span><br>
+    <span>Difficulty:</span> <span>${GS.difficulty.toUpperCase()}</span><br>
+    <span>Agent:</span> <span>${GS.username}</span>
+  `;
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('endScreen').classList.add('active');
+
+  // ── SAVE TO BACKEND ─────────────────────────────────────
+  // levelCompleted = true because this is the victory path
+  saveGameProgress({
+    levelCompleted: true,
+    ransomwareChoice: GS.ransomwareChoice,
+  });
+}
+
+function triggerGameOver() {
+  GS.running=false;
+  GS.score=Math.max(0,GS.score-500);
+  document.getElementById('endTitle').innerHTML='<span class="end-fail">☠ FULL ENCRYPTION</span>';
+  document.getElementById('endStats').innerHTML=`
+    <span>All systems locked</span><br>
+    <span>Score:</span> <span>${GS.score.toLocaleString()}</span><br>
+    <span>Infection:</span> <span>100%</span><br>
+    <span>Agent:</span> <span>${GS.username}</span><br><br>
+    <span style="color:var(--red);font-size:12px">The ransomware encrypted everything.<br>Always: isolate fast, backup often, train your team.</span>
+  `;
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('endScreen').classList.add('active');
+  screenShake();
+  triggerGlitch();
+
+  // ── SAVE TO BACKEND ─────────────────────────────────────
+  // levelCompleted = false because this is the game-over path
+  // If they never made a choice, mark as "ignored"
+  if(GS.ransomwareChoice === 'incomplete') GS.ransomwareChoice = 'ignored';
+  saveGameProgress({
+    levelCompleted: false,
+    ransomwareChoice: GS.ransomwareChoice,
+  });
+}
+
+function returnToTitle() {
+  GS.running=false;
+  document.getElementById('endScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('titleScreen').classList.add('active');
+  document.getElementById('logPanel').innerHTML='';
+  document.getElementById('objPanel').innerHTML='';
+}
+
+// ============================================================
+// AUDIO ENGINE (Web Audio API)
+// ============================================================
+let audioCtx=null;
+function ensureAudio() {
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTone(freq=440,type='sine',dur=0.1,vol=0.05) {
+  try {
+    const ctx=ensureAudio();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type=type; osc.frequency.value=freq;
+    gain.gain.setValueAtTime(vol,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    osc.start(); osc.stop(ctx.currentTime+dur);
+  } catch(e){}
+}
+function playError(){playTone(200,'sawtooth',0.3,0.1);}
+function playSuccess(){playTone(880,'sine',0.1,0.05);setTimeout(()=>playTone(1100,'sine',0.15,0.05),100);}
+function playAlert(){playTone(440,'square',0.1,0.08);setTimeout(()=>playTone(440,'square',0.1,0.08),200);}
+
+// Attach sounds to interactions
+const origCompleteObjective=completeObjective;
+window.completeObjective=function(id){origCompleteObjective(id);playSuccess();};
+
+// Heartbeat when low time
+setInterval(()=>{if(GS.running&&GS.timer<60&&GS.timer>0)playTone(80,'sine',0.05,0.1);},1000);
+
+// ============================================================
+// WINDOW RESIZE
+// ============================================================
+window.addEventListener('resize', ()=>{
+  if(GS.running) resizeCanvas();
+});
+
+// Prevent context menu on canvas
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+</script>
+</body>
+</html>

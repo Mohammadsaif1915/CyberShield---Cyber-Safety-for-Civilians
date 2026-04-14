@@ -166,10 +166,45 @@ export default function PhishingPage({ onPhishingComplete, addActivityNotif }) {
   const acc = done ? Math.round((ok / done) * 100) : 0;
   const pending = PHISHING_EMAILS.filter(e => !ans[e.id]).length;
 
-  const handleAnswer = (emailId, isPhishGuess, emailIsFish) => {
+  const handleAnswer = async (emailId, isPhishGuess, emailIsFish) => {
     const correct = isPhishGuess === emailIsFish;
+    const email = PHISHING_EMAILS.find(e => e.id === emailId);
     const newAns = { ...ans, [emailId]: { ok: correct, pick: isPhishGuess } };
     setAns(newAns);
+
+    // 📤 Submit this answer to backend immediately
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const response = await fetch("http://localhost:5000/api/phishing/result", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            correct,
+            emailSubject: email?.subject || "Email"
+          })
+        });
+        const data = await response.json();
+        if (data.success) {
+          console.log(`✅ Phishing answer submitted — Correct: ${correct}, Total: ${data.phishingSimTotal}, User score updated`);
+          // Trigger window storage event to notify Dashboard to refresh
+          localStorage.setItem("cybershield_phishing_just_answered", JSON.stringify({
+            timestamp: Date.now(),
+            correct,
+            newTotal: data.phishingSimTotal,
+            newCorrect: data.phishingSimCorrect
+          }));
+          window.dispatchEvent(new Event("storage"));
+        }
+      }
+    } catch (err) {
+      console.error("❌ Error submitting phishing answer:", err);
+    }
+
+    // Check if all emails are answered
     if (Object.keys(newAns).length === PHISHING_EMAILS.length && !completedRef.current) {
       completedRef.current = true;
       const cc = Object.values(newAns).filter(a => a.ok).length;

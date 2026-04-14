@@ -1,5 +1,4 @@
-// models/User.js  — CyberShield
-// Added all dashboard stats fields: score, loginStreak, quizzesDone, etc.
+
 
 import mongoose from 'mongoose';
 import bcrypt   from 'bcryptjs';

@@ -4,6 +4,7 @@ import {
   User, Mail, MapPin, Briefcase, Loader2, ArrowRight, Shield
 } from 'lucide-react';
 import { GoogleLogin } from "@react-oauth/google";
+import LogoIcon from './common/LogoIcon';
 
 const API_URL = import.meta.env?.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:5000';
 
@@ -61,6 +62,7 @@ const css = `
     width: 28px; height: 28px; border-radius: 7px;
     background: #111;
     display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
   }
   .rg-topbar-link {
     font-size: 0.8rem; color: #888;
@@ -582,8 +584,8 @@ export default function Register() {
           {/* Top bar */}
           <div className="rg-topbar">
             <div className="rg-logo">
-              <div className="rg-logo-mark">
-                <Shield size={14} color="#fff" />
+              <div className="rg-logo-mark" style={{ background: 'transparent' }}>
+                <LogoIcon size={30} />
               </div>
               CyberShield
             </div>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="shieldBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe" />
+      <stop offset="100%" stop-color="#4facfe" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Main Shield Background -->
+  <path d="M256 48 L64 112 L64 256 C64 368 256 464 256 464 C256 464 448 368 448 256 L448 112 Z" fill="url(#shieldBg)" stroke="url(#borderGrad)" stroke-width="24" stroke-linejoin="round" filter="url(#glow)"/>
+  
+  <!-- Outer glowing accent ring -->
+  <path d="M256 96 L112 144 L112 256 C112 344 256 416 256 416 C256 416 400 344 400 256 L400 144 Z" fill="none" stroke="url(#accentGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Inner tech-style cross/bolt pattern -->
+  <path d="M272 144 L208 240 L256 240 L240 336 L304 240 L256 240 Z" fill="url(#borderGrad)" filter="url(#glow)"/>
+  
+  <!-- Outer decorative tech dots -->
+  <circle cx="256" cy="48" r="8" fill="#4facfe" />
+  <circle cx="64" cy="112" r="8" fill="#4facfe" />
+  <circle cx="448" cy="112" r="8" fill="#4facfe" />
+  <circle cx="256" cy="464" r="8" fill="#4facfe" />
+</svg>

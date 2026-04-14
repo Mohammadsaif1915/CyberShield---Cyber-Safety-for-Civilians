@@ -1,14 +1,8 @@
-import Progress from '../models/Progress.js'
-import Course   from '../models/Course.js'
-import User     from '../models/User.js'
-import mongoose from 'mongoose'
+import Progress  from '../models/Progress.js'
+import Course    from '../models/Course.js'
+import User      from '../models/User.js'
 
-const TEMP_USER_ID = '000000000000000000000001'
-
-const getUserId = (req) => {
-  if (req.user && req.user._id) return req.user._id
-  return new mongoose.Types.ObjectId(TEMP_USER_ID)
-}
+const getUserId = (req) => req.user._id
 
 const getUserEmail = async (req) => {
   if (req.user && req.user.email) return req.user.email
@@ -21,6 +15,7 @@ const getUserEmail = async (req) => {
   return ''
 }
 
+// GET /api/progress/:courseId
 export const getProgress = async (req, res) => {
   try {
     const userId = getUserId(req)
@@ -50,6 +45,7 @@ export const getProgress = async (req, res) => {
   }
 }
 
+// POST /api/progress/:courseId/video
 export const updateVideoProgress = async (req, res) => {
   try {
     const userId = getUserId(req)
@@ -105,6 +101,10 @@ export const updateVideoProgress = async (req, res) => {
 
     progress.completedVideos  = progress.watchedVideos.filter(v => v.completed).length
     progress.allVideosWatched = progress.completedVideos >= course.videos.length
+
+    // NOTE: quizPassed is only set when the user actually submits and passes the quiz.
+    // Do NOT auto-set quizPassed here — watching videos only unlocks the quiz.
+
     await progress.save()
 
     res.json({ success: true, progress })
@@ -113,14 +113,21 @@ export const updateVideoProgress = async (req, res) => {
   }
 }
 
+// GET /api/progress/all
 export const getAllProgress = async (req, res) => {
   try {
     const userId = getUserId(req)
+    
+    // 1. Pehle fetch karo
     const allProgress = await Progress.find({ user: userId })
       .populate('course', 'title level totalVideos icon color')
       .lean()
 
-    const fixed = allProgress.map(p => {
+    // 2. Phir filter karo
+    const valid = allProgress.filter(p => p.course !== null)
+
+    // 3. valid.map use karo, allProgress.map nahi
+    const fixed = valid.map(p => {
       const completedVideos = p.watchedVideos?.filter(v => v.completed).length || 0
       const totalVideos     = p.course?.totalVideos || p.watchedVideos?.length || 0
       const pct             = totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0

@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Shield – Level 1: The Phishing Room</title>
+
+<!-- ==================== CSS ==================== -->
+<style>
+  /* Reset & Base */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a1a;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    user-select: none;
+  }
+  canvas { display: block; }
+
+  /* ── XP Bar (top right) ── */
+  #xp-bar-container {
+    position: absolute; top: 12px; right: 16px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid #00ffe7;
+    border-radius: 8px;
+    padding: 8px 14px;
+    min-width: 200px;
+    pointer-events: none;
+  }
+  #xp-label  { color: #00ffe7; font-size: 11px; letter-spacing: 2px; margin-bottom: 4px; }
+  #xp-track  { background: #111; border-radius: 4px; height: 10px; overflow: hidden; }
+  #xp-fill   { height: 100%; width: 0%; background: linear-gradient(90deg, #00ffe7, #7b2fff); border-radius: 4px; transition: width 0.6s ease; }
+  #xp-score  { color: #fff; font-size: 13px; margin-top: 4px; text-align: right; }
+
+  /* ── Modal Overlay ── */
+  #modal-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.82);
+    display: none; align-items: center; justify-content: center;
+    z-index: 10;
+  }
+  #modal-overlay.active { display: flex; }
+
+  #modal-box {
+    background: #0d1117;
+    border: 1.5px solid #00ffe7;
+    border-radius: 14px;
+    padding: 28px 32px;
+    max-width: 480px; width: 90%;
+    box-shadow: 0 0 40px #00ffe722;
+    animation: fadeUp 0.3s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  #modal-icon  { font-size: 36px; margin-bottom: 10px; }
+  #modal-title {
+    color: #00ffe7; font-size: 16px;
+    letter-spacing: 2px; margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  #modal-body {
+    color: #ccc; font-size: 14px; line-height: 1.6;
+    margin-bottom: 18px;
+    border-left: 2px solid #7b2fff;
+    padding-left: 12px;
+    white-space: pre-line;
+  }
+
+  /* ── Answer Buttons ── */
+  .modal-btn {
+    display: block; width: 100%;
+    padding: 11px 14px; margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid #7b2fff;
+    background: transparent;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    cursor: pointer; text-align: left;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .modal-btn:hover          { background: #7b2fff22; border-color: #00ffe7; }
+  .modal-btn.correct        { border-color: #00ff88 !important; background: #00ff8811 !important; }
+  .modal-btn.wrong          { border-color: #ff4466 !important; background: #ff446611 !important; }
+  .modal-btn:disabled       { cursor: default; }
+
+  /* ── Feedback & Tip ── */
+  #feedback-box {
+    display: none; margin-top: 14px; padding: 12px;
+    border-radius: 8px;
+    background: #0a1a0f;
+    border: 1px solid #00ff88;
+    color: #00ff88;
+    font-size: 13px; line-height: 1.5;
+  }
+  #feedback-box.show { display: block; animation: fadeUp 0.3s ease; }
+
+  #tip-card {
+    margin-top: 10px;
+    background: #111;
+    border: 1px solid #00ffe7;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #00ffe7;
+    font-size: 12px;
+    display: none;
+  }
+  #tip-card.show { display: block; }
+
+  #continue-btn {
+    display: none; margin-top: 14px; width: 100%; padding: 11px;
+    border: 1px solid #00ffe7;
+    background: #00ffe711;
+    color: #00ffe7;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 13px; letter-spacing: 1px;
+  }
+  #continue-btn.show   { display: block; }
+  #continue-btn:hover  { background: #00ffe733; }
+
+  /* ── Hint Toast ── */
+  #hint-toast {
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    border: 1px solid #7b2fff;
+    color: #ccc;
+    font-size: 12px; padding: 7px 18px;
+    border-radius: 20px; letter-spacing: 1px;
+    pointer-events: none;
+    opacity: 0; transition: opacity 0.4s;
+  }
+  #hint-toast.show { opacity: 1; }
+
+  /* ── API Status Toast ── */
+  #api-toast {
+    position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    border: 1px solid #00ff88;
+    color: #00ff88;
+    font-size: 11px; padding: 6px 16px;
+    border-radius: 20px; letter-spacing: 1px;
+    pointer-events: none;
+    opacity: 0; transition: opacity 0.4s;
+    white-space: nowrap;
+  }
+  #api-toast.show  { opacity: 1; }
+  #api-toast.error { border-color: #ff4466; color: #ff4466; }
+
+  /* ── Title Screen ── */
+  #title-screen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: #0a0a1a;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 20;
+  }
+  #title-screen h1 {
+    color: #00ffe7; font-size: 32px;
+    letter-spacing: 5px; margin-bottom: 8px;
+    text-shadow: 0 0 24px #00ffe7;
+  }
+  #title-screen .subtitle { color: #7b2fff; font-size: 13px; letter-spacing: 2px; margin-bottom: 30px; }
+  #title-screen .controls { color: #445; font-size: 11px; margin-top: 20px; letter-spacing: 1px; }
+
+  /* ── Username input on title screen ── */
+  #username-wrapper {
+    display: flex; flex-direction: column; align-items: center;
+    margin-bottom: 20px;
+  }
+  #username-label {
+    color: #00ffe7; font-size: 11px; letter-spacing: 2px; margin-bottom: 8px;
+  }
+  #username-input {
+    background: #0d1521;
+    border: 1.5px solid #7b2fff;
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    padding: 10px 18px;
+    text-align: center;
+    width: 240px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #username-input:focus { border-color: #00ffe7; }
+  #username-error {
+    color: #ff4466; font-size: 11px; margin-top: 6px;
+    display: none;
+  }
+
+  #start-btn {
+    padding: 14px 40px;
+    border: 1.5px solid #00ffe7;
+    background: transparent;
+    color: #00ffe7;
+    font-family: 'Courier New', monospace;
+    font-size: 15px; letter-spacing: 2px;
+    border-radius: 8px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  #start-btn:hover { background: #00ffe711; box-shadow: 0 0 20px #00ffe744; }
+
+  /* ── Mission Complete Screen ── */
+  #complete-screen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95);
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 30; text-align: center;
+    padding: 20px;
+  }
+  #complete-screen.show   { display: flex; }
+  #complete-screen h2     { color: #00ff88; font-size: 26px; letter-spacing: 3px; margin-bottom: 12px; }
+  #complete-screen p      { color: #ccc; font-size: 14px; margin-bottom: 8px; max-width: 380px; }
+  #complete-screen .badge { color: #00ffe7; font-size: 52px; margin: 16px 0; }
+  #complete-screen .xp    { color: #00ffe7; font-size: 36px; font-weight: bold; margin: 8px 0; }
+
+  /* Save status on complete screen */
+  #save-status {
+    font-size: 12px; margin-top: 8px; letter-spacing: 1px;
+    color: #666;
+  }
+  #save-status.saved  { color: #00ff88; }
+  #save-status.failed { color: #ff4466; }
+
+  /* Leaderboard on complete screen */
+  #leaderboard-box {
+    margin-top: 14px;
+    background: #0d1521;
+    border: 1px solid #00ffe733;
+    border-radius: 10px;
+    padding: 12px 20px;
+    width: 340px;
+    max-width: 90vw;
+    text-align: left;
+  }
+  #leaderboard-box h3 {
+    color: #00ffe7; font-size: 11px; letter-spacing: 2px;
+    margin-bottom: 8px; text-transform: uppercase;
+  }
+  .lb-row {
+    display: flex; justify-content: space-between;
+    color: #aaa; font-size: 12px; padding: 3px 0;
+    border-bottom: 1px solid #1a2a3a;
+  }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row .lb-rank   { color: #7b2fff; margin-right: 8px; }
+  .lb-row .lb-user   { flex: 1; color: #eee; }
+  .lb-row .lb-score  { color: #00ff88; font-weight: bold; }
+
+  #play-again {
+    margin-top: 20px; padding: 12px 32px;
+    border: 1px solid #00ffe7; background: transparent;
+    color: #00ffe7;
+    font-family: 'Courier New', monospace;
+    font-size: 13px; border-radius: 8px; cursor: pointer;
+  }
+  #play-again:hover { background: #00ffe711; }
+</style>
+</head>
+<body>
+
+<!-- ==================== CANVAS ==================== -->
+<canvas id="c"></canvas>
+
+<!-- ==================== UI LAYER ==================== -->
+
+<!-- XP Bar -->
+<div id="xp-bar-container">
+  <div id="xp-label">⬡ XP SHIELD</div>
+  <div id="xp-track"><div id="xp-fill"></div></div>
+  <div id="xp-score">0 / 60 XP</div>
+</div>
+
+<!-- Modal Popup -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div id="modal-icon"></div>
+    <div id="modal-title"></div>
+    <div id="modal-body"></div>
+    <div id="modal-options"></div>
+    <div id="feedback-box"></div>
+    <div id="tip-card"></div>
+    <button id="continue-btn" onclick="closeModal()">CONTINUE MISSION ▶</button>
+  </div>
+</div>
+
+<!-- Hint Toast -->
+<div id="hint-toast">Walk closer to an object and press ENTER to interact</div>
+
+<!-- API Status Toast -->
+<div id="api-toast"></div>
+
+<!-- Title Screen -->
+<div id="title-screen">
+  <h1>⬡ CYBER SHIELD</h1>
+  <p class="subtitle">LEVEL 1 : THE PHISHING ROOM</p>
+
+  <!-- Username input — value is sent to the backend -->
+  <div id="username-wrapper">
+    <label id="username-label" for="username-input">AGENT CODENAME</label>
+    <input
+      id="username-input"
+      type="text"
+      placeholder="Enter your username..."
+      maxlength="30"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <span id="username-error">Username must be at least 2 characters</span>
+  </div>
+
+  <button id="start-btn" onclick="startGame()">▶ BEGIN MISSION</button>
+  <p class="controls">
+    ARROW KEYS / WASD — Move &nbsp;|&nbsp; ENTER / SPACE — Interact<br>
+    Or click directly on any object
+  </p>
+</div>
+
+<!-- Mission Complete -->
+<div id="complete-screen">
+  <h2>✦ MISSION COMPLETE, AGENT! ✦</h2>
+  <div class="badge">🛡️</div>
+  <p>You successfully identified all cyber threats in the Phishing Room.</p>
+  <div class="xp" id="final-score">60 XP</div>
+  <p style="color:#00ff88; margin-top:6px;">You are now a Certified Cyber Shield Agent.</p>
+  <div id="save-status">Saving progress...</div>
+
+  <!-- Leaderboard pulled from the backend -->
+  <div id="leaderboard-box">
+    <h3>🏆 Top Agents</h3>
+    <div id="leaderboard-rows"><p style="color:#555;font-size:12px;">Loading...</p></div>
+  </div>
+
+  <button id="play-again" onclick="resetGame()">↺ PLAY AGAIN</button>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+
+/* ─────────────────────────────────────────────────────────
+   CYBER SHIELD — Level 1: The Phishing Room
+   ─────────────────────────────────────────────────────────
+   Sections:
+   1.  Canvas Setup & Resize
+   2.  Backend API Configuration
+   3.  Game State
+   4.  Player Object
+   5.  Keyboard Input
+   6.  Room & Object Layout
+   7.  Scenario Data (modal content)
+   8.  Modal System
+   9.  XP & Score
+   10. Particles
+   11. Player Movement & Collision
+   12. Draw Functions
+   13. Game Loop
+   14. Game Control (start / reset)
+   15. Backend Integration (save / leaderboard)
+   ───────────────────────────────────────────────────────── */
+
+
+/* ── 1. Canvas Setup ── */
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); if (gameRunning) initRoom(); });
+
+
+/* ── 2. Backend API Configuration ── */
+// Change this if your backend runs on a different port
+const API_BASE = 'http://localhost:5000/api/level1';
+
+
+/* ── 3. Game State ── */
+let score       = 0;          // Current XP score
+let gameRunning = false;      // Is the game active?
+let modalOpen   = false;      // Is a modal currently showing?
+let time        = 0;          // Frame counter for animations
+let particles   = [];         // Active particle array
+let currentUsername = '';     // Set when the game starts (from input field)
+
+// Tracks which zones the player has completed
+let completed = { laptop: false, phone: false, wifi: false, door: false };
+
+
+/* ── 4. Player Object ── */
+const player = {
+  x: 0, y: 0,          // Position (set in initRoom)
+  w: 28, h: 36,        // Size
+  speed: 3,            // Movement speed (px/frame)
+  dir: 'down',         // Facing direction
+  moving: false,       // Is the player currently moving?
+  frame: 0,            // Walk animation frame
+  frameTimer: 0        // Frame timer counter
+};
+
+
+/* ── 5. Keyboard Input ── */
+const keys = {};
+
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  // Interact on Enter or Space
+  if ((e.key === 'Enter' || e.key === ' ') && !modalOpen && gameRunning) {
+    tryInteract();
+  }
+  e.preventDefault();
+});
+window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+
+/* ── 6. Room & Object Layout ── */
+let room    = { x: 0, y: 0, w: 0, h: 0 };
+let objects = [];   // Interactive objects in the room
+
+function initRoom() {
+  // Scale room to viewport
+  const rw = Math.min(W * 0.92, 860);
+  const rh = Math.min(H * 0.88, 660);
+  room.x = (W - rw) / 2;
+  room.y = (H - rh) / 2 + 10;
+  room.w = rw;
+  room.h = rh;
+
+  const { x: rx, y: ry, w, h } = room;
+
+  // Each object: id, display labels, position/size, colours, icon
+  objects = [
+    {
+      id: 'laptop',
+      label: 'LAPTOP', sublabel: 'Phishing Email',
+      x: rx + w * 0.13, y: ry + h * 0.16,
+      w: 94, h: 62,
+      color: '#7b2fff', glow: '#7b2fff', icon: '💻'
+    },
+    {
+      id: 'phone',
+      label: 'PHONE', sublabel: 'Fake OTP',
+      x: rx + w * 0.73, y: ry + h * 0.16,
+      w: 72, h: 66,
+      color: '#ff6b35', glow: '#ff6b35', icon: '📱'
+    },
+    {
+      id: 'wifi',
+      label: 'ROUTER', sublabel: 'Unsafe Network',
+      x: rx + w * 0.73, y: ry + h * 0.63,
+      w: 72, h: 56,
+      color: '#0088ff', glow: '#0088ff', icon: '📡'
+    },
+    {
+      id: 'door',
+      label: 'EXIT', sublabel: 'LOCKED',
+      x: rx + w * 0.45, y: ry + 2,
+      w: 72, h: 50,
+      color: '#666', glow: '#666', icon: '🚪'
+    }
+  ];
+
+  // Spawn player in the center of the room
+  player.x = rx + w / 2 - player.w / 2;
+  player.y = ry + h / 2 - player.h / 2;
+}
+
+
+/* ── 7. Scenario Data ── */
+const scenarios = {
+  laptop: {
+    icon: '⚠️',
+    title: 'PHISHING EMAIL DETECTED',
+    body: 'From: security@bank-alerts-verify.xyz\nSubject: "Urgent! Your bank account is blocked. Click here to verify now."\n\nWhat do you do?',
+    options: [
+      { text: '🔗 Click the verification link',   correct: false },
+      { text: '🛡️ Report as Phishing',             correct: true  }
+    ],
+    success : 'Great! Suspicious urgency + unknown sender domain = phishing attempt. Scammers create panic to bypass your judgment.',
+    tip     : '💡 Always verify the sender domain and hover over links before clicking.',
+    xp      : 20
+  },
+  phone: {
+    icon: '📲',
+    title: 'FAKE OTP SCAM',
+    body: '"Dear user, your KYC has expired. Share OTP immediately to avoid account freeze."\n\n— Received via SMS\n\nWhat do you do?',
+    options: [
+      { text: '🔑 Share the OTP now', correct: false },
+      { text: '🚫 Ignore & Report',   correct: true  }
+    ],
+    success : 'Excellent! OTP should NEVER be shared with anyone — not even your bank.',
+    tip     : '💡 Banks never ask for OTP via call or SMS. Ever.',
+    xp      : 20
+  },
+  wifi: {
+    icon: '📶',
+    title: 'UNSAFE NETWORK ALERT',
+    body: 'Network found: "Free_Public_WiFi"\n⚠ No password required\n\nYou need to check your bank app. What do you do?',
+    options: [
+      { text: '📶 Connect & use the bank app',    correct: false },
+      { text: '🔒 Avoid & Use VPN / Mobile Data', correct: true  }
+    ],
+    success : "Smart move! Public Wi-Fi is a hacker's playground. Your data could be intercepted.",
+    tip     : '💡 Avoid public Wi-Fi for logins or payments. Use a VPN or mobile data.',
+    xp      : 20
+  },
+  door: {
+    icon: '🏆',
+    title: 'FINAL CHALLENGE — EXIT TEST',
+    body: 'Answer to unlock the exit:\n\n"Which is the SAFEST cyber practice?"',
+    options: [
+      { text: 'A. Click urgent unknown links quickly',                  correct: false },
+      { text: 'B. Share OTP with support teams',                        correct: false },
+      { text: 'C. Verify sender, never share OTP, use secure network',  correct: true  }
+    ],
+    success : 'MISSION COMPLETE! You passed all cyber threat challenges, Agent!',
+    tip     : '💡 Stay vigilant. Cyber threats exploit urgency, fear, and trust.',
+    xp      : 0,
+    final   : true
+  }
+};
+
+
+/* ── 8. Modal System ── */
+let currentScenario = null;
+let answered        = false;
+
+function openModal(id) {
+  if (modalOpen) return;
+
+  if (id === 'door') {
+    if (!completed.laptop || !completed.phone || !completed.wifi) {
+      showHint('Complete all 3 tasks first to unlock the exit!');
+      return;
+    }
+    if (completed.door) { showComplete(); return; }
+  }
+
+  if (id !== 'door' && completed[id]) {
+    showHint('Already completed! Move to the next object.');
+    return;
+  }
+
+  const s = scenarios[id];
+  if (!s) return;
+
+  currentScenario = id;
+  answered        = false;
+  modalOpen       = true;
+
+  document.getElementById('modal-icon').textContent  = s.icon;
+  document.getElementById('modal-title').textContent = s.title;
+  document.getElementById('modal-body').textContent  = s.body;
+
+  const fb  = document.getElementById('feedback-box');
+  const tip = document.getElementById('tip-card');
+  const cb  = document.getElementById('continue-btn');
+  fb.className  = '';  fb.textContent  = '';
+  tip.className = '';  tip.textContent = '';
+  cb.className  = '';
+
+  const opts = document.getElementById('modal-options');
+  opts.innerHTML = '';
+  s.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className   = 'modal-btn';
+    btn.textContent = opt.text;
+    btn.onclick = () => handleAnswer(opt.correct, btn, s);
+    opts.appendChild(btn);
+  });
+
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function handleAnswer(correct, clickedBtn, s) {
+  if (answered) return;
+  answered = true;
+
+  document.querySelectorAll('.modal-btn').forEach(btn => {
+    btn.disabled = true;
+    const opt = s.options.find(o => o.text === btn.textContent);
+    if (btn === clickedBtn)  btn.classList.add(correct ? 'correct' : 'wrong');
+    if (opt && opt.correct)  btn.classList.add('correct');
+  });
+
+  const fb = document.getElementById('feedback-box');
+  fb.textContent        = correct ? '✅ ' + s.success : '❌ Wrong choice! ' + s.success;
+  fb.style.borderColor  = correct ? '#00ff88' : '#ff4466';
+  fb.style.background   = correct ? '#0a1a0f' : '#1a0a0f';
+  fb.style.color        = correct ? '#00ff88' : '#ff8899';
+  fb.classList.add('show');
+
+  const tip = document.getElementById('tip-card');
+  tip.textContent = s.tip;
+  tip.classList.add('show');
+
+  document.getElementById('continue-btn').classList.add('show');
+
+  if (correct) {
+    if (s.xp > 0) { score += s.xp; updateXP(); }
+    completed[currentScenario] = true;
+    spawnParticles();
+    refreshDoorState();
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  modalOpen = false;
+
+  if (currentScenario === 'door' && completed.door !== true && answered) {
+    completed.door = true;
+  }
+  if (currentScenario === 'door' && completed.door) {
+    setTimeout(showComplete, 400);
+  }
+}
+
+function refreshDoorState() {
+  if (completed.laptop && completed.phone && completed.wifi) {
+    const door = objects.find(o => o.id === 'door');
+    if (door) {
+      door.color    = '#00ff88';
+      door.glow     = '#00ff88';
+      door.sublabel = 'UNLOCKED';
+    }
+  }
+}
+
+
+/* ── 9. XP & Score ── */
+function updateXP() {
+  const pct = Math.min((score / 60) * 100, 100);
+  document.getElementById('xp-fill').style.width  = pct + '%';
+  document.getElementById('xp-score').textContent = score + ' / 60 XP';
+}
+
+function showHint(msg) {
+  const t = document.getElementById('hint-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showHint._t);
+  showHint._t = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/** Show a brief status toast from the API (success or error). */
+function showApiToast(msg, isError = false) {
+  const t = document.getElementById('api-toast');
+  t.textContent = msg;
+  t.className   = isError ? 'show error' : 'show';
+  clearTimeout(showApiToast._t);
+  showApiToast._t = setTimeout(() => { t.className = ''; }, 3500);
+}
+
+function showComplete() {
+  document.getElementById('final-score').textContent = score + ' / 60 XP';
+  document.getElementById('complete-screen').classList.add('show');
+
+  // ── Send progress to backend ──
+  saveProgressToBackend();
+  // ── Fetch leaderboard from backend ──
+  fetchLeaderboard();
+}
+
+
+/* ── 10. Particles ── */
+function spawnParticles() {
+  for (let i = 0; i < 35; i++) {
+    particles.push({
+      x    : W / 2,
+      y    : H / 2,
+      vx   : (Math.random() - 0.5) * 9,
+      vy   : (Math.random() - 0.5) * 9,
+      life : 1,
+      color: Math.random() > 0.5 ? '#00ffe7' : '#00ff88',
+      r    : Math.random() * 4 + 2
+    });
+  }
+}
+
+function updateParticles() {
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.vy += 0.15;
+    p.life -= 0.025;
+  });
+}
+
+
+/* ── 11. Player Movement & Collision ── */
+
+function getWalls() {
+  const { x, y, w, h } = room;
+  const t = 18;
+  return [
+    { x: x,         y: y,         w: w, h: t },
+    { x: x,         y: y + h - t, w: w, h: t },
+    { x: x,         y: y,         w: t, h: h },
+    { x: x + w - t, y: y,         w: t, h: h }
+  ];
+}
+
+function rectOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+function movePlayer() {
+  if (modalOpen) return;
+
+  let dx = 0, dy = 0;
+  if (keys['ArrowLeft']  || keys['a']) { dx = -1; player.dir = 'left';  }
+  if (keys['ArrowRight'] || keys['d']) { dx =  1; player.dir = 'right'; }
+  if (keys['ArrowUp']    || keys['w']) { dy = -1; player.dir = 'up';    }
+  if (keys['ArrowDown']  || keys['s']) { dy =  1; player.dir = 'down';  }
+
+  player.moving = dx !== 0 || dy !== 0;
+
+  if (player.moving) {
+    const len = Math.hypot(dx, dy);
+    dx = (dx / len) * player.speed;
+    dy = (dy / len) * player.speed;
+
+    player.frameTimer++;
+    if (player.frameTimer > 8) {
+      player.frame = (player.frame + 1) % 4;
+      player.frameTimer = 0;
+    }
+
+    const walls = getWalls();
+
+    player.x += dx;
+    for (const w of walls) {
+      if (rectOverlap(player.x, player.y, player.w, player.h, w.x, w.y, w.w, w.h)) {
+        player.x = dx > 0 ? w.x - player.w : w.x + w.w;
+      }
+    }
+
+    player.y += dy;
+    for (const w of walls) {
+      if (rectOverlap(player.x, player.y, player.w, player.h, w.x, w.y, w.w, w.h)) {
+        player.y = dy > 0 ? w.y - player.h : w.y + w.h;
+      }
+    }
+  }
+}
+
+function tryInteract() {
+  const px = player.x + player.w / 2;
+  const py = player.y + player.h / 2;
+  const range = 95;
+
+  for (const obj of objects) {
+    const dist = Math.hypot(px - (obj.x + obj.w / 2), py - (obj.y + obj.h / 2));
+    if (dist < range) {
+      openModal(obj.id);
+      return;
+    }
+  }
+  showHint('Walk closer to an object, then press ENTER');
+}
+
+
+/* ── 12. Draw Functions ── */
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawRoom() {
+  const { x: rx, y: ry, w: rw, h: rh } = room;
+
+  ctx.fillStyle = '#0d1521';
+  ctx.fillRect(rx, ry, rw, rh);
+
+  ctx.strokeStyle = '#1a2a3a';
+  ctx.lineWidth   = 0.5;
+  const gs = 44;
+  for (let gx = rx; gx < rx + rw; gx += gs) {
+    ctx.beginPath(); ctx.moveTo(gx, ry); ctx.lineTo(gx, ry + rh); ctx.stroke();
+  }
+  for (let gy = ry; gy < ry + rh; gy += gs) {
+    ctx.beginPath(); ctx.moveTo(rx, gy); ctx.lineTo(rx + rw, gy); ctx.stroke();
+  }
+
+  ctx.fillStyle = '#080f1c';
+  const t = 18;
+  ctx.fillRect(rx,          ry,            rw, t);
+  ctx.fillRect(rx,          ry + rh - t,   rw, t);
+  ctx.fillRect(rx,          ry,            t,  rh);
+  ctx.fillRect(rx + rw - t, ry,            t,  rh);
+
+  ctx.strokeStyle  = '#00ffe7';
+  ctx.lineWidth    = 1.5;
+  ctx.shadowBlur   = 12;
+  ctx.shadowColor  = '#00ffe7';
+  ctx.strokeRect(rx + 1, ry + 1, rw - 2, rh - 2);
+  ctx.shadowBlur   = 0;
+
+  // Show username in corner during gameplay
+  if (currentUsername) {
+    ctx.fillStyle = '#1f3050';
+    ctx.font      = 'bold 11px Courier New';
+    ctx.fillText(`◈ AGENT: ${currentUsername.toUpperCase()} — LEVEL 1`, rx + 26, ry + 13);
+  }
+}
+
+function drawObject(obj) {
+  const done  = completed[obj.id];
+  const col   = done ? '#00ff88' : obj.color;
+  const glow  = done ? '#00ff88' : obj.glow;
+  const pulse = Math.sin(time * 0.05 + obj.x * 0.01) * 3;
+
+  ctx.save();
+
+  ctx.shadowBlur  = 18 + pulse;
+  ctx.shadowColor = glow;
+
+  ctx.fillStyle   = done ? '#0a1f10' : '#0d1521';
+  ctx.strokeStyle = col;
+  ctx.lineWidth   = 1.5;
+  roundRect(ctx, obj.x, obj.y, obj.w, obj.h, 8);
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  ctx.font      = '22px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(obj.icon, obj.x + obj.w / 2, obj.y + obj.h / 2 - 4);
+
+  ctx.font      = 'bold 10px Courier New';
+  ctx.fillStyle = col;
+  ctx.fillText(obj.label, obj.x + obj.w / 2, obj.y + obj.h - 10);
+
+  ctx.font      = '8px Courier New';
+  ctx.fillStyle = '#777';
+  ctx.fillText(obj.sublabel, obj.x + obj.w / 2, obj.y + obj.h + 12);
+
+  if (done) {
+    ctx.font      = 'bold 13px serif';
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText('✓', obj.x + obj.w - 8, obj.y + 14);
+  }
+
+  const px   = player.x + player.w / 2;
+  const py   = player.y + player.h / 2;
+  const dist = Math.hypot(px - (obj.x + obj.w / 2), py - (obj.y + obj.h / 2));
+
+  if (dist < 120 && !modalOpen && !done) {
+    const alpha = Math.max(0, 1 - dist / 120);
+    ctx.globalAlpha = alpha * (0.6 + Math.sin(time * 0.1) * 0.4);
+    ctx.fillStyle   = '#00ffe7';
+    ctx.font        = '11px Courier New';
+    ctx.fillText('[ENTER]', obj.x + obj.w / 2, obj.y - 10);
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawPlayer() {
+  const { x: px, y: py, w: pw, h: ph } = player;
+  const bob = Math.sin(time * 0.15) * (player.moving ? 2 : 0.5);
+
+  ctx.save();
+
+  ctx.fillStyle = 'rgba(0,255,231,0.07)';
+  ctx.beginPath();
+  ctx.ellipse(px + pw / 2, py + ph + 2, pw / 2, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.shadowBlur  = 14;
+  ctx.shadowColor = '#00ffe7';
+
+  ctx.fillStyle   = '#0d2030';
+  ctx.strokeStyle = '#00ffe7';
+  ctx.lineWidth   = 1.5;
+  roundRect(ctx, px + 3, py + 10 + bob, pw - 6, ph - 14, 5);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle   = '#0d2030';
+  ctx.beginPath();
+  ctx.arc(px + pw / 2, py + 8 + bob, 9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle  = '#00ffe7';
+  const eyeY   = py + 7 + bob;
+  const eyeOff = player.dir === 'left' ? -2 : player.dir === 'right' ? 2 : 0;
+  ctx.beginPath(); ctx.arc(px + pw / 2 + eyeOff - 3, eyeY, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(px + pw / 2 + eyeOff + 3, eyeY, 2, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle   = '#7b2fff';
+  ctx.font        = '9px serif';
+  ctx.textAlign   = 'center';
+  ctx.fillText('⬡', px + pw / 2, py + ph - 2 + bob);
+
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle   = p.color;
+    ctx.shadowBlur  = 8;
+    ctx.shadowColor = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawMinimap() {
+  const mx = room.x + room.w - 112;
+  const my = room.y + room.h - 92;
+  const mw = 102, mh = 82;
+
+  ctx.save();
+  ctx.fillStyle   = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(mx, my, mw, mh);
+  ctx.strokeStyle = '#00ffe733';
+  ctx.lineWidth   = 0.5;
+  ctx.strokeRect(mx, my, mw, mh);
+
+  const sx = mw / room.w;
+  const sy = mh / room.h;
+
+  objects.forEach(o => {
+    ctx.fillStyle = completed[o.id] ? '#00ff88' : o.color;
+    ctx.fillRect(mx + (o.x - room.x) * sx, my + (o.y - room.y) * sy, o.w * sx + 2, o.h * sy + 2);
+  });
+
+  ctx.fillStyle = '#00ffe7';
+  ctx.fillRect(mx + (player.x - room.x) * sx, my + (player.y - room.y) * sy, 5, 7);
+
+  ctx.restore();
+}
+
+function drawScanline() {
+  const scanY = (time * 1.5) % H;
+  ctx.fillStyle = 'rgba(0,255,231,0.015)';
+  ctx.fillRect(0, scanY, W, 2);
+}
+
+
+/* ── 13. Game Loop ── */
+function loop() {
+  requestAnimationFrame(loop);
+  time++;
+
+  ctx.fillStyle = '#060610';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!gameRunning) return;
+
+  movePlayer();
+  updateParticles();
+
+  drawRoom();
+  objects.forEach(drawObject);
+  drawPlayer();
+  drawParticles();
+  drawMinimap();
+  drawScanline();
+}
+
+loop();
+
+
+/* ── 14. Game Control ── */
+
+/** Validate username input before starting. */
+function validateUsername() {
+  const input = document.getElementById('username-input');
+  const err   = document.getElementById('username-error');
+  const val   = input.value.trim();
+
+  if (val.length < 2) {
+    err.style.display = 'block';
+    input.focus();
+    return null;
+  }
+  err.style.display = 'none';
+  return val;
+}
+
+/** Called by the Start button on the title screen. */
+function startGame() {
+  // Validate username before allowing start
+  const username = validateUsername();
+  if (!username) return;
+
+  currentUsername = username;  // Store globally for backend calls
+
+  document.getElementById('title-screen').style.display = 'none';
+  gameRunning = true;
+  initRoom();
+  updateXP();
+  setTimeout(() => showHint('Walk to objects and press ENTER to interact!'), 800);
+}
+
+/** Called by the Play Again button on the complete screen. */
+function resetGame() {
+  score           = 0;
+  currentUsername = '';
+  completed = { laptop: false, phone: false, wifi: false, door: false };
+
+  document.getElementById('complete-screen').classList.remove('show');
+  document.getElementById('username-input').value = '';
+  document.getElementById('title-screen').style.display = 'flex';
+
+  gameRunning = false;
+  updateXP();
+}
+
+
+/* ── 15. Backend Integration ── */
+
+/**
+ * saveProgressToBackend
+ * Sends the player's username, score, and level completion
+ * status to POST /api/level1/save.
+ * ALSO sends to main backend /api/game/score if authenticated.
+ */
+async function saveProgressToBackend() {
+  const statusEl = document.getElementById('save-status');
+  statusEl.textContent = '⏳ Saving your progress...';
+  statusEl.className   = '';
+
+  try {
+    // Save to local level backend
+    const response = await fetch(`${API_BASE}/save`, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({
+        username      : currentUsername,       // from title screen input
+        levelCompleted: completed.door,        // true if door challenge passed
+        score         : score                  // current XP score (0-60)
+        // environmentFile is set by the server from .env — not sent by client
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      statusEl.textContent = '✅ Progress saved to database!';
+      statusEl.className   = 'saved';
+      showApiToast('📡 Progress synced to server');
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+
+    // ALSO submit to main dashboard backend if authenticated
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        console.log('📤 Submitting score to main dashboard...', { score, token: token.substring(0, 20) + '...' });
+        
+        const mainRes = await fetch('http://localhost:5000/api/game/score', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ 
+            score: score,
+            level: 1,
+            wavesCompleted: completed.door ? 4 : Object.values(completed).filter(Boolean).length,
+            timeSpent: 0
+          }),
+        });
+        
+        console.log('📨 Backend response status:', mainRes.status);
+        
+        if (mainRes.ok) {
+          const mainData = await mainRes.json();
+          if (mainData.success) {
+            console.log('✅ Dashboard score updated:', mainData);
+            // Update localStorage immediately to trigger Dashboard refresh
+            try {
+              const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+              const updated = {
+                ...currentUser,
+                gameScore: mainData.gameScore || currentUser.gameScore,
+                gameHighScore: mainData.gameHighScore || currentUser.gameHighScore,
+                gamesPlayed: (currentUser.gamesPlayed || 0) + 1,
+                score: mainData.totalScore || currentUser.score,
+                level: mainData.level || currentUser.level,
+              };
+              localStorage.setItem('user', JSON.stringify(updated));
+              console.log('💾 User cache updated in localStorage:', updated);
+            } catch (e) {
+              console.warn('Could not update localStorage:', e);
+            }
+            // Set flags so Dashboard knows to refresh
+            localStorage.setItem('cybershield_just_completed', JSON.stringify({ level: 1, score, timestamp: Date.now() }));
+            localStorage.setItem('cybershield_level_completed', 'level1');
+            window.dispatchEvent(new Event('storage'));
+          }
+        } else {
+          const errorData = await mainRes.json();
+          console.error('❌ Backend rejected submission:', errorData);
+        }
+      } catch (err) {
+        console.warn('Main backend sync failed:', err);
+      }
+    }
+
+  } catch (err) {
+    console.error('Save failed:', err.message);
+    statusEl.textContent = '⚠ Could not save — is the backend running?';
+    statusEl.className   = 'failed';
+    showApiToast('⚠ Backend unreachable', true);
+  }
+}
+
+/**
+ * fetchLeaderboard
+ * Calls GET /api/level1/leaderboard and renders top agents.
+ */
+async function fetchLeaderboard() {
+  const rowsEl = document.getElementById('leaderboard-rows');
+
+  try {
+    const response = await fetch(`${API_BASE}/leaderboard`);
+    const data     = await response.json();
+
+    if (!data.success || !data.leaderboard.length) {
+      rowsEl.innerHTML = '<p style="color:#555;font-size:12px;">No entries yet.</p>';
+      return;
+    }
+
+    // Render each leaderboard entry
+    rowsEl.innerHTML = data.leaderboard
+      .map((entry, i) => `
+        <div class="lb-row">
+          <span class="lb-rank">#${i + 1}</span>
+          <span class="lb-user">${escapeHtml(entry.username)}</span>
+          <span class="lb-score">${entry.bestScore} XP ${entry.completed ? '🛡️' : ''}</span>
+        </div>
+      `)
+      .join('');
+
+  } catch (err) {
+    console.error('Leaderboard fetch failed:', err.message);
+    rowsEl.innerHTML = '<p style="color:#554;font-size:12px;">Leaderboard offline.</p>';
+  }
+}
+
+/**
+ * escapeHtml — prevent XSS from user-submitted usernames
+ * when rendering them into the leaderboard HTML.
+ */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
+}
+
+
+/* ── Canvas Click-to-Interact ── */
+canvas.addEventListener('click', e => {
+  if (!gameRunning || modalOpen) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mx   = e.clientX - rect.left;
+  const my   = e.clientY - rect.top;
+
+  for (const obj of objects) {
+    if (mx >= obj.x && mx <= obj.x + obj.w && my >= obj.y && my <= obj.y + obj.h) {
+      player.x = obj.x + obj.w / 2 - player.w / 2;
+      player.y = obj.y + obj.h + 8;
+      openModal(obj.id);
+      return;
+    }
+  }
+});
+
+/* ── Allow Enter key on username input to start game ── */
+document.getElementById('username-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGame();
+  e.stopPropagation(); // Don't fire game's keydown handler
+});
+</script>
+</body>
+</html>

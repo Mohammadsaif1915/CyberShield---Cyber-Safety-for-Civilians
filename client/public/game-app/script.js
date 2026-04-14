@@ -9,6 +9,9 @@
 const gameApi = window.CyberShieldGameApi;
 
 /* ========== DOM ========== */
+// FIX 3: All DOM queries and event assignments moved inside DOMContentLoaded
+document.addEventListener("DOMContentLoaded", () => {
+
 const homeScreen        = document.getElementById("homeScreen");
 const levelScreen       = document.getElementById("levelScreen");
 const loadingScreen     = document.getElementById("loadingScreen");
@@ -52,11 +55,11 @@ const TOTAL_LEVELS = 50;
 const LEVELS_VISIBLE = 50;
 
 const LEVEL_META = {
-  1: { title: "PASSWORD SECURITY",     icon: "🔐", type: "FIREWALL",   diff: "EASY",   xp: 100, playable: true,  path: "levels/1/index.html" },
-  2: { title: "SOCIAL MEDIA SCAMS",    icon: "🎣", type: "PHISHING",   diff: "EASY",   xp: 200, playable: true,  path: "levels/2/index.html" },
-  3: { title: "RANSOMWARE OFFICE ATTACK", icon: "💀", type: "RANSOMWARE", diff: "HARD",   xp: 300, playable: true,  path: "levels/3/index.html" },
-  4: { title: "DARK WEB IDENTITY",     icon: "🎭", type: "IDENTITY",   diff: "HARD",   xp: 400, playable: true,  path: "levels/4/index.html" },
-  5: { title: "CYBER CITY DEFENSE",    icon: "🏙️", type: "CITY",       diff: "ELITE",  xp: 500, playable: true,  path: "levels/5/index.html" },
+  1: { title: "PASSWORD SECURITY",        icon: "🔐", type: "FIREWALL",   diff: "EASY",  xp: 100, playable: true, path: "levels/1/index.html" },
+  2: { title: "SOCIAL MEDIA SCAMS",       icon: "🎣", type: "PHISHING",   diff: "EASY",  xp: 200, playable: true, path: "levels/2/index.html" },
+  3: { title: "RANSOMWARE OFFICE ATTACK", icon: "💀", type: "RANSOMWARE", diff: "HARD",  xp: 300, playable: true, path: "levels/3/index.html" },
+  4: { title: "DARK WEB IDENTITY",        icon: "🎭", type: "IDENTITY",   diff: "HARD",  xp: 400, playable: true, path: "levels/4/index.html" },
+  5: { title: "CYBER CITY DEFENSE",       icon: "🏙️", type: "CITY",       diff: "ELITE", xp: 500, playable: true, path: "levels/5/index.html" },
 };
 
 const FUTURE_MISSION_TYPES = [
@@ -88,11 +91,9 @@ let currentLevelSelected = null;
 
 /* ========== INIT ========== */
 function initLevels() {
-  // Default: only level 1 unlocked
   for (let i = 1; i <= TOTAL_LEVELS; i++) {
     levels[i] = { unlocked: i === 1, completed: false };
   }
-  // Try to load from localStorage first (instant)
   const saved = localStorage.getItem("cd_levels");
   if (saved) {
     try {
@@ -100,7 +101,6 @@ function initLevels() {
       Object.assign(levels, parsed);
     } catch (e) {}
   }
-  // Then sync from backend if user exists
   syncProgressFromBackend();
 }
 
@@ -143,26 +143,19 @@ async function syncProgressFromBackend() {
       : await fetch(`/api/game/stats/${encodeURIComponent(user.name)}`).then(res => res.json());
     if (!data.success || !data.data?.levels) return;
 
-    // Reset all to defaults
     for (let i = 1; i <= TOTAL_LEVELS; i++) {
       levels[i] = { unlocked: i === 1, completed: false };
     }
 
-    // Mark completed levels from backend
-    const completedSet = new Set();
     data.data.levels.forEach(entry => {
       if (entry.completed && levels[entry.level]) {
         levels[entry.level].completed = true;
-        levels[entry.level].unlocked = true;
-        completedSet.add(entry.level);
+        levels[entry.level].unlocked  = true;
       }
     });
 
-    // Unlock next levels sequentially
-    for (let i = 1; i <= TOTAL_LEVELS; i++) {
-      if (levels[i].completed && i < TOTAL_LEVELS) {
-        levels[i + 1].unlocked = true;
-      }
+    for (let i = 1; i < TOTAL_LEVELS; i++) {   // FIX 2: i < TOTAL_LEVELS (not <=)
+      if (levels[i].completed) levels[i + 1].unlocked = true;
     }
 
     saveLevels();
@@ -175,6 +168,11 @@ async function syncProgressFromBackend() {
 }
 
 async function saveProgressToBackend(lvl, completed) {
+  // FIX 5: Early return when level is out of range instead of sending undefined
+  if (!LEVEL_META[lvl]) {
+    console.warn(`saveProgressToBackend: invalid level ${lvl}, skipping`);
+    return;
+  }
   const user = getUser();
   if (!user) return;
 
@@ -206,11 +204,8 @@ async function saveProgressToBackend(lvl, completed) {
 
 /* ========== USER ========== */
 function getUser() {
-  try {
-    return JSON.parse(localStorage.getItem("user_v2"));
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(localStorage.getItem("user_v2")); }
+  catch { return null; }
 }
 
 /* ========== PARTICLES ========== */
@@ -220,13 +215,13 @@ function initParticles() {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const particles = Array.from({length: 60}, () => ({
+  const particles = Array.from({ length: 60 }, () => ({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
     vx: (Math.random() - 0.5) * 0.4,
     vy: (Math.random() - 0.5) * 0.4,
     r:  Math.random() * 1.5 + 0.5,
-    alpha: Math.random() * 0.6 + 0.2
+    alpha: Math.random() * 0.6 + 0.2,
   }));
 
   function draw() {
@@ -234,7 +229,7 @@ function initParticles() {
     particles.forEach(p => {
       p.x += p.vx; p.y += p.vy;
       if (p.x < 0) p.x = canvas.width;
-      if (p.x > canvas.width) p.x = 0;
+      if (p.x > canvas.width)  p.x = 0;
       if (p.y < 0) p.y = canvas.height;
       if (p.y > canvas.height) p.y = 0;
       ctx.beginPath();
@@ -266,7 +261,7 @@ function initParticles() {
 /* ========== CLOCK ========== */
 function updateClock() {
   const el = document.getElementById("footerTime");
-  if (el) el.textContent = new Date().toLocaleTimeString("en-US", {hour:"2-digit", minute:"2-digit"});
+  if (el) el.textContent = new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -285,11 +280,10 @@ function renderMap() {
   for (let i = 1; i <= LEVELS_VISIBLE; i++) {
     positions.push({
       x: START_X + (i - 1) * SPACING_X,
-      y: CENTER_Y + Math.sin(i * 0.7) * WAVE_AMP
+      y: CENTER_Y + Math.sin(i * 0.7) * WAVE_AMP,
     });
   }
 
-  // SVG paths
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   svg.style.cssText = `position:absolute;top:0;left:0;width:${totalW}px;height:${totalH}px;pointer-events:none;z-index:2;overflow:visible;`;
@@ -303,8 +297,8 @@ function renderMap() {
   svg.appendChild(defs);
 
   for (let i = 1; i < positions.length; i++) {
-    const {x: ax, y: ay} = positions[i - 1];
-    const {x: bx, y: by} = positions[i];
+    const { x: ax, y: ay } = positions[i - 1];
+    const { x: bx, y: by } = positions[i];
     const half = NODE_SIZE / 2;
     const mx = (ax + bx) / 2;
     const my = Math.min(ay, by) - 55;
@@ -332,12 +326,11 @@ function renderMap() {
   inner.style.cssText = `position:relative;width:${totalW}px;height:${totalH}px;`;
   inner.appendChild(svg);
 
-  // Nodes
   for (let i = 1; i <= LEVELS_VISIBLE; i++) {
-    const {x, y} = positions[i - 1];
-    const isCompleted = levels[i]?.completed;
-    const isUnlocked  = levels[i]?.unlocked;
-    const meta        = LEVEL_META[i];
+    const { x, y }    = positions[i - 1];
+    const isCompleted  = levels[i]?.completed;
+    const isUnlocked   = levels[i]?.unlocked;
+    const meta         = LEVEL_META[i];
 
     const node = document.createElement("div");
     node.className = `level-node ${isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked"}`;
@@ -352,7 +345,6 @@ function renderMap() {
       node.innerHTML = `<span class="lock">🔒</span><span class="level-num">${i}</span>`;
     }
 
-    // Level title label below node
     const label = document.createElement("div");
     label.style.cssText = `position:absolute;top:${NODE_SIZE + 8}px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(0,255,200,0.6);text-align:center;letter-spacing:0.05em;`;
     label.textContent = meta?.title || `LEVEL ${i}`;
@@ -360,8 +352,8 @@ function renderMap() {
 
     setTimeout(((n) => () => {
       n.style.transition = "opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)";
-      n.style.opacity = "1";
-      n.style.transform = "scale(1)";
+      n.style.opacity    = "1";
+      n.style.transform  = "scale(1)";
     })(node), 80 * i);
 
     inner.appendChild(node);
@@ -370,7 +362,6 @@ function renderMap() {
   mapCanvas.innerHTML = "";
   mapCanvas.appendChild(inner);
 
-  // Center scroll on current unlocked
   setTimeout(() => {
     const target = mapCanvas.querySelector(".level-node.unlocked:not(.completed)") ||
                    mapCanvas.querySelector(".level-node.completed:last-child");
@@ -400,7 +391,6 @@ function openLevelModal(lvl) {
   document.getElementById("missionType").textContent     = meta.type || "—";
   document.getElementById("missionXP").textContent       = `+${meta.xp || 100}`;
 
-  // Level name
   const nameEl = document.getElementById("missionName");
   if (nameEl) nameEl.textContent = meta.title || `LEVEL ${lvl}`;
 
@@ -415,19 +405,23 @@ function openLevelModal(lvl) {
     } else {
       playBtn.style.display   = "none";
       lockedMsg.style.display = "block";
-      lockedMsg.querySelector("p").textContent = "🔧 This mission is under development";
+      // FIX 1: Null-check before accessing querySelector result
+      const p = lockedMsg.querySelector("p");
+      if (p) p.textContent = "🔧 This mission is under development";
     }
   } else {
     playBtn.style.display   = "none";
     lockedMsg.style.display = "block";
-    lockedMsg.querySelector("p").textContent = "🔒 Complete previous mission to unlock";
+    // FIX 1: Null-check before accessing querySelector result
+    const p = lockedMsg.querySelector("p");
+    if (p) p.textContent = "🔒 Complete previous mission to unlock";
   }
 
   openPopup(levelModal, levelModalOverlay);
 }
 
 function playLevel() {
-  const lvl = currentLevelSelected;
+  const lvl  = currentLevelSelected;
   const meta = LEVEL_META[lvl];
   closeLevelModal();
 
@@ -436,27 +430,20 @@ function playLevel() {
     return;
   }
 
-  // No agent registration needed — individual levels handle username
-
   showToast(`🎮 Launching ${meta.title}...`);
-
-  // Navigate to the game level after a short delay
-  setTimeout(() => {
-    window.location.href = meta.path;
-  }, 600);
+  setTimeout(() => { window.location.href = meta.path; }, 600);
 }
 
-/* ========== MARK LEVEL COMPLETE (called via postMessage from game levels) ========== */
+/* ========== MARK LEVEL COMPLETE ========== */
 window.addEventListener("message", async (e) => {
   if (e.data?.type === "GAME_COMPLETE" && e.data?.level) {
     const lvl = e.data.level;
-    const score = e.data.score || 0;
 
     levels[lvl].completed = true;
+    // FIX 2: Bounds-check before unlocking next level
     if (lvl < TOTAL_LEVELS) levels[lvl + 1].unlocked = true;
     saveLevels();
 
-    // Save to backend
     await saveProgressToBackend(lvl, true);
 
     updateStats();
@@ -466,22 +453,19 @@ window.addEventListener("message", async (e) => {
   }
 });
 
-// Also check URL param for completion (when navigating back from a game)
 function checkReturnCompletion() {
-  const params = new URLSearchParams(window.location.search);
+  const params       = new URLSearchParams(window.location.search);
   const completedLvl = parseInt(params.get("completed"));
-  const score = parseInt(params.get("score")) || 0;
 
   if (completedLvl && LEVEL_META[completedLvl]) {
     levels[completedLvl].completed = true;
+    // FIX 2: Bounds-check before unlocking next level
     if (completedLvl < TOTAL_LEVELS) levels[completedLvl + 1].unlocked = true;
     saveLevels();
     saveProgressToBackend(completedLvl, true);
     updateStats();
     updateAgentStats();
     showToast(`✔ Mission ${completedLvl} Complete! +${LEVEL_META[completedLvl]?.xp || 100} XP`);
-
-    // Clean URL
     window.history.replaceState({}, "", window.location.pathname);
   }
 }
@@ -513,6 +497,10 @@ function closePopup(popup, overlay) {
   setTimeout(() => { popup.style.display = "none"; }, 260);
 }
 
+function closeLevelModal() {
+  closePopup(levelModal, levelModalOverlay);
+}
+
 /* ========== PROFILE ========== */
 function toggleProfile() {
   if (profileBox.classList.contains("active")) { closeProfile(); return; }
@@ -542,18 +530,20 @@ function closeProfile() {
 }
 
 function updateAgentStats() {
-  const completed  = getCompletedCount();
+  const completed = getCompletedCount();
   astatLvl.textContent  = completed;
   astatRank.textContent = getRank(completed);
 }
 
+// FIX 3: These assignments are now safely inside DOMContentLoaded
 profileSubmitBtn.onclick = function () {
   const name = nameInput.value.trim();
   nameError.style.display = "none";
   nameError.textContent   = "";
-  if (!name) { nameError.textContent = "⚠ Agent codename required"; nameError.style.display = "block"; return; }
-  if (name.length < 3) { nameError.textContent = "⚠ Minimum 3 characters required"; nameError.style.display = "block"; return; }
+  if (!name)            { nameError.textContent = "⚠ Agent codename required";          nameError.style.display = "block"; return; }
+  if (name.length < 3)  { nameError.textContent = "⚠ Minimum 3 characters required";   nameError.style.display = "block"; return; }
   if (!/^[A-Za-z0-9._]+$/.test(name)) { nameError.textContent = "⚠ Only letters, numbers, . and _ allowed"; nameError.style.display = "block"; return; }
+
   const user = { name, id: "CY-" + Math.floor(100000 + Math.random() * 900000) };
   localStorage.setItem("user_v2", JSON.stringify(user));
   gameApi?.rememberAgent(name);
@@ -565,15 +555,12 @@ profileSubmitBtn.onclick = function () {
   profileCreateView.style.display = "none";
   profileViewMode.style.display   = "block";
   showToast("✔ Agent registered: " + user.name);
-
-  // Sync from backend for this user (in case they played before)
   syncProgressFromBackend();
 };
 
 logoutBtn.onclick = function () {
   localStorage.removeItem("user_v2");
   localStorage.removeItem("cd_levels");
-  // Reset levels
   for (let i = 1; i <= TOTAL_LEVELS; i++) {
     levels[i] = { unlocked: i === 1, completed: false };
   }
@@ -582,9 +569,7 @@ logoutBtn.onclick = function () {
   updateStats();
   closeProfile();
   showToast("👋 Agent logged out");
-  if (levelScreen.style.display === "flex") {
-    goHome();
-  }
+  if (levelScreen.style.display === "flex") goHome();
 };
 
 function updateUserLabel() {
@@ -603,10 +588,6 @@ function toggleSettings() {
 function closeSettings() {
   closePopup(settingsBox, settingsOverlay);
   settingsIconBtn.classList.remove("active");
-}
-
-function closeLevelModal() {
-  closePopup(levelModal, levelModalOverlay);
 }
 
 function toggleScanline() {

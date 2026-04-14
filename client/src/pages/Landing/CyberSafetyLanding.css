@@ -1533,29 +1533,119 @@ body {
   .footer-newsletter { grid-column: 1 / -1; }
 }
 
+@media (max-width: 1024px) {
+  .navbar-content { height: 70px; }
+  .hero-section-3d { padding: 8rem 1.5rem 5rem; min-height: auto; }
+  .hero-title-3d { font-size: 3.5rem; }
+  .section-title-3d { font-size: 2.75rem; }
+  .features-section-3d,
+  .protect-section-3d,
+  .threats-section-3d,
+  .testimonials-section-3d,
+  .stats-section-3d,
+  .cta-section-3d { padding: 5rem 1.5rem; }
+  .features-grid-3d { grid-template-columns: repeat(2, 1fr); }
+  .protect-grid-3d { grid-template-columns: 1fr; }
+  .cta-card-3d { padding: 3rem 2rem; }
+  .cta-title-3d { font-size: 2.75rem; }
+  .illustration-3d-container { max-width: 450px; }
+  .shield-core { width: 180px; height: 180px; }
+  .orb { width: 60px; height: 60px; }
+}
+
 @media (max-width: 768px) {
   .nav-links { display: none; }
   .mobile-menu-btn { display: block; }
-  .hero-section-3d { padding: 7rem 1.5rem 4rem; }
-  .hero-title-3d { font-size: 2.5rem; }
-  .section-title-3d { font-size: 2.25rem; }
-  .cta-title-3d { font-size: 2rem; }
+  .navbar-content { height: 64px; }
+  .navbar-container { padding: 0 1rem; }
+  .hero-section-3d { padding: 6rem 1rem 3rem; min-height: auto; }
+  .hero-title-3d { font-size: 2.25rem; }
+  .hero-description-3d { font-size: 1rem; margin-bottom: 1.5rem; }
+  .hero-buttons-3d { gap: 1rem; margin-bottom: 2.5rem; }
+  .section-title-3d { font-size: 2rem; }
+  .section-description-3d { font-size: 1rem; }
+  .cta-title-3d { font-size: 1.75rem; }
+  .cta-description-3d { font-size: 1rem; }
+  .features-section-3d,
+  .protect-section-3d,
+  .threats-section-3d,
+  .testimonials-section-3d,
+  .stats-section-3d,
+  .cta-section-3d { padding: 3.5rem 1rem; }
+  .section-header-3d { margin-bottom: 2.5rem; }
   .features-grid-3d,
   .protect-grid-3d,
   .threats-grid-3d,
   .testimonials-grid-3d,
-  .stats-grid-3d { grid-template-columns: 1fr; }
-  .footer-main { grid-template-columns: 1fr; }
-  .footer-bottom-content { flex-direction: column; text-align: center; }
+  .stats-grid-3d { grid-template-columns: 1fr; gap: 1.25rem; }
+  .feature-card-3d { height: auto; min-height: 260px; }
+  .footer-3d { padding: 3rem 1rem 1.5rem; }
+  .footer-main { grid-template-columns: 1fr; gap: 1.5rem; }
+  .footer-bottom-content { flex-direction: column; text-align: center; gap: 1rem; }
   .footer-legal { justify-content: center; }
-  .stat-value-3d { font-size: 3.5rem; }
+  .stat-value-3d { font-size: 3rem; }
+  .hero-badge-3d { padding: 0.5rem 1rem; }
+  .hero-badge-3d span { font-size: 0.8rem; }
+  .trust-indicators-3d { gap: 1rem; }
+  .trust-item-3d { padding: 1rem 1.25rem; }
+  .trust-value { font-size: 1.5rem; }
+  .cta-card-3d { padding: 2.5rem 1.5rem; border-radius: 20px; }
+  .btn-cta-3d { padding: 1rem 2rem; font-size: 1rem; }
+  .protect-card-inner { padding: 1.75rem; border-radius: 20px; }
+  .threat-card-inner { padding: 1.5rem; }
+  .testimonial-inner { padding: 1.75rem; }
+  .stat-card-inner { padding: 2rem 1.5rem; }
+  .threats-cta-3d { padding: 2rem 1.5rem; }
+  .illustration-3d-container { max-width: 300px; }
+  .shield-core { width: 140px; height: 140px; }
+  .shield-icon { transform: scale(0.7); }
+  .orb { width: 50px; height: 50px; }
+
+  /* Mobile menu improvements */
+  .mobile-menu-3d {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .mobile-link { padding: 0.75rem 1rem; }
+  .mobile-menu-3d .nav-signin-3d {
+    display: block;
+    text-align: center;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+  }
+  .mobile-menu-3d .btn-primary-3d {
+    display: block;
+    text-align: center;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
-  .hero-title-3d { font-size: 2rem; }
-  .section-title-3d { font-size: 1.75rem; }
-  .btn-hero-primary-3d,
-  .btn-hero-secondary-3d { width: 100%; justify-content: center; }
-  .trust-indicators-3d { flex-direction: column; align-items: stretch; gap: 1rem; }
-  .sub-modal-card { padding: 32px 24px; }
+  .hero-section-3d { padding: 5.5rem 0.75rem 2rem; }
+  .hero-title-3d { font-size: 1.7rem; }
+  .hero-description-3d { font-size: 0.9rem; line-height: 1.6; }
+  .section-title-3d { font-size: 1.5rem; }
+  .section-description-3d { font-size: 0.9rem; }
+  .cta-title-3d { font-size: 1.4rem; }
+  .btn-hero-primary-3d { padding: 1rem 1.5rem; font-size: 0.95rem; width: 100%; justify-content: center; }
+  .btn-hero-secondary-3d { padding: 1rem 1.5rem; font-size: 0.95rem; width: 100%; justify-content: center; }
+  .trust-indicators-3d { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+  .trust-item-3d { flex-direction: row; gap: 1rem; text-align: left; }
+  .sub-modal-card { padding: 24px 18px; width: 95%; }
+  .sub-modal-title { font-size: 1.2rem; }
+  .card-3d-front { padding: 1.75rem; }
+  .feature-title-3d { font-size: 1.25rem; }
+  .feature-card-3d { height: auto; min-height: 220px; }
+  .protect-stat-value-3d { font-size: 1.75rem; }
+  .stat-value-3d { font-size: 2.5rem; }
+  .footer-logo-text { font-size: 1.5rem; }
+  .footer-3d { padding: 2rem 0.75rem 1rem; }
+  .newsletter-form-3d { gap: 0.75rem; }
+  .social-icons-3d { justify-content: center; }
+  .logo-text-3d { font-size: 1.2rem; }
 }

@@ -161,3 +161,242 @@ export const sendBlogNotification = async (subscribers, blog) => {
 
   return results;
 };
+
+// ══════════════════════════════════════════════════════════════
+// INCIDENT REPORT TEMPLATES
+// ══════════════════════════════════════════════════════════════
+
+const incidentReportSubmissionTemplate = (reporterEmail, userName, report) => {
+  const typeEmojis = {
+    phishing: '🎣',
+    malware: '🦠',
+    scam_call: '☎️',
+    fraud_link: '🔗',
+    suspicious_email: '✉️',
+    other: '❓'
+  };
+  const severityColors = {
+    low: '#0D9488',
+    medium: '#D97706',
+    high: '#EA580C',
+    critical: '#DC2626'
+  };
+
+  return {
+    from: `"Cyber Shield" <${process.env.GMAIL_USER}>`,
+    to: reporterEmail,
+    subject: `✅ Threat Report #${report._id.toString().slice(-6).toUpperCase()} Received`,
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Report Confirmation</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;border-radius:14px;overflow:hidden;border:1.5px solid #e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    {/* Header */}
+    <div style="background:linear-gradient(135deg,#059669 0%,#0d9488 100%);padding:32px;text-align:center;">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:rgba(255,255,255,0.2);border-radius:14px;border:2px solid rgba(255,255,255,0.3);margin-bottom:12px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2"/></svg>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:#fff;margin:0 0 6px;">Report Received</h1>
+      <p style="font-size:13px;color:rgba(255,255,255,0.9);margin:0;">Thank you for helping protect the community</p>
+    </div>
+
+    {/* Confirmation Box */}
+    <div style="background:#f0fdf4;border-left:4px solid #059669;padding:18px 24px;">
+      <p style="font-size:13px;color:#166534;margin:0;font-weight:600;">✓ Your threat report has been submitted successfully</p>
+      <p style="font-size:12px;color:#16a34a;margin:6px 0 0;">Report ID: <strong>#${report._id.toString().slice(-6).toUpperCase()}</strong></p>
+    </div>
+
+    {/* Report Details */}
+    <div style="background:#fff;padding:32px;">
+      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin:0 0 24px;border-bottom:2px solid #e2e8f0;padding-bottom:12px;">Report Details</h2>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+        {/* Type */}
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Threat Type</div>
+          <div style="font-size:14px;font-weight:600;color:#0f172a;">${typeEmojis[report.reportType]} ${report.reportType.replace(/_/g, ' ')}</div>
+        </div>
+        
+        {/* Severity */}
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Severity</div>
+          <div style="display:inline-block;background:${severityColors[report.severity]}20;color:${severityColors[report.severity]};font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px;text-transform:capitalize;border:1px solid ${severityColors[report.severity]}40;">${report.severity}</div>
+        </div>
+      </div>
+
+      {/* Title */}
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Subject</div>
+        <div style="font-size:14px;color:#334155;font-weight:500;">${report.title}</div>
+      </div>
+
+      {/* Description Preview */}
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Description</div>
+        <div style="font-size:13px;color:#475569;line-height:1.6;background:#f8fafc;padding:12px 16px;border-radius:8px;border-left:3px solid #0ea5e9;">${report.description.substring(0, 200)}${report.description.length > 200 ? '...' : ''}</div>
+      </div>
+
+      {/* Submission Time */}
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Submitted on ${new Date(report.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })} at ${new Date(report.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+      </div>
+    </div>
+
+    {/* What Happens Next */}
+    <div style="background:#f0f9ff;border-top:1px solid #bae6fd;padding:24px 32px;">
+      <h3 style="font-size:14px;font-weight:700;color:#0c4a6e;margin:0 0 16px;">What Happens Next?</h3>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div style="width:28px;height:28px;background:#0ea5e9;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">1</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#0369a1;">Review & Analysis</div>
+          <div style="font-size:12px;color:#0c4a6e;margin-top:2px;">Our security team will thoroughly investigate your report</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div style="width:28px;height:28px;background:#0ea5e9;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">2</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#0369a1;">Status Updates</div>
+          <div style="font-size:12px;color:#0c4a6e;margin-top:2px;">You'll receive email updates as your report is reviewed</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:28px;height:28px;background:#0ea5e9;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">3</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#0369a1;">Community Impact</div>
+          <div style="font-size:12px;color:#0c4a6e;margin-top:2px;">Verified threats help us protect thousands of users</div>
+        </div>
+      </div>
+    </div>
+
+    {/* CTA */}
+    <div style="background:#fff;padding:0 32px 28px;text-align:center;">
+      <a href="${process.env.SITE_URL || 'http://localhost:3000'}/dashboard?tab=incident-report" style="display:inline-block;background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;font-size:14px;font-weight:700;padding:12px 36px;border-radius:8px;text-decoration:none;">View Report →</a>
+    </div>
+
+    {/* Footer */}
+    <div style="background:#0f172a;padding:20px 32px;text-align:center;">
+      <div style="font-size:11px;color:#64748b;">© 2024 Cyber Shield &nbsp;|&nbsp; MSBTE Final Year Project &nbsp;|&nbsp; All rights reserved</div>
+      <div style="font-size:11px;color:#334155;margin-top:8px;">This confirmation was sent because a threat report was submitted from this email address</div>
+    </div>
+  </div>
+</body>
+</html>`
+  };
+};
+
+const incidentStatusUpdateTemplate = (reporterEmail, userName, report, oldStatus, newStatus) => {
+  const statusMessages = {
+    pending: { text: 'Under Initial Review', color: '#D97706', emoji: '⏳' },
+    reviewed: { text: 'Reviewed by Security Team', color: '#0EA5E9', emoji: '🔍' },
+    verified: { text: 'Verified as Authentic Threat', color: '#059669', emoji: '✓' },
+    resolved: { text: 'Threat Resolved', color: '#10B981', emoji: '✅' }
+  };
+
+  const current = statusMessages[newStatus] || statusMessages.pending;
+
+  return {
+    from: `"Cyber Shield" <${process.env.GMAIL_USER}>`,
+    to: reporterEmail,
+    subject: `🔔 Update: Report #${report._id.toString().slice(-6).toUpperCase()} – ${current.text}`,
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Report Status Update</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;border-radius:14px;overflow:hidden;border:1.5px solid #e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    {/* Header */}
+    <div style="background:linear-gradient(135deg,${current.color},${current.color}dd);padding:28px 32px;display:flex;align-items:center;gap:16px;">
+      <div style="font-size:32px;">${current.emoji}</div>
+      <div>
+        <h1 style="font-size:20px;font-weight:700;color:#fff;margin:0;">${current.text}</h1>
+        <p style="font-size:12px;color:rgba(255,255,255,0.9);margin:4px 0 0;">Report #${report._id.toString().slice(-6).toUpperCase()}</p>
+      </div>
+    </div>
+
+    {/* Update Alert */}
+    <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:16px 24px;">
+      <p style="font-size:13px;color:#664d03;margin:0;font-weight:600;">Your threat report has been updated</p>
+    </div>
+
+    {/* Details */}
+    <div style="background:#fff;padding:32px;">
+      <h2 style="font-size:16px;font-weight:700;color:#0f172a;margin:0 0 20px;">Status Update Details</h2>
+      
+      <table style="width:100%;margin-bottom:28px;">
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;">Report Title</td>
+          <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-size:13px;color:#334155;font-weight:500;">${report.title}</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;">Previous Status</td>
+          <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;text-align:right;"><span style="background:#e5e7eb;color:#374151;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;text-transform:capitalize;">${oldStatus}</span></td>
+        </tr>
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;">New Status</td>
+          <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;text-align:right;"><span style="background:${current.color}20;color:${current.color};font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;text-transform:capitalize;border:1px solid ${current.color}40;">${newStatus}</span></td>
+        </tr>
+        <tr>
+          <td style="padding:12px 0;font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;">Updated On</td>
+          <td style="padding:12px 0;text-align:right;font-size:13px;color:#334155;">${new Date().toLocaleDateString('en-IN')} at ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</td>
+        </tr>
+      </table>
+
+      ${newStatus === 'verified' ? `
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px;margin-bottom:20px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <span style="font-size:18px;flex-shrink:0;">🎖️</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:4px;">Threat Verified</div>
+              <div style="font-size:12px;color:#166534;">Your report has been verified as an authentic security threat. This information helps us protect the entire community.</div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
+      ${newStatus === 'resolved' ? `
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px;margin-bottom:20px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <span style="font-size:18px;flex-shrink:0;">🎯</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:4px;">Threat Resolved</div>
+              <div style="font-size:12px;color:#166534;">Thank you for reporting this threat. Appropriate action has been taken to mitigate the risk.</div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+
+    {/* Footer */}
+    <div style="background:#0f172a;padding:20px 32px;text-align:center;">
+      <div style="font-size:11px;color:#64748b;">© 2024 Cyber Shield &nbsp;|&nbsp; MSBTE Final Year Project &nbsp;|&nbsp; All rights reserved</div>
+      <div style="font-size:11px;color:#334155;margin-top:8px;">You're receiving this update because you submitted a threat report</div>
+    </div>
+  </div>
+</body>
+</html>`
+  };
+};
+
+export const sendIncidentReportConfirmation = async (reporterEmail, userName, report) => {
+  const transporter = createTransporter();
+  const mailOptions = incidentReportSubmissionTemplate(reporterEmail, userName, report);
+  const info = await transporter.sendMail(mailOptions);
+  console.log(`✅ Incident report confirmation sent to ${reporterEmail}: ${info.messageId}`);
+  return info;
+};
+
+export const sendIncidentStatusUpdate = async (reporterEmail, userName, report, oldStatus, newStatus) => {
+  const transporter = createTransporter();
+  const mailOptions = incidentStatusUpdateTemplate(reporterEmail, userName, report, oldStatus, newStatus);
+  const info = await transporter.sendMail(mailOptions);
+  console.log(`✅ Incident status update sent to ${reporterEmail}: ${info.messageId}`);
+  return info;
+};

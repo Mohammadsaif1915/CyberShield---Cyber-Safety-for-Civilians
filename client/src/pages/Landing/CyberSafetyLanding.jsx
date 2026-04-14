@@ -5,6 +5,7 @@ import {
   Linkedin, Github, Mail, Send, 
   Phone, MapPin, CheckCircle2, Zap, Users, Award 
 } from "lucide-react";
+import LogoIcon from '../../components/common/LogoIcon';
 import './CyberSafetyLanding.css';
 
 const CyberSafetyLanding = () => {
@@ -137,9 +138,8 @@ const CyberSafetyLanding = () => {
           <div className="navbar-content">
             <div className="logo-container-3d">
               <div className="logo-wrapper-3d">
-                <div className="logo-icon-3d">
-                  <Shield className="icon" size={24} />
-                  <div className="icon-glow"></div>
+                <div className="logo-icon-3d" style={{ background: 'transparent', padding: 0, boxShadow: 'none' }}>
+                  <LogoIcon size={50} />
                 </div>
               </div>
               <span className="logo-text-3d">CyberShield</span>
@@ -465,8 +465,8 @@ const CyberSafetyLanding = () => {
           <div className="footer-main">
             <div className="footer-column footer-brand">
               <div className="footer-logo-3d">
-                <div className="footer-logo-icon">
-                  <Shield size={24} />
+                <div className="footer-logo-icon" style={{ background: 'transparent', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <LogoIcon size={36} />
                 </div>
                 <span className="footer-logo-text">CyberShield</span>
               </div>

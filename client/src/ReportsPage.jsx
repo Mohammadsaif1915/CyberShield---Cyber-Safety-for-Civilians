@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart2, TrendingUp, Target, Clock, Award, Rocket,
   Brain, Shield, Mail, Activity, Zap, Filter
@@ -72,10 +73,75 @@ function ProgBar({ label, pct, color }) {
   );
 }
 
-export default function ReportsPage({ stats, setPage, navigate, quizHistory }) {
+export default function ReportsPage({ stats: rawStats, setPage, navigate: navProp, quizHistory: historyProp }) {
+  const routerNavigate = useNavigate();
+  const navigate = navProp || routerNavigate;
+
+  // ── Self-fetch mode: when used as a standalone route with no props ──────────
+  const [selfUser, setSelfUser]           = useState(null);
+  const [selfLoading, setSelfLoading]     = useState(!rawStats);
+  const [selfHistory, setSelfHistory]     = useState([]);
+
+  useEffect(() => {
+    if (rawStats) return; // Props provided – skip self-fetch
+    const token = localStorage.getItem("token");
+    if (!token) { setSelfLoading(false); return; }
+
+    fetch("/api/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => {
+        const u = data.user || data;
+        setSelfUser(u);
+        setSelfHistory(Array.isArray(u?.quizHistory) ? u.quizHistory : []);
+      })
+      .catch(() => {})
+      .finally(() => setSelfLoading(false));
+  }, [rawStats]);
+
+  // ── Build stats object ─────────────────────────────────────────────────────
+  let stats = {};
+  let quizHistory = historyProp;
+
+  if (rawStats) {
+    stats = rawStats;
+    quizHistory = historyProp ?? [];
+  } else if (selfUser) {
+    // Map the user document fields to the stats shape this component uses
+    stats = {
+      score:          selfUser.score         ?? 0,
+      quizzesDone:    selfUser.quizzesDone   ?? 0,
+      phishingDone:   selfUser.phishingSimTotal  ?? 0,
+      phishingCorrect:selfUser.phishingSimCorrect ?? 0,
+      avgScore:       selfUser.avgScore      ?? 0,
+      threatsViewed:  selfUser.threatsViewed ?? [],
+      recentActivity: selfUser.recentActivity ?? [],
+      phishingScore:  selfUser.phishingSimTotal
+        ? Math.round((selfUser.phishingSimCorrect / selfUser.phishingSimTotal) * 100)
+        : 0,
+      malwareScore:   selfUser.malwareScore  ?? 0,
+      networkScore:   selfUser.networkScore  ?? 0,
+      privacyScore:   selfUser.privacyScore  ?? 0,
+    };
+    quizHistory = selfHistory;
+  }
+
   const [period, setPeriod] = useState("week");
-  const hasData = stats.quizzesDone > 0 || stats.phishingDone > 0 || (stats.threatsViewed?.length || 0) > 0;
-  const secScore = Math.min(100, Math.round(stats.score / 30));
+
+  // ── Loading spinner ────────────────────────────────────────────────────────
+  if (selfLoading) {
+    return (
+      <div style={{ minHeight: 300, display: "flex", alignItems: "center", justifyContent: "center", color: C.textMd, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 36, height: 36, border: `3px solid ${C.border}`, borderTopColor: C.brand, borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 12px" }} />
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          <p style={{ fontSize: 13, color: C.textDim }}>Loading your analytics…</p>
+        </div>
+      </div>
+    );
+  }
+
+  const hasData = (stats.quizzesDone ?? 0) > 0 || (stats.phishingDone ?? 0) > 0 || (stats.threatsViewed?.length || 0) > 0;
+  const secScore = Math.min(100, Math.round((stats.score ?? 0) / 30));
 
   if (!hasData) {
     return (

@@ -38,6 +38,12 @@ export async function saveGameScore({ score, wavesCompleted, enemiesDefeated, ti
           xp:            data.totalScore,
         };
         localStorage.setItem('user', JSON.stringify(updated));
+        
+        // Notify parent React app if running in Game iframe
+        window.dispatchEvent(new Event('storage'));
+        if (window.parent && window.parent !== window) {
+           window.parent.dispatchEvent(new Event('storage'));
+        }
       } catch {}
       console.log(`✅ Game score saved: ${score}, total: ${data.totalScore}`);
     }

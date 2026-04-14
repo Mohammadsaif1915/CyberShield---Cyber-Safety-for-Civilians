@@ -7,7 +7,10 @@ const certificateSchema = new mongoose.Schema({
   recipientName: { type: String, required: true },
   courseTitle:   { type: String, required: true },
   issuedAt:      { type: Date, default: Date.now },
-  certificateId: { type: String, unique: true }   // e.g. CL-2024-XXXXX
+  certificateId: { type: String, unique: true },
+  paymentId:     { type: String, default: null },
+  paymentStatus: { type: String, enum: ['pending', 'paid'], default: 'pending' },
+  orderId:       { type: String, default: null },
 }, { timestamps: true });
 
 export default mongoose.model('Certificate', certificateSchema);

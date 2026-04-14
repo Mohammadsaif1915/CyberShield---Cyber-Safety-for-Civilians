@@ -7,23 +7,43 @@ import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import multer from 'multer';
+import path from 'path'; // Added missing path module
+import { fileURLToPath } from 'url'; // Added to support __dirname in ES modules
 import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
-import User            from './models/User.js';
-import Contact         from './models/Contact.js';
-import Subscriber      from './models/Subscriber.js';
-import QuizResult      from './models/QuizResult.js';
-import courseRoutes      from './routes/courseRoutes.js';
-import progressRoutes    from './routes/progressRoutes.js';
+
+// Models
+import User from './models/User.js';
+import Contact from './models/Contact.js';
+import Subscriber from './models/Subscriber.js';
+import QuizResult from './models/QuizResult.js'; // Ensure this is used if imported
+
+// Routes
+import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/adminRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import progressRoutes from './routes/progressRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
+import phishingRoutes from './routes/phishing.js'; // Ensure this is used if imported
+import activityRoutes from './routes/activity.js'; // Ensure this is used if imported
 import blogRoutes from './routes/blogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import quizSyncRoute   from './routes/quizSyncRoute.js';
-import quizRoutes from './routes/quiz.js';
+import quizSyncRoute from './routes/quizSyncRoute.js';
+import quizProgressRoutes from './routes/quiz.js';
+import quizRoutes from './routes/quizRoutes.js';
 import gameRoutes from './routes/game.js';
+import aiRoutes from './routes/ai.js';
+import featuresRoutes from './routes/featuresRoutes.js';
+import threatRoutes from './routes/threatRoutes.js';
+import achievementRoutes from './routes/achievementRoutes.js';
+import communityRoutes from './routes/communityRoutes.js';
 
 dotenv.config();
+
+// ES Module fix for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,13 +54,13 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // ── Cloudinary Config ────────────────────────────────────────
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ── Multer — memory storage ──────────────────────────────────
 const storage = multer.memoryStorage();
-const upload  = multer({
+const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
@@ -66,7 +86,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-app.use('/api', blogRoutes);
 // ── MongoDB Connection ───────────────────────────────────────
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
@@ -88,31 +107,31 @@ const transporter = nodemailer.createTransport({
 const validateRegistration = ({ fullName, email, password, city, role }) => {
   const errors = {};
 
-  if (!fullName?.trim())                               errors.fullName = 'Full name is required';
-  else if (fullName.trim().length < 2)                 errors.fullName = 'At least 2 characters';
-  else if (!/^[a-zA-Z\s]+$/.test(fullName))            errors.fullName = 'Letters only';
+  if (!fullName?.trim()) errors.fullName = 'Full name is required';
+  else if (fullName.trim().length < 2) errors.fullName = 'At least 2 characters';
+  else if (!/^[a-zA-Z\s]+$/.test(fullName)) errors.fullName = 'Letters only';
 
-  if (!email)                                          errors.email = 'Email is required';
+  if (!email) errors.email = 'Email is required';
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Invalid email format';
 
-  if (!password)                                       errors.password = 'Password is required';
-  else if (password.length < 8)                        errors.password = 'Minimum 8 characters';
-  else if (!/(?=.*[a-z])(?=.*[A-Z])/.test(password))  errors.password = 'Upper & lowercase required';
-  else if (!/(?=.*\d)/.test(password))                 errors.password = 'At least one number';
+  if (!password) errors.password = 'Password is required';
+  else if (password.length < 8) errors.password = 'Minimum 8 characters';
+  else if (!/(?=.*[a-z])(?=.*[A-Z])/.test(password)) errors.password = 'Upper & lowercase required';
+  else if (!/(?=.*\d)/.test(password)) errors.password = 'At least one number';
 
-  if (!city?.trim())                                   errors.city = 'City is required';
-  else if (city.trim().length < 2)                     errors.city = 'Enter a valid city';
+  if (!city?.trim()) errors.city = 'City is required';
+  else if (city.trim().length < 2) errors.city = 'Enter a valid city';
 
   const validRoles = ['student', 'working_professional', 'senior_citizen'];
-  if (!role)                                           errors.role = 'Please select a role';
-  else if (!validRoles.includes(role))                 errors.role = 'Invalid role';
+  if (!role) errors.role = 'Please select a role';
+  else if (!validRoles.includes(role)) errors.role = 'Invalid role';
 
   return errors;
 };
 
 // ── Auth Middleware ──────────────────────────────────────────
 const protect = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(' ');
   if (!token) return res.status(401).json({ success: false, message: 'Not authorized' });
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -156,7 +175,7 @@ const welcomeEmailHTML = (email) => `
               </td></tr>
             </table>
             <div style="text-align:center;margin-bottom:28px;">
-              <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}"
+              <a href="${process.env.CLIENT_URL || 'http://localhost:3011'}"
                 style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#0ea5e9);color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;box-shadow:0 4px 14px rgba(37,99,235,0.4);">
                 Explore CyberShield →
               </a>
@@ -213,7 +232,7 @@ const updateEmailHTML = ({ title, body, ctaText, ctaLink }) => `
 </body>
 </html>`;
 
-// ── Routes ───────────────────────────────────────────────────
+// ── App Base Routes ──────────────────────────────────────────
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -233,7 +252,7 @@ app.post('/api/register', async (req, res) => {
     if (existing)
       return res.status(409).json({ success: false, errors: { email: 'This email is already registered' } });
 
-    const user  = await User.create({ fullName, email, password, city, role });
+    const user = await User.create({ fullName, email, password, city, role });
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
     return res.status(201).json({
@@ -257,7 +276,6 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
-    // ✅ FIXED: was user.comparePassword — correct method name is matchPassword
     const isMatch = await user.matchPassword(password);
     if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
@@ -277,7 +295,7 @@ app.post('/api/auth/google', async (req, res) => {
     const { credential } = req.body;
     if (!credential) return res.status(400).json({ success: false, message: 'No credential provided' });
 
-    const ticket  = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
     const payload = ticket.getPayload();
     const { email, name, sub: googleId } = payload;
 
@@ -324,13 +342,13 @@ app.post('/api/forgot-password', async (req, res) => {
     if (!user)
       return res.status(200).json({ success: true, message: 'If this email is registered, a reset link has been sent.' });
 
-    const resetToken     = crypto.randomBytes(32).toString('hex');
+    const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordToken   = resetTokenHash;
+    user.resetPasswordToken = resetTokenHash;
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
-    const resetURL = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+    const resetURL = `${process.env.CLIENT_URL || 'http://localhost:3011'}/reset-password/${resetToken}`;
     await transporter.sendMail({
       from: `"CyberShield 🛡️" <${process.env.GMAIL_USER}>`,
       to: user.email,
@@ -360,7 +378,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
 app.post('/api/reset-password/:token', async (req, res) => {
   try {
-    const { token }    = req.params;
+    const { token } = req.params;
     const { password } = req.body;
 
     if (!password || password.length < 8)
@@ -371,12 +389,12 @@ app.post('/api/reset-password/:token', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Password must contain at least one number' });
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    const user      = await User.findOne({ resetPasswordToken: tokenHash, resetPasswordExpires: { $gt: Date.now() } });
+    const user = await User.findOne({ resetPasswordToken: tokenHash, resetPasswordExpires: { $gt: Date.now() } });
     if (!user)
       return res.status(400).json({ success: false, message: 'Reset link is invalid or has expired.' });
 
-    user.password             = password;
-    user.resetPasswordToken   = undefined;
+    user.password = password;
+    user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
 
@@ -530,9 +548,9 @@ app.put('/api/me', protect, async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
       {
-        ...(fullName   && { fullName }),
-        ...(phone      && { phone }),
-        ...(city       && { city }),
+        ...(fullName && { fullName }),
+        ...(phone && { phone }),
+        ...(city && { city }),
         ...(department && { department }),
       },
       { new: true, runValidators: true }
@@ -582,10 +600,10 @@ app.post('/api/upload-profile-image', protect, upload.single('image'), async (re
     if (!['avatar', 'cover'].includes(type))
       return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
 
-    const userId   = req.userId;
-    const folder   = type === 'avatar' ? 'cybershield/avatars' : 'cybershield/covers';
+    const userId = req.userId;
+    const folder = type === 'avatar' ? 'cybershield/avatars' : 'cybershield/covers';
     const publicId = `${userId}_${type}`;
-    const result   = await uploadToCloudinary(req.file.buffer, folder, publicId, type);
+    const result = await uploadToCloudinary(req.file.buffer, folder, publicId, type);
     const imageUrl = result.secure_url;
 
     const updateField = type === 'avatar' ? { avatar: imageUrl } : { coverImage: imageUrl };
@@ -608,9 +626,9 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
     if (!['avatar', 'cover'].includes(type))
       return res.status(400).json({ success: false, message: "type 'avatar' ya 'cover' hona chahiye" });
 
-    const userId   = req.userId;
+    const userId = req.userId;
     const publicId = `cybershield/${type === 'avatar' ? 'avatars' : 'covers'}/${userId}_${type}`;
-    await cloudinary.uploader.destroy(publicId).catch(() => {});
+    await cloudinary.uploader.destroy(publicId).catch(() => { });
 
     const clearField = type === 'avatar' ? { avatar: null } : { coverImage: null };
     await User.findByIdAndUpdate(userId, clearField);
@@ -621,17 +639,41 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 });
-app.use('/api/quiz', quizSyncRoute);
 
+// ══════════════════════════════════════════════════════════════
+// ── EXTERNAL ROUTES SETUP ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+app.use('/api', blogRoutes);
 app.use('/api', dashboardRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/progress', progressRoutes);
+app.use('/api/quiz', quizSyncRoute);
+app.use('/api/quiz', quizProgressRoutes);
+app.use('/api/quiz', quizRoutes);
+app.use('/api/certificate', certificateRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/features', featuresRoutes);
+app.use('/api/achievements', achievementRoutes);
+app.use('/api/community', communityRoutes);
+app.use('/api/game', gameRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/threats', threatRoutes);
 
 // ══════════════════════════════════════════════════════════════
-// ── COURSE / PROGRESS / CERTIFICATE / LEADERBOARD ROUTES ──────
+// ── STATIC FRONTEND SERVING (Must be AFTER API routes) ────────
 // ══════════════════════════════════════════════════════════════
-app.use('/api/courses',      courseRoutes);
-app.use('/api/progress',     progressRoutes);
-app.use('/api/certificate',  certificateRoutes);
-app.use('/api/leaderboard',  leaderboardRoutes); // ✅ ADDED
+
+// Serve React App
+app.use(express.static(path.join(__dirname, "../client/build")));
+
+// Catch-all route to serve React's index.html for unknown GET requests
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../client/build/index.html"));
+});
+
 
 // ── Global Error Handler ──────────────────────────────────────
 app.use((err, _req, res, _next) => {
@@ -639,15 +681,6 @@ app.use((err, _req, res, _next) => {
   res.status(err.status || 500).json({ success: false, message: err.message || 'Server Error' });
 });
 
-// ══════════════════════════════════════════════════════════════
-// ── QUIZ ROUTES ───────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-app.use('/api/quiz', quizRoutes);
-
-// ══════════════════════════════════════════════════════════════
-// ── GAME PROGRESS ROUTES ──────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-app.use('/api/game', gameRoutes);
 
 // ── Start server ─────────────────────────────────────────────
 app.listen(PORT, () => {
