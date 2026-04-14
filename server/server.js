@@ -7,20 +7,26 @@ import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import multer from 'multer';
+import path from 'path'; // Added missing path module
+import { fileURLToPath } from 'url'; // Added to support __dirname in ES modules
 import { v2 as cloudinary } from 'cloudinary';
 import { OAuth2Client } from 'google-auth-library';
+
+// Models
 import User from './models/User.js';
-import authRoutes from './routes/auth.js';
-import adminRoutes from './routes/adminRoutes.js';
 import Contact from './models/Contact.js';
 import Subscriber from './models/Subscriber.js';
-import QuizResult from './models/QuizResult.js';
+import QuizResult from './models/QuizResult.js'; // Ensure this is used if imported
+
+// Routes
+import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/adminRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
-import phishingRoutes from './routes/phishing.js';
-import activityRoutes from './routes/activity.js';
+import phishingRoutes from './routes/phishing.js'; // Ensure this is used if imported
+import activityRoutes from './routes/activity.js'; // Ensure this is used if imported
 import blogRoutes from './routes/blogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import quizSyncRoute from './routes/quizSyncRoute.js';
@@ -34,6 +40,10 @@ import achievementRoutes from './routes/achievementRoutes.js';
 import communityRoutes from './routes/communityRoutes.js';
 
 dotenv.config();
+
+// ES Module fix for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -76,7 +86,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-app.use('/api', blogRoutes);
 // ── MongoDB Connection ───────────────────────────────────────
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
@@ -122,7 +131,7 @@ const validateRegistration = ({ fullName, email, password, city, role }) => {
 
 // ── Auth Middleware ──────────────────────────────────────────
 const protect = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(' ');
   if (!token) return res.status(401).json({ success: false, message: 'Not authorized' });
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -223,7 +232,7 @@ const updateEmailHTML = ({ title, body, ctaText, ctaLink }) => `
 </body>
 </html>`;
 
-// ── Routes ───────────────────────────────────────────────────
+// ── App Base Routes ──────────────────────────────────────────
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -267,7 +276,6 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
-    // ✅ FIXED: was user.comparePassword — correct method name is matchPassword
     const isMatch = await user.matchPassword(password);
     if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
@@ -323,11 +331,6 @@ app.get('/api/profile', protect, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Server error' });
   }
-});
-app.use(express.static(path.join(__dirname, "../client/build")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../client/build/index.html"));
 });
 
 app.post('/api/forgot-password', async (req, res) => {
@@ -636,59 +639,48 @@ app.delete('/api/upload-profile-image', protect, async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 });
-app.use('/api/quiz', quizSyncRoute);
-app.use('/api/quiz', quizProgressRoutes);
 
+// ══════════════════════════════════════════════════════════════
+// ── EXTERNAL ROUTES SETUP ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+app.use('/api', blogRoutes);
 app.use('/api', dashboardRoutes);
-
-
-// ══════════════════════════════════════════════════════════════
-// ── COURSE / PROGRESS / CERTIFICATE / LEADERBOARD ROUTES ──────
-// ══════════════════════════════════════════════════════════════
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/progress', progressRoutes);
+app.use('/api/quiz', quizSyncRoute);
+app.use('/api/quiz', quizProgressRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/certificate', certificateRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
-// ══════════════════════════════════════════════════════════════
-// ── ADMIN ROUTES ──────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
 app.use('/api/admin', adminRoutes);
-// ═══════════════════════════════════════════════════════════════
-// ── FEATURES ROUTES ───────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════
 app.use('/api/features', featuresRoutes);
-// ═══════════════════════════════════════════════════════════════
-// ── ACHIEVEMENTS ROUTES ───────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════
-app.use('/api/achievements', achievementRoutes);// ═══════════════════════════════════════════════════════════════
-// ── COMMUNITY ROUTES ───────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════
-app.use('/api/community', communityRoutes);// ── Global Error Handler ──────────────────────────────────────
+app.use('/api/achievements', achievementRoutes);
+app.use('/api/community', communityRoutes);
+app.use('/api/game', gameRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/threats', threatRoutes);
+
+// ══════════════════════════════════════════════════════════════
+// ── STATIC FRONTEND SERVING (Must be AFTER API routes) ────────
+// ══════════════════════════════════════════════════════════════
+
+// Serve React App
+app.use(express.static(path.join(__dirname, "../client/build")));
+
+// Catch-all route to serve React's index.html for unknown GET requests
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../client/build/index.html"));
+});
+
+
+// ── Global Error Handler ──────────────────────────────────────
 app.use((err, _req, res, _next) => {
   console.error('❌', err.message);
   res.status(err.status || 500).json({ success: false, message: err.message || 'Server Error' });
 });
 
-// ══════════════════════════════════════════════════════════════
-// ── QUIZ ROUTES ───────────────────────────────────────────────
-// ══════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════════════
-// ── GAME PROGRESS ROUTES ──────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-app.use('/api/game', gameRoutes);
-
-// ══════════════════════════════════════════════════════════════
-// ── AI ROUTES ─────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-app.use('/api/ai', aiRoutes);
-
-// ══════════════════════════════════════════════════════════════
-// ── THREAT INTELLIGENCE ROUTES ────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-app.use('/api/threats', threatRoutes);
 
 // ── Start server ─────────────────────────────────────────────
 app.listen(PORT, () => {
