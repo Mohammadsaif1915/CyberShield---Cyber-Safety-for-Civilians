@@ -428,15 +428,12 @@
   <div class="end-title" id="endTitle"></div>
   <div class="end-stats" id="endStats"></div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;">
-    <button class="diff-btn" onclick="returnToTitle()">&#x21A9; PLAY AGAIN</button>
+    <button class="diff-btn" onclick="returnToTitle()">↩ PLAY AGAIN</button>
     <button class="diff-btn" onclick="showPastRuns()" style="border-color:rgba(0,238,255,0.4);color:rgba(0,238,255,0.6);font-size:12px;">
       📋 MY RUNS
     </button>
     <button class="diff-btn" onclick="showLeaderboard()" style="border-color:rgba(255,204,0,0.4);color:rgba(255,204,0,0.6);font-size:12px;">
       🏆 LEADERBOARD
-    </button>
-    <button id="nextLevelBtn3" class="diff-btn" onclick="goToNextLevel3()" style="display:none;border-color:#00ff88;color:#00ff88;font-weight:bold;letter-spacing:2px;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,255,136,0.04));box-shadow:0 0 18px rgba(0,255,136,0.2);">
-      CONTINUE TO LEVEL 4 &#x25B6;
     </button>
   </div>
 </div>
@@ -450,12 +447,12 @@
   </div>
 </div>
 
+<script src="../../game-api.js"></script>
 <script>
 // ============================================================
 // BACKEND API CONFIGURATION
 // ============================================================
-// Change this URL if your backend runs on a different port/host
-const API_BASE_URL = 'http://localhost:5000/api';
+const gameApi = window.CyberShieldGameApi;
 
 // ============================================================
 // API HELPER FUNCTIONS
@@ -476,25 +473,29 @@ async function saveGameProgress({ levelCompleted, ransomwareChoice }) {
   // Calculate how many seconds the player actually used
   const timeTaken = Math.round((Date.now() - GS.startTime) / 1000);
 
-  // The data payload we send to POST /api/level3/save
+  // The data payload we send to POST /api/game/save
   const payload = {
     username:        GS.username,
+    level:           3,
     levelCompleted:  levelCompleted,
-    ransomwareChoice: ransomwareChoice,
-    attempts:        GS.wrongActions + 1,   // wrong actions = extra attempts
-    timeTaken:       timeTaken,
+    timeSpent:       timeTaken,
     score:           GS.score,
-    difficulty:      GS.difficulty,
+    maxScore:        5000,
+    phasesCompleted: GS.phaseComplete
+      .map((done, index) => done ? `phase-${index + 1}` : null)
+      .filter(Boolean),
+    totalPhases:     4,
+    stats: {
+      ransomwareChoice: ransomwareChoice,
+      attempts: GS.wrongActions + 1,
+      difficulty: GS.difficulty,
+      wrongActions: GS.wrongActions,
+      achievements: GS.achievements.length,
+    },
   };
 
   try {
-    const response = await fetch(`${API_BASE_URL}/level3/save`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await response.json();
+    const result = await gameApi.saveProgress(payload);
 
     if (result.success) {
       if (saveEl) {
@@ -702,6 +703,7 @@ function startGame(diff) {
 
   // Store username in GS so it's available when saving
   GS.username = rawUsername;
+  gameApi?.rememberAgent(rawUsername);
   if (usernameError) usernameError.textContent = '';
 
   // Update the HUD username display
@@ -1831,9 +1833,6 @@ function triggerVictory() {
   `;
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('endScreen').classList.add('active');
-  // Show "Continue to Level 4" button on the victory path only
-  const nb = document.getElementById('nextLevelBtn3');
-  if (nb) nb.style.display = 'inline-block';
 
   // ── SAVE TO BACKEND ─────────────────────────────────────
   // levelCompleted = true because this is the victory path
@@ -1876,8 +1875,6 @@ function returnToTitle() {
   document.getElementById('titleScreen').classList.add('active');
   document.getElementById('logPanel').innerHTML='';
   document.getElementById('objPanel').innerHTML='';
-  const nb = document.getElementById('nextLevelBtn3');
-  if (nb) nb.style.display = 'none';
 }
 
 // ============================================================
@@ -1921,13 +1918,103 @@ window.addEventListener('resize', ()=>{
 // Prevent context menu on canvas
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 
-// ============================================================
-// NEXT LEVEL NAVIGATION
-// ============================================================
-function goToNextLevel3() {
-  localStorage.setItem('cybershield_just_completed', '3');
-  window.location.href = '../../../game-app/index.html';
+async function showLeaderboard() {
+  showModal('LEADERBOARD - LEVEL 3', `
+    <div style="text-align:center;padding:20px;color:var(--cyan);">
+      Loading leaderboard...
+    </div>
+  `, [{ label: 'CLOSE', fn: () => closeModal() }]);
+
+  try {
+    const result = await gameApi.getLeaderboard(3);
+    if (!result.success || !result.leaderboard.length) {
+      document.getElementById('modalContent').innerHTML = `
+        <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5);">
+          No completions yet. Be the first!
+        </div>`;
+      return;
+    }
+
+    const rows = result.leaderboard.map((entry, index) => {
+      const medal = index === 0 ? '#1' : index === 1 ? '#2' : index === 2 ? '#3' : `#${index + 1}`;
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;
+          padding:6px 8px;border-bottom:1px solid rgba(0,238,255,0.1);font-size:11px;">
+          <span style="color:var(--yellow);width:32px;">${medal}</span>
+          <span style="flex:1;color:#fff;">${entry.username}</span>
+          <span style="color:var(--green);width:60px;text-align:center;">${entry.plays} run(s)</span>
+          <span style="color:var(--cyan);width:70px;text-align:right;">${entry.bestScore.toLocaleString()} pts</span>
+          <span style="color:rgba(0,238,255,0.4);width:70px;text-align:right;">${entry.completed ? 'WIN' : 'RUN'}</span>
+        </div>`;
+    }).join('');
+
+    document.getElementById('modalContent').innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:9px;
+        color:rgba(0,238,255,0.4);padding:4px 8px;letter-spacing:2px;margin-bottom:4px;">
+        <span style="width:32px;">RANK</span>
+        <span style="flex:1;">AGENT</span>
+        <span style="width:60px;text-align:center;">RUNS</span>
+        <span style="width:70px;text-align:right;">SCORE</span>
+        <span style="width:70px;text-align:right;">STATUS</span>
+      </div>
+      ${rows}`;
+  } catch (error) {
+    document.getElementById('modalContent').innerHTML = `
+      <div style="color:var(--red);padding:12px;">
+        Could not load leaderboard.<br>
+        <span style="font-size:10px;opacity:.6">${error.message}</span>
+      </div>`;
+  }
 }
+
+async function showPastRuns() {
+  if (!GS.username) return;
+
+  showModal(`YOUR RUNS - ${GS.username}`, `
+    <div style="text-align:center;padding:20px;color:var(--cyan);">Loading...</div>
+  `, [{ label: 'CLOSE', fn: () => closeModal() }]);
+
+  try {
+    const result = await gameApi.getProgress(3, GS.username);
+    if (!result.success || !result.data.length) {
+      document.getElementById('modalContent').innerHTML = `
+        <div style="color:rgba(255,255,255,0.5);padding:12px;">No previous runs found.</div>`;
+      return;
+    }
+
+    const rows = result.data.map(run => {
+      const seconds = run.timeSpent || 0;
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const date = new Date(run.playedAt || run.createdAt).toLocaleDateString();
+      const status = run.levelCompleted
+        ? `<span style="color:var(--green)">WIN</span>`
+        : `<span style="color:var(--red)">LOSS</span>`;
+      return `
+        <div style="display:flex;justify-content:space-between;
+          padding:6px 8px;border-bottom:1px solid rgba(0,238,255,0.1);font-size:10px;">
+          <span>${date}</span>
+          <span>${status}</span>
+          <span style="color:var(--cyan)">${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}</span>
+          <span style="color:var(--yellow)">${run.score.toLocaleString()} pts</span>
+          <span style="opacity:.5">${run.stats?.difficulty || '-'}</span>
+        </div>`;
+    }).join('');
+
+    document.getElementById('modalContent').innerHTML = `
+      <div style="font-size:10px;opacity:.5;padding:4px 8px;margin-bottom:4px;">
+        ${result.count} run(s) found
+      </div>
+      ${rows}`;
+  } catch (error) {
+    document.getElementById('modalContent').innerHTML = `
+      <div style="color:var(--red);padding:12px;">
+        Could not reach server. ${error.message}
+      </div>`;
+  }
+}
+
+gameApi?.prefillAgentInput('usernameInput');
 </script>
 </body>
 </html>

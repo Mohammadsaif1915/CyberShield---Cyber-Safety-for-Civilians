@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #04040e;
+  font-family: 'Share Tech Mono', monospace;
+  cursor: crosshair;
+}
+
+#gameCanvas {
+  display: block;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+}
+
+#scanline {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 10;
+  background: repeating-linear-gradient(
+    to bottom, transparent, transparent 2px,
+    rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px
+  );
+  animation: flicker 9s infinite;
+}
+@keyframes flicker {
+  0%,94%,96%,98%,100% { opacity:1; }
+  95% { opacity:0.82; } 97% { opacity:0.91; }
+}

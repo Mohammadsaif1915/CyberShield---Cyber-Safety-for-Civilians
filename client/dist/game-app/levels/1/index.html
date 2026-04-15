@@ -262,23 +262,6 @@
     font-size: 13px; border-radius: 8px; cursor: pointer;
   }
   #play-again:hover { background: #00ffe711; }
-
-  #next-level-btn {
-    margin-top: 12px; padding: 13px 36px;
-    border: 2px solid #00ff88;
-    background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05));
-    color: #00ff88;
-    font-family: 'Courier New', monospace;
-    font-size: 14px; font-weight: bold; letter-spacing: 1px;
-    border-radius: 8px; cursor: pointer;
-    box-shadow: 0 0 18px rgba(0,255,136,0.25);
-    transition: all 0.2s;
-  }
-  #next-level-btn:hover {
-    background: linear-gradient(135deg, rgba(0,255,136,0.3), rgba(0,255,136,0.1));
-    box-shadow: 0 0 30px rgba(0,255,136,0.45);
-    transform: scale(1.03);
-  }
 </style>
 </head>
 <body>
@@ -356,11 +339,33 @@
   </div>
 
   <button id="play-again" onclick="resetGame()">↺ PLAY AGAIN</button>
-  <button id="next-level-btn" onclick="goToNextLevel()">CONTINUE TO LEVEL 2 ▶</button>
+  <button id="back-to-map" onclick="backToMap()" style="margin-top:10px;padding:12px 32px;border:1px solid #00ff88;background:#00ff8811;color:#00ff88;font-family:'Courier New',monospace;font-size:13px;border-radius:8px;cursor:pointer;letter-spacing:1px;">◀ BACK TO LEVEL MAP</button>
 </div>
 
 <!-- ==================== JAVASCRIPT ==================== -->
+<script src="../../game-api.js"></script>
 <script>
+
+/* ─────────────────────────────────────────────────────────
+   CYBER SHIELD — Level 1: The Phishing Room
+   ─────────────────────────────────────────────────────────
+   Sections:
+   1.  Canvas Setup & Resize
+   2.  Backend API Configuration
+   3.  Game State
+   4.  Player Object
+   5.  Keyboard Input
+   6.  Room & Object Layout
+   7.  Scenario Data (modal content)
+   8.  Modal System
+   9.  XP & Score
+   10. Particles
+   11. Player Movement & Collision
+   12. Draw Functions
+   13. Game Loop
+   14. Game Control (start / reset)
+   15. Backend Integration (save / leaderboard)
+   ───────────────────────────────────────────────────────── */
 
 
 /* ── 1. Canvas Setup ── */
@@ -377,9 +382,7 @@ window.addEventListener('resize', () => { resize(); if (gameRunning) initRoom();
 
 
 /* ── 2. Backend API Configuration ── */
-// Change this if your backend runs on a different port
-const API_BASE = 'http://localhost:5000/api/level1';
-const GAME_API = 'http://localhost:5000/api/game';
+const gameApi = window.CyberShieldGameApi;
 
 
 /* ── 3. Game State ── */
@@ -1024,15 +1027,6 @@ function startGame() {
 }
 
 /** Called by the Play Again button on the complete screen. */
-/**
- * goToNextLevel — marks level 1 complete and navigates to the game hub.
- * Does NOT reload this page.
- */
-function goToNextLevel() {
-  localStorage.setItem('cybershield_just_completed', '1');
-  window.location.href = '../../game-app/index.html';
-}
-
 function resetGame() {
   score           = 0;
   currentUsername = '';
@@ -1191,6 +1185,63 @@ document.getElementById('username-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') startGame();
   e.stopPropagation(); // Don't fire game's keydown handler
 });
+
+async function saveProgressToBackend() {
+  const statusEl = document.getElementById('save-status');
+  statusEl.textContent = 'Saving your progress...';
+  statusEl.className = '';
+
+  try {
+    const data = await gameApi.saveProgress({
+      username: currentUsername,
+      level: 1,
+      score,
+      maxScore: 60,
+      levelCompleted: completed.door === true,
+      phasesCompleted: Object.keys(completed).filter(key => completed[key]),
+      totalPhases: 4,
+      stats: { ...completed },
+    });
+
+    if (!data.success) throw new Error(data.error || 'Unknown error');
+    gameApi.rememberAgent(currentUsername);
+    statusEl.textContent = 'Progress saved to database!';
+    statusEl.className = 'saved';
+    showApiToast('Progress synced to server');
+  } catch (err) {
+    console.error('Save failed:', err.message);
+    statusEl.textContent = 'Could not save. Is the backend running?';
+    statusEl.className = 'failed';
+    showApiToast('Backend unreachable', true);
+  }
+}
+
+async function fetchLeaderboard() {
+  const rowsEl = document.getElementById('leaderboard-rows');
+
+  try {
+    const data = await gameApi.getLeaderboard(1);
+    if (!data.success || !data.leaderboard.length) {
+      rowsEl.innerHTML = '<p style="color:#555;font-size:12px;">No entries yet.</p>';
+      return;
+    }
+
+    rowsEl.innerHTML = data.leaderboard
+      .map((entry, i) => `
+        <div class="lb-row">
+          <span class="lb-rank">#${i + 1}</span>
+          <span class="lb-user">${escapeHtml(entry.username)}</span>
+          <span class="lb-score">${entry.bestScore} XP ${entry.completed ? 'shield' : ''}</span>
+        </div>
+      `)
+      .join('');
+  } catch (err) {
+    console.error('Leaderboard fetch failed:', err.message);
+    rowsEl.innerHTML = '<p style="color:#554;font-size:12px;">Leaderboard offline.</p>';
+  }
+}
+
+gameApi?.prefillAgentInput('username-input');
 </script>
 </body>
 </html>
